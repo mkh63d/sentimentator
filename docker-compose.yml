@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+    orchestrator:
+        build: ./core_orchestrator
+        depends_on:
+            - rabbitmq
+            - postgres
+        environment:
+            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+            - DATABASE_URL=postgresql://postgres:password@postgres:5432/sentimentator
+
+    downloader-transcriber:
+        build: ./video_processing_service
+        depends_on:
+            - rabbitmq
+        environment:
+            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+
+    nlp-analyzer:
+        build: ./NLP_analyzer_service
+        depends_on:
+            - rabbitmq
+        environment:
+            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+
+    frontend:
+        build: ./core_frontend
+        depends_on:
+            - orchestrator
+
+    rabbitmq:
+        image: rabbitmq:4.1.4-management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+
+    postgres:
+        image: postgres:18
+        environment:
+            POSTGRES_PASSWORD: sentimentator_password
+            POSTGRES_DB: sentimentator_db
+        ports:
+            - "5432:5432"
+
+networks:
+    default:
+        name: sentimentator-net

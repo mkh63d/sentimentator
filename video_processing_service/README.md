@@ -6,7 +6,7 @@
 
 Handles:
 
--   Video/audio downloading from YouTube, TikTok, and Instagram.
+-   Video/audio downloading from YouTube, ~~TikTok~~, and ~~Instagram~~.
 -   Audio extraction.
 -   Speech-to-text transcription (using Whisper or Vosk).
 -   Publishing transcripts for further NLP analysis.
@@ -32,44 +32,12 @@ flowchart TD
 
 ## 🛠️ Technology Stack
 
-| Component        | Technology                 | Purpose                |
-| ---------------- | -------------------------- | ---------------------- |
-| Framework        | Gin                        | Web server             |
-| Video Processing | yt-dlp + go-ytdlp + FFmpeg | Video/audio extraction |
-| Storage          | Local                      | Storage integration    |
-| Queue            | amqp (RabbitMQ)            | Message queue client   |
-| Scraping         | Colly                      | Web scraping framework |
-| Logging          | Logrus                     | Structured logging     |
-| Monitoring       | Prometheus + pprof (maybe) | Performance monitoring |
-
-## 🔄 Processing Workflow
-
-```mermaid
-sequenceDiagram
-    participant Queue as RabbitMQ
-    participant Go as Go Service
-    participant Platform as Video Platform
-    participant FFmpeg as FFmpeg
-    participant Storage as File Storage
-    participant Python as Python AI Service
-
-    Queue->>Go: video.download message
-    Note over Queue,Go: {job_id, video_url, platform???}
-
-    Go->>Platform: Download video request
-    Platform-->>Go: Video stream/file
-
-    Go->>FFmpeg: Extract audio
-    FFmpeg-->>Go: Audio file (WAV/MP3)
-
-    Go->>Storage: Upload audio file
-    Storage-->>Go: File URL/Path
-
-    Go->>Queue: Publish audio.ready message
-    Note over Go,Queue: {job_id, audio_path, metadata}
-
-    Queue->>Python: Forward to AI pipeline
-
-    Go->>Queue: Job status update???
-    Note over Go,Queue: {job_id, status: "completed"}
-```
+| Component        | Technology                    | Purpose                     |
+| ---------------- | ----------------------------- | --------------------------- |
+| Framework        | Gin                           | Web server                  |
+| Video Processing | yt-dlp/go-ytdlp + FFmpeg      | Download & audio extraction |
+| Transcription    | Whisper / Vosk / External ASR | Speech-to-text              |
+| Queue            | amqp (RabbitMQ)               | Message queue client        |
+| Scraping         | Colly                         | Web scraping framework      |
+| Logging          | Logrus                        | Structured logging          |
+| Monitoring       | Prometheus + pprof (maybe)    | Performance monitoring      |

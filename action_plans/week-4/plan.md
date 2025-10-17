@@ -31,24 +31,26 @@
     -   Subject to YouTube's terms of service
     -   Requires local processing and storage
 -   Example Usage: - Download subtitles only (e.g., English):
-    `powershell
+
+    ```powershell
     .\yt-dlp.exe --sub-lang en --write-sub --skip-download https://www.youtube.com/watch?v=0e3GPea1Tyg
-`
+    ```
+
 -   Download audio only:
-    `powershell
+    ```powershell
     .\yt-dlp.exe -x --audio-format mp3 https://www.youtube.com/watch?v=8HzW94z0MjU
-`
+    ```
 
 ---
 
 </details>
 <br/>
 
-1. **Research and compare Speech-to-Text models**
+3. **Research and compare Speech-to-Text models**
     - Test and compare Whisper vs. Google API.
-2. **Select and justify the technology stack**
+4. **Select and justify the technology stack**
     - Choose languages, frameworks, and databases.
-3. **Create project documentation**
+5. **Create project documentation**
     - Vision document
     - Test plan
     - Division of tasks within the team
@@ -59,3 +61,11 @@
 
 -   Deliver comprehensive project documentation covering the above points.
 -   Ensure the team is ready for development with a clear plan and environment setup.
+
+```
+
+```
+
+```
+
+```

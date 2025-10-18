@@ -1,0 +1,9 @@
+{
+  "model": "Google Speech-to-Text API",
+  "language": "en-US",
+  "processingTimeSeconds": "14.86",
+  "created": "2025-10-18T09:08:13.398Z",
+  "audioFile": "./small_talk_with_strangers_learn_english.mp3",
+  "gcsUri": "gs://stt-temp-bucket/small_talk_with_strangers_learn_english.mp3",
+  "outputFile": "google_stt_transcription_test.txt"
+}

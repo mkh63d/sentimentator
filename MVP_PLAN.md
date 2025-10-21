@@ -2,7 +2,7 @@
 
 ## Overall MVP Goals
 
-The goal of the MVP is to deliver a functional end-to-end application that allows users to submit a short YouTube video (which is about recension about mobile phone) URL and view a sentiment analysis report about mobile phone in it.
+The goal of the MVP is to deliver a functional end-to-end application that allows users to submit a short YouTube video (which is a review of a mobile phone) URL and view a sentiment analysis report about a mobile phone in it.
 
 - **End-to-End Functionality:** A user can submit a short YouTube video URL via web platform and see the sentiment analysis results for mobile phone presented in it.
 - **Core Features:** The system will extract key features (camera, battery, etc.) and determine the sentiment for each.

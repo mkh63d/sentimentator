@@ -150,7 +150,7 @@ Assuming 100 hours of audio transcription per month:
 2. **Performance**:
 
     - Higher quality transcription with better punctuation
-    - Handles noise in audio sapless better
+    - Handles noise in audio seamlessly better
     - Automatic language detection eliminates configuration overhead
 
 3. **Cost Efficiency for MVP**:

@@ -4,7 +4,7 @@
 
 ## 🎯 Purpose
 
-This service is responsible for processing video content in such a way to extract it's transcribe.
+This service is responsible for processing video content in such a way to extract its transcript.
 
 - Downloading video/audio from **YouTube**.
 - Extracting audio from the downloaded files.

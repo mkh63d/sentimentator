@@ -1,43 +1,50 @@
-# Sentimentator: Go Media Retrieval & Audio & Transcription Service
+# Sentimentator: Video URL Processing Service (Go)
 
 ### Consumes Download Requests and Publishes Transcripts
 
 ## 🎯 Purpose
 
-Handles:
+This service is responsible for processing video content in such a way to extract it's transcribe.
 
--   Video/audio downloading from YouTube, ~~TikTok~~, and ~~Instagram~~.
--   Audio extraction.
--   Speech-to-text transcription (using Whisper or Vosk).
--   Publishing transcripts for further NLP analysis.
+- Downloading video/audio from **YouTube**.
+- Extracting audio from the downloaded files.
+- Transcribing the audio to text using the **OpenAI Whisper API**.
+- Publishing the resulting transcripts for downstream analysis by the NLP service.
 
 ## 🧱 Workflow
 
-1. Consume `video.download.request` event.
-2. Download video via `yt-dlp` (detect platform automatically).
-3. Extract `.wav` audio using `ffmpeg`.
-4. Transcribe audio to text with a speech-to-text model (Whisper/Vosk).
-5. Publish a `video.transcript.ready` event containing the transcript and metadata.
+1.  **Consume** a `video.download.request` event from the message queue. The event contains the URL of content.
+2.  **Download** the audio from the provided URL or video.
+3.  **Transformation** ensure possession of audio format suitable for the transcription service (`.mp3`).
+4.  **Transcribe** the audio to text by calling the **OpenAI Whisper API**.
+5.  **Publish** a `video.transcript.ready` event to the message queue, containing the transcript text and associated metadata.
 
 ## 🧩 Event Flow
 
+Here is a sequence diagram illustrating the interaction between the services:
+
 ```mermaid
-flowchart TD
-    A[C# Orchestrator] -->|video.download.request| B[Go Downloader]
-    B -->|yt-dlp + ffmpeg| C[Video Platform APIs]
-    B -->|Transcribe via Whisper/Vosk| D[Transcript Text]
-    B -->|video.transcript.ready| E[RabbitMQ]
-    E --> F[Python NLP Analyzer]
+sequenceDiagram
+    participant RabbitMQ
+    participant VideoProcessor as Video Processing Service (Go)
+    participant YouTube
+    participant WhisperAPI as OpenAI Whisper API
+
+    RabbitMQ-->>VideoProcessor: Consume `video.download.request`
+    VideoProcessor->>YouTube: Download content via yt-dlp
+    YouTube-->>VideoProcessor: Audio stream/file
+    VideoProcessor->>WhisperAPI: Request transcription
+    WhisperAPI-->>VideoProcessor: Return transcript text
+    VideoProcessor->>RabbitMQ: Publish `video.transcript.ready`
 ```
 
 ## 🛠️ Technology Stack
 
-| Component        | Technology                    | Purpose                     |
-| ---------------- | ----------------------------- | --------------------------- |
-| Framework        | Gin                           | Web server                  |
-| Video Processing | yt-dlp/go-ytdlp + FFmpeg      | Download & audio extraction |
-| Transcription    | Whisper / Vosk / External ASR | Speech-to-text              |
-| Queue            | amqp (RabbitMQ)               | Message queue client        |
-| Scraping         | Colly                         | Web scraping framework      |
-| Logging          | Logrus                        | Structured logging          |
-| Monitoring       | Prometheus + pprof (maybe)    | Performance monitoring      |
+| Component              | Technology                  | Purpose & Justification                                                                                                            |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Web Framework          | Gin                         | Minimalistic and fast web framework allowing for dev-debugging features.                                                           |
+| Video/Audio Processing | yt-dlp / go-ytdlp           | Tool for downloading video and audio from various platforms, including YouTube.                                                    |
+| Audio Extraction       | FFmpeg                      | Used here to extract audio streams from video files if download of `.mp3` won't be available.                                      |
+| Transcription          | OpenAI Whisper API          | Chosen based on research indicating better transcription quality, simpler implementation compared to alternatives like Google STT. |
+| Message Queue          | RabbitMQ (via amqp library) | A mature message broker for asynchronous communication between services.                                                           |
+| Logging                | `log/slog`                  | A Go to package from standard library.                                                                                             |

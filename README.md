@@ -15,8 +15,6 @@ flowchart TD
     subgraph CSharp [🏗️ C# Orchestrator]
         B1[Job Manager]
         B2[Database Handler]
-        B3[Stuff]
-        B4[More Stuff]
     end
 
     subgraph GoService [🦦 Go Downloader + Transcriber]

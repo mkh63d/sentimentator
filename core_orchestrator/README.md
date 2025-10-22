@@ -23,7 +23,7 @@ mindmap
       Input Validation
       Error Handling
     Authentication
-      JWT Tokens???
+      JWT Tokens
       User Management
     Job Orchestration
       Workflow Management
@@ -45,11 +45,10 @@ mindmap
 
 | Component         | Technology          | Purpose                     |
 | ----------------- | ------------------- | --------------------------- |
-| **Framework**     | ???                 | Web API framework           |
-| **Database**      | ???                 | Data persistence            |
-| **Cache**         | Redis               | Performance optimization    |
+| **Framework**     | ASP.NET             | Web API framework           |
+| **Database**      | PostgreSQL          | Data persistence            |
 | **Queue**         | RabbitMQ            | Inter-service communication |
 | **Auth**          | JWT Bearer          | Authentication              |
-| **Documentation** | Swagger/OpenAPI ??? | API documentation           |
-| **Testing**       | xD                  | Unit/Integration tests      |
-| **Monitoring**    | ???                 | Logging and monitoring      |
+| **Documentation** | Swagger/OpenAPI     | API documentation           |
+| **Testing**       | xUnit               | Unit/Integration tests      |
+| **Monitoring**    | C# built-in Logger  | Logging and monitoring      |

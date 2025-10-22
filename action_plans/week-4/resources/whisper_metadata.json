@@ -1,0 +1,10 @@
+{
+  "model": "whisper-1",
+  "AUDIO_FILE": "./small_talk_with_strangers_learn_english.mp3",
+  "processingTimeSeconds": "5.09",
+  "created": "2025-10-18T09:08:31.519Z",
+  "openaiResponse": {
+    "request_id": "req_5c8d51e5ea2245b28ef9b574c9b8c277",
+    "textLength": 648
+  }
+}

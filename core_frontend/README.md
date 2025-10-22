@@ -28,7 +28,7 @@ mindmap
       Accessibility
     Authentication
       Login/Register Forms
-      JWT Token Management???
+      JWT Token Management
       Route Guards
       User Profile
       Session Handling
@@ -40,8 +40,8 @@ mindmap
 | -------------------- | ------------------------ |
 | **Framework**        | Vue.Js (Composition API) |
 | **Styling**          | Tailwind CSS v4          |
-| **Charts**           | ???                      |
+| **Charts**           | vue-chartjs              |
 | **State Management** | Pinia                    |
 | **HTTP**             | Fetch API                |
-| **Testing**          | xD Vitest+Cypress???     |
+| **Testing**          | Vitest+Cypress           |
 | **Bundler**          | Vite                     |

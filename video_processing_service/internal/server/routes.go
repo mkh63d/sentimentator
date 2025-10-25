@@ -27,7 +27,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.GET("/health", s.healthHandler)
 
-	staticFiles, _ := fs.Sub(web.Files, "assets")
+	staticFiles, err := fs.Sub(web.Files, "assets")
+	if err != nil {
+		panic("failed to find 'assets' subdirectory in embedded filesystem: " + err.Error())
+	}
 	r.StaticFS("/assets", http.FS(staticFiles))
 
 	r.GET("/web", func(c *gin.Context) {

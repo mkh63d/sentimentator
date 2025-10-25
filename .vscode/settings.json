@@ -1,12 +1,27 @@
 {
     "cSpell.words": [
         "amqp",
+        "Buildx",
+        "dylib",
+        "godotenv",
         "Goroutines",
+        "itest",
+        "jackc",
+        "joho",
+        "libgcc",
+        "libstdc",
         "Logrus",
         "mindmap",
         "pprof",
+        "psql",
         "rabbitmq",
         "Sentimentator",
+        "sslmode",
+        "stdlib",
+        "templ",
+        "testcontainers",
+        "testdata",
+        "tmpl",
         "Vosk",
         "ytdlp"
     ]

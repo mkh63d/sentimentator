@@ -10,12 +10,22 @@ services:
             - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
             - DATABASE_URL=postgresql://postgres:password@postgres:5432/sentimentator
 
-    downloader-transcriber:
+    video-processing-service:
         build: ./video_processing_service
+        # image: replace build with image when using prebuilt image
         depends_on:
             - rabbitmq
         environment:
+            - PORT=8080
+            - SENTIMENTATOR_VPS_DB_HOST=psql_vps
+            - SENTIMENTATOR_VPS_DB_PORT=5432
+            - SENTIMENTATOR_VPS_DB_USERNAME=sentimentator_vps_user
+            - SENTIMENTATOR_VPS_DB_PASSWORD=sentimentator_vps_password
+            - SENTIMENTATOR_VPS_DB_DATABASE=sentimentator_vps_db
+            - SENTIMENTATOR_VPS_DB_SCHEMA=public
             - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+        ports:
+            - "8080:8080"
 
     nlp-analyzer:
         build: ./NLP_analyzer_service

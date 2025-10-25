@@ -23,7 +23,10 @@ func NewServer() *http.Server {
 	if !exists {
 		portEnv = "8080"
 	}
-	port, _ := strconv.Atoi(portEnv)
+	port, err := strconv.Atoi(portEnv)
+	if err != nil {
+		port = 8080
+	}
 
 	NewServer := &Server{
 		port: port,

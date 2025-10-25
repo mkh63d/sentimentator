@@ -5,14 +5,18 @@ on:
             - main
             - dev
             - gopher
+        paths:
+            - "video_processing_service/**"
+            - ".github/workflows/build-and-push-video-processing-service.yml"
     workflow_dispatch:
 
 env:
     REGISTRY: ghcr.io
     IMAGE_NAME: ${{ github.repository }}
+    SERVICE_NAME: video_processing_service
 
 concurrency:
-    group: ${{ github.ref }}
+    group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
@@ -53,9 +57,11 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.SERVICE_NAME }}
                   tags: |
                       type=ref,event=branch
+                  flavor: |
+                      latest=false
 
             - name: Build and push Docker image
               uses: docker/build-push-action@v5

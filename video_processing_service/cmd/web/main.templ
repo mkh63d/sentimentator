@@ -106,31 +106,3 @@ templ MainPage() {
 		</div>
 	}
 }
-
-templ VideoUrlPost(yt_video_id string) {
-	<div class="p-6 border-l-4 border-green-500 rounded-lg shadow-md bg-green-50">
-		<div class="flex items-start">
-			<div class="flex-shrink-0">
-				<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-				</svg>
-			</div>
-			<div class="ml-3">
-				<h3 class="text-sm font-medium text-green-800">Success!</h3>
-				<div class="mt-2 text-sm text-green-700">
-					<p>Video with YouTube ID: <span class="font-mono font-semibold">{ yt_video_id }</span> was successfully saved to the database for processing.</p>
-				</div>
-				<div class="mt-4">
-					<div class="flex space-x-4 text-sm">
-						<span class="text-green-600">
-							<svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-							</svg>
-							Queued for processing
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-}

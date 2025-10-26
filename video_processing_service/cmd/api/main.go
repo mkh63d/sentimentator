@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/server"
 )
 
@@ -34,6 +35,17 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
+	log.Println("Starting Video Processing Service...")
+
+	// Initialize database and run migrations
+	db := database.New()
+	defer db.Close()
+
+	log.Println("Running database migrations...")
+	if err := database.AutoMigrate(db); err != nil {
+		log.Printf("Warning: Migration failed: %v", err)
+		log.Println("Service will continue, but database operations may fail")
+	}
 
 	server := server.NewServer()
 
@@ -41,6 +53,7 @@ func main() {
 
 	go gracefulShutdown(server, done)
 
+	log.Printf("Server starting on %s", server.Addr)
 	err := server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))

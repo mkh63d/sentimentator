@@ -9,7 +9,7 @@ import (
 	"io/fs"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/cmd/web"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/server/handlers"
+	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
 
 	"github.com/a-h/templ"
 )
@@ -24,7 +24,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true, // Enable cookies/auth
 	}))
 
-	r.GET("/", s.HelloWorldHandler)
 	r.GET("/health", handlers.HealthCheck)
 
 	v1 := r.Group("/api/v1")
@@ -38,20 +37,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 	r.StaticFS("/assets", http.FS(staticFiles))
 
-	r.GET("/web", func(c *gin.Context) {
-		templ.Handler(web.HelloForm()).ServeHTTP(c.Writer, c.Request)
+	r.GET("/video", func(c *gin.Context) {
+		component := web.VideoUrlForm()
+		templ.Handler(component).ServeHTTP(c.Writer, c.Request)
 	})
 
-	r.POST("/hello", func(c *gin.Context) {
-		web.HelloWebHandler(c.Writer, c.Request)
+	r.POST("/video/process", func(c *gin.Context) {
+		web.VideoUrlWebHandler(c.Writer, c.Request)
 	})
 
 	return r
-}
-
-func (s *Server) HelloWorldHandler(c *gin.Context) {
-	resp := make(map[string]string)
-	resp["message"] = "Hello World"
-
-	c.JSON(http.StatusOK, resp)
 }

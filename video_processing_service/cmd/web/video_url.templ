@@ -1,0 +1,17 @@
+package web
+
+templ VideoUrlForm() {
+	@Base() {
+		<form hx-post="/video/process" method="POST" hx-target="#video-url-container">
+			<input class="p-2 text-black bg-gray-200 border border-gray-400 rounded-lg" id="yt_url_input" name="yt_url_input" type="text"/>
+			<button type="submit" class="px-4 py-2 text-white bg-orange-500 rounded hover:bg-orange-700">Submit YT URL For processing</button>
+		</form>
+		<div id="video-url-container"></div>
+	}
+}
+
+templ VideoUrlPost(yt_video_id string) {
+	<div class="p-4 mt-6 bg-green-100 rounded-lg shadow-md">
+		<p>Video with YT ID: { yt_video_id } was saved in DB for further processing</p>
+	</div>
+}

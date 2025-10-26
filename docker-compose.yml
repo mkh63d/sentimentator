@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
     orchestrator:
         build: ./core_orchestrator
@@ -8,20 +6,23 @@ services:
             - postgres
         environment:
             - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
-            - DATABASE_URL=postgresql://postgres:password@postgres:5432/sentimentator
+            - DATABASE_URL=postgresql://${ORCHESTRATOR_DB_USER}:${ORCHESTRATOR_DB_PASS}@postgres:5432/orchestrator_db
 
     video-processing-service:
         build: ./video_processing_service
         # image: replace build with image when using prebuilt image
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
         environment:
             - PORT=8080
-            - SENTIMENTATOR_VPS_DB_HOST=psql_vps
+            - SENTIMENTATOR_VPS_DB_HOST=postgres
             - SENTIMENTATOR_VPS_DB_PORT=5432
-            - SENTIMENTATOR_VPS_DB_USERNAME=sentimentator_vps_user
-            - SENTIMENTATOR_VPS_DB_PASSWORD=sentimentator_vps_password
-            - SENTIMENTATOR_VPS_DB_DATABASE=sentimentator_vps_db
+            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
+            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
+            - SENTIMENTATOR_VPS_DB_DATABASE=video_processing_db
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
             - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
         ports:
@@ -44,15 +45,35 @@ services:
         ports:
             - "5672:5672"
             - "15672:15672"
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     postgres:
         image: postgres:18
         environment:
-            POSTGRES_PASSWORD: sentimentator_password
-            POSTGRES_DB: sentimentator_db
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+            ORCHESTRATOR_DB_USER: ${ORCHESTRATOR_DB_USER}
+            ORCHESTRATOR_DB_PASS: ${ORCHESTRATOR_DB_PASS}
+            VPS_DB_USER: ${VPS_DB_USER}
+            VPS_DB_PASS: ${VPS_DB_PASS}
         ports:
             - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql
+            - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
 networks:
     default:
         name: sentimentator-net
+
+volumes:
+    postgres_data:

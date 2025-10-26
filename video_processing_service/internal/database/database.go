@@ -22,6 +22,20 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
+
+	SaveVideo(ctx context.Context, videoID, platform, originalURL string) (int, error)
+	GetVideoByID(ctx context.Context, id int) (*Video, error)
+}
+
+// Video represents a video entry in the database
+type Video struct {
+	ID          int       `json:"id"`
+	VideoID     string    `json:"video_id"`
+	Platform    string    `json:"platform"`
+	OriginalURL string    `json:"original_url"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type service struct {
@@ -112,4 +126,61 @@ func (s *service) Health() map[string]string {
 func (s *service) Close() error {
 	log.Printf("Disconnected from database: %s", database)
 	return s.db.Close()
+}
+
+// SaveVideo saves a video to the database
+func (s *service) SaveVideo(ctx context.Context, videoID, platform, originalURL string) (int, error) {
+	query := `
+		INSERT INTO videos (video_id, platform, original_url, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`
+
+	var id int
+	now := time.Now()
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		videoID,
+		platform,
+		originalURL,
+		"pending",
+		now,
+		now,
+	).Scan(&id)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to save video: %w", err)
+	}
+
+	return id, nil
+}
+
+// GetVideoByID retrieves a video by its database ID
+func (s *service) GetVideoByID(ctx context.Context, id int) (*Video, error) {
+	query := `
+		SELECT id, video_id, platform, original_url, status, created_at, updated_at
+		FROM videos
+		WHERE id = $1
+	`
+
+	video := &Video{}
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&video.ID,
+		&video.VideoID,
+		&video.Platform,
+		&video.OriginalURL,
+		&video.Status,
+		&video.CreatedAt,
+		&video.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("video not found")
+		}
+		return nil, fmt.Errorf("failed to get video: %w", err)
+	}
+
+	return video, nil
 }

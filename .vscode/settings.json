@@ -29,6 +29,7 @@
         "testcontainers",
         "testdata",
         "tmpl",
+        "VARCHAR",
         "Vosk",
         "ytdlp"
     ]

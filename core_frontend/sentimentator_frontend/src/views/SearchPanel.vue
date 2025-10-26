@@ -32,11 +32,17 @@
             <button @click="submit" :disabled="!links.length">Analyze</button>
             <button @click="clearAll" :disabled="!links.length">Clear</button>
         </div>
+
+        <LoadingOverlay />
     </section>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useLoadingStore } from '@/stores/useLoadingStore'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
+
+const loading = useLoadingStore()
 
 const emit = defineEmits(['analyze'])
 
@@ -97,8 +103,14 @@ const invalidCount = computed(() => {
     return all.filter(l => !isValidUrl(l)).length
 })
 
-const submit = () => {
+const submit = async () => {
     if (!links.value.length) return
+
+    // Mock Loading
+    loading.show('Analyzing links...')
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    loading.hide()
+
     emit('analyze', links.value.slice())
 }
 </script>

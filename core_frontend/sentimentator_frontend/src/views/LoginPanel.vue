@@ -40,7 +40,7 @@
 
                     <div v-if="error" class="error-message">{{ error }}</div>
 
-                    <button type="submit" class="btn-primary">
+                    <button type="submit" class="btn-primary" :disabled="!isFormValid">
                         {{ isLogin ? 'Login' : 'Register' }}
                     </button>
                 </form>
@@ -57,23 +57,29 @@
 </template>
 
 <script lang="ts">
-interface FormData {
-    email: string
-    password: string
-    confirmPassword: string
-}
+import { FormData } from '@/types/FormData'
 
 export default {
     name: 'LoginPanel',
     data() {
         return {
-            isLogin: true as boolean,
+            isLogin: true,
             form: {
                 email: '',
                 password: '',
                 confirmPassword: ''
             } as FormData,
             error: '' as string
+        }
+    },
+    computed: {
+        isFormValid(): boolean {
+            const emailValid = this.form.email.trim() !== ''
+            const passwordValid = this.form.password.trim() !== ''
+            if (!this.isLogin) {
+                return emailValid && passwordValid && this.form.confirmPassword.trim() !== ''
+            }
+            return emailValid && passwordValid
         }
     },
     methods: {
@@ -95,12 +101,14 @@ export default {
                     // Implement login logic
                     console.log('Logging in:', this.form.email)
                     // await this.$store.dispatch('login', { email: this.form.email, password: this.form.password })
+                    this.$emit('login', { email: this.form.email, password: this.form.password })
                 } else {
                     // Implement registration logic
                     console.log('Registering:', this.form.email)
                     // await this.$store.dispatch('register', { email: this.form.email, password: this.form.password })
+                    this.$emit('login', { email: this.form.email, password: this.form.password })
                 }
-                // this.$router.push('/')
+                this.$router.push('/list')
             } catch (err) {
                 this.error = (err as Error).message || 'An error occurred'
             }

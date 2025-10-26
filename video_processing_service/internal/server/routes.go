@@ -50,7 +50,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		})
 
 		wr.POST("/video/process", func(c *gin.Context) {
-			web.VideoUrlWebHandler(c.Writer, c.Request)
+			web.VideoUrlWebHandler(c.Writer, c.Request, s.db)
 		})
 	}
 

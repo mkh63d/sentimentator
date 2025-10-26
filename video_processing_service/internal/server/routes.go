@@ -35,16 +35,24 @@ func (s *Server) RegisterRoutes() http.Handler {
 	if err != nil {
 		panic("failed to find 'assets' subdirectory in embedded filesystem: " + err.Error())
 	}
-	r.StaticFS("/assets", http.FS(staticFiles))
 
-	r.GET("/video", func(c *gin.Context) {
-		component := web.VideoUrlForm()
-		templ.Handler(component).ServeHTTP(c.Writer, c.Request)
-	})
+	wr := r.Group("/web")
+	{
+		wr.StaticFS("/assets", http.FS(staticFiles))
+		wr.GET("/", func(c *gin.Context) {
+			component := web.MainPage()
+			templ.Handler(component).ServeHTTP(c.Writer, c.Request)
+		})
 
-	r.POST("/video/process", func(c *gin.Context) {
-		web.VideoUrlWebHandler(c.Writer, c.Request)
-	})
+		wr.GET("/video", func(c *gin.Context) {
+			component := web.MainPage()
+			templ.Handler(component).ServeHTTP(c.Writer, c.Request)
+		})
+
+		wr.POST("/video/process", func(c *gin.Context) {
+			web.VideoUrlWebHandler(c.Writer, c.Request)
+		})
+	}
 
 	return r
 }

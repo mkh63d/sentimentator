@@ -1,13 +1,6 @@
 name: Test Go Video Processing Service
 
 on:
-    push:
-        branches:
-            - main
-            - dev
-        paths:
-            - "video_processing_service/**"
-            - ".github/workflows/test-video-processing-service.yml"
     pull_request:
         branches:
             - main

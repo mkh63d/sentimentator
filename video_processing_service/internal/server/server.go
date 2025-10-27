@@ -10,12 +10,15 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
+	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 )
 
 type Server struct {
-	port int
-
-	db database.Service
+	port              int
+	db                database.Service
+	transcriptHandler handlers.TranscriptHandler
 }
 
 func NewServer() *http.Server {
@@ -28,10 +31,18 @@ func NewServer() *http.Server {
 		port = 8080
 	}
 
-	NewServer := &Server{
-		port: port,
+	whisperAPIKey := os.Getenv("OPENAI_API_KEY")
+	if whisperAPIKey == "" {
+		panic("OPENAI_API_KEY environment variable is required")
+	}
+	videoService := video.NewService()
+	transcriptService := transcript.NewService(videoService, whisperAPIKey)
+	transcriptHandler := handlers.NewTranscriptHandler(transcriptService)
 
-		db: database.New(),
+	NewServer := &Server{
+		port:              port,
+		db:                database.New(),
+		transcriptHandler: *transcriptHandler,
 	}
 
 	server := &http.Server{

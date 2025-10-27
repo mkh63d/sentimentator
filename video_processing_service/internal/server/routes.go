@@ -29,6 +29,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/status", handlers.ServiceStatus)
+		v1.POST("/transcript", s.transcriptHandler.GetTranscript)
+		v1.GET("/transcript/{id}", s.transcriptHandler.GetStatus)
+
 	}
 
 	staticFiles, err := fs.Sub(web.Files, "assets")

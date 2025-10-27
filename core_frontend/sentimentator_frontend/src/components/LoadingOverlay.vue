@@ -10,11 +10,11 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useLoadingStore } from '@/stores/useLoadingStore'
+import { storeToRefs } from 'pinia';
+import { useLoadingStore } from '@/stores/useLoadingStore';
 
-const store = useLoadingStore()
-const { visible, message } = storeToRefs(store)
+const store = useLoadingStore();
+const { visible, message } = storeToRefs(store);
 </script>
 
 <style scoped>

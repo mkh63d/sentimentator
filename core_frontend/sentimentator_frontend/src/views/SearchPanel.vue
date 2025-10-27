@@ -31,16 +31,16 @@
       <button @click="clearAll" :disabled="!links.length">Clear</button>
     </div>
 
-        <LoadingOverlay />
+    <LoadingOverlay />
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useLoadingStore } from '@/stores/useLoadingStore'
-import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import { useLoadingStore } from '@/stores/useLoadingStore';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
-const loading = useLoadingStore()
+const loading = useLoadingStore();
 
 const emit = defineEmits(['analyze']);
 
@@ -107,15 +107,15 @@ const invalidCount = computed(() => {
 });
 
 const submit = async () => {
-    if (!links.value.length) return
+  if (!links.value.length) return;
 
-    // Mock Loading
-    loading.show('Analyzing links...')
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    loading.hide()
+  // Mock Loading
+  loading.show('Analyzing links...');
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  loading.hide();
 
-    emit('analyze', links.value.slice())
-}
+  emit('analyze', links.value.slice());
+};
 </script>
 
 <style scoped>
@@ -207,4 +207,3 @@ button:disabled {
   margin: 0 0 0.5rem 0;
 }
 </style>
-

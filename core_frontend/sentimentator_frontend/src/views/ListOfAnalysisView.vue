@@ -1,90 +1,97 @@
 <template>
-    <div class="analysis-library">
-        <div class="library-header">
-            <h1>Analysis Library</h1>
-            <button @click="createNew" class="btn-primary">+ New Analysis</button>
-        </div>
-        
-        <div class="search-filter">
-            <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Search analyses..."
-                class="search-input"
-            />
-            <select v-model="filterStatus" class="filter-select">
-                <option value="">All Statuses</option>
-                <option value="completed">Completed</option>
-                <option value="processing">Processing</option>
-                <option value="failed">Failed</option>
-            </select>
-        </div>
-        
-        <div v-if="loading" class="loading">
-            <span class="spinner"></span> Loading library...
-        </div>
-        
-        <div v-else-if="error" class="error">
-            <p>{{ error }}</p>
-            <button @click="fetchAnalyses" class="btn-retry">Retry</button>
-        </div>
-        
-        <div v-else-if="filteredAnalyses.length === 0" class="empty">
-            <p>No analyses found in your library.</p>
-            <button @click="createNew" class="btn-secondary">Create your first analysis</button>
-        </div>
-        
-        <div v-else class="library-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Created</th>
-                        <th>Status</th>
-                        <th>Results</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr 
-                        v-for="analysis in filteredAnalyses" 
-                        :key="analysis.id"
-                        @click="openAnalysis(analysis.id)"
-                        class="table-row"
-                    >
-                        <td class="title-cell">
-                            <strong>{{ analysis.title }}</strong>
-                            <span v-if="analysis.description" class="description">
-                                {{ analysis.description }}
-                            </span>
-                        </td>
-                        <td>{{ formatDate(analysis.createdAt) }}</td>
-                        <td>
-                            <span :class="['status-badge', analysis.status]">
-                                {{ analysis.status }}
-                            </span>
-                        </td>
-                        <td>
-                            <div v-if="analysis.sentiment" class="mini-chart">
-                                <span class="bar positive" :style="`width: ${analysis.sentiment.positive}%`"></span>
-                                <span class="bar negative" :style="`width: ${analysis.sentiment.negative}%`"></span>
-                                <span class="bar neutral" :style="`width: ${analysis.sentiment.neutral}%`"></span>
-                            </div>
-                            <span v-else class="no-results">—</span>
-                        </td>
-                        <td class="actions" @click.stop>
-                            <button @click="openAnalysis(analysis.id)" class="btn-icon" title="View">
-                                👁️
-                            </button>
-                            <button @click="deleteAnalysis(analysis.id)" class="btn-icon delete" title="Delete">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+  <div class="px-8 py-8 max-w-[1400px] mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="m-0 text-[#2c3e50]">Analysis Library</h1>
+      <button @click="createNew" class="bg-blue-500 text-white border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:bg-blue-700 transition">+ New Analysis</button>
     </div>
+
+    <div class="flex gap-4 mb-8">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search analyses..."
+        class="flex-1 px-3 py-3 border border-gray-200 rounded-lg text-base"
+      />
+      <select v-model="filterStatus" class="px-3 py-3 border border-gray-200 rounded-lg text-base">
+        <option value="">All Statuses</option>
+        <option value="completed">Completed</option>
+        <option value="processing">Processing</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+
+    <div v-if="loading" class="text-center py-12">
+      <span class="inline-block w-5 h-5 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></span> Loading library...
+    </div>
+
+    <div v-else-if="error" class="text-center py-12">
+      <p>{{ error }}</p>
+      <button @click="fetchAnalyses" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition">Retry</button>
+    </div>
+
+    <div v-else-if="filteredAnalyses.length === 0" class="text-center py-12">
+      <p>No analyses found in your library.</p>
+      <button @click="createNew" class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200 transition">Create your first analysis</button>
+    </div>
+
+    <div v-else class="bg-white rounded-lg overflow-hidden shadow-md">
+      <table class="w-full border-collapse">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="text-left p-4 font-semibold text-[#2c3e50]">Title</th>
+            <th class="text-left p-4 font-semibold text-[#2c3e50]">Created</th>
+            <th class="text-left p-4 font-semibold text-[#2c3e50]">Status</th>
+            <th class="text-left p-4 font-semibold text-[#2c3e50]">Results</th>
+            <th class="text-left p-4 font-semibold text-[#2c3e50]">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="analysis in filteredAnalyses"
+            :key="analysis.id"
+            @click="openAnalysis(analysis.id)"
+            class="cursor-pointer transition hover:bg-gray-100"
+          >
+            <td class="p-4 border-t border-gray-100 flex flex-col">
+              <strong>{{ analysis.title }}</strong>
+              <span v-if="analysis.description" class="text-sm text-gray-500 mt-1">
+                {{ analysis.description }}
+              </span>
+            </td>
+            <td class="p-4 border-t border-gray-100">{{ formatDate(analysis.createdAt) }}</td>
+            <td class="p-4 border-t border-gray-100">
+              <span
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-semibold',
+                  analysis.status === 'completed' && 'bg-green-100 text-green-800',
+                  analysis.status === 'processing' && 'bg-yellow-100 text-yellow-800',
+                  analysis.status === 'failed' && 'bg-red-100 text-red-800'
+                ]"
+              >
+                {{ analysis.status }}
+              </span>
+            </td>
+            <td class="p-4 border-t border-gray-100">
+              <div v-if="analysis.sentiment" class="flex h-5 rounded overflow-hidden">
+                <span class="h-full bg-green-600" :style="`width: ${analysis.sentiment.positive}%`"></span>
+                <span class="h-full bg-red-500" :style="`width: ${analysis.sentiment.negative}%`"></span>
+                <span class="h-full bg-gray-400" :style="`width: ${analysis.sentiment.neutral}%`"></span>
+              </div>
+              <span v-else class="text-gray-400">—</span>
+            </td>
+            <td class="p-4 border-t border-gray-100 flex gap-2 items-center" @click.stop>
+              <button @click="openAnalysis(analysis.id)" class="bg-transparent border-none cursor-pointer text-xl p-1" title="View">
+                👁️
+              </button>
+              <button @click="deleteAnalysis(analysis.id)" class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70" title="Delete">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -92,18 +99,18 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 interface Sentiment {
-    positive: number;
-    negative: number;
-    neutral: number;
+  positive: number;
+  negative: number;
+  neutral: number;
 }
 
 interface Analysis {
-    id: string;
-    title: string;
-    description?: string;
-    createdAt: string;
-    status: 'completed' | 'processing' | 'failed';
-    sentiment?: Sentiment;
+  id: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  status: 'completed' | 'processing' | 'failed';
+  sentiment?: Sentiment;
 }
 
 const router = useRouter();
@@ -114,236 +121,58 @@ const searchQuery = ref('');
 const filterStatus = ref('');
 
 const filteredAnalyses = computed(() => {
-    return analyses.value.filter(analysis => {
-        const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-        const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-        return matchesSearch && matchesStatus;
-    });
+  return analyses.value.filter(analysis => {
+    const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
+    return matchesSearch && matchesStatus;
+  });
 });
 
 const fetchAnalyses = async () => {
-    try {
-        loading.value = true;
-        error.value = null;
-        const response = await fetch('/api/analyses');
-        if (!response.ok) throw new Error('Failed to fetch analyses');
-        analyses.value = await response.json();
-    } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An error occurred';
-    } finally {
-        loading.value = false;
-    }
+  try {
+    loading.value = true;
+    error.value = null;
+    const response = await fetch('/api/analyses');
+    if (!response.ok) throw new Error('Failed to fetch analyses');
+    analyses.value = await response.json();
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An error occurred';
+  } finally {
+    loading.value = false;
+  }
 };
 
 const openAnalysis = (id: string) => {
-    router.push(`/analysis/${id}`);
+  router.push({ name: 'analysis', params: { id } });
 };
 
 const createNew = () => {
-    router.push('/search');
+  router.push({ name: 'search' });
 };
 
 const deleteAnalysis = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this analysis?')) return;
-    
-    try {
-        const response = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Failed to delete');
-        analyses.value = analyses.value.filter(a => a.id !== id);
-    } catch (err) {
-        alert('Failed to delete analysis');
-    }
+  if (!confirm('Are you sure you want to delete this analysis?')) return;
+
+  try {
+    const response = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete');
+    analyses.value = analyses.value.filter(a => a.id !== id);
+  } catch (err) {
+    alert('Failed to delete analysis');
+  }
 };
 
 const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 };
 
 onMounted(() => {
-    fetchAnalyses();
+  fetchAnalyses();
 });
 </script>
-
-<style scoped>
-.analysis-library {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.library-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.library-header h1 {
-    margin: 0;
-    color: #2c3e50;
-}
-
-.btn-primary {
-    background: #3498db;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.btn-primary:hover {
-    background: #2980b9;
-}
-
-.search-filter {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.search-input, .filter-select {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-}
-
-.search-input {
-    flex: 1;
-}
-
-.loading {
-    text-align: center;
-    padding: 3rem;
-}
-
-.spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.error, .empty {
-    text-align: center;
-    padding: 3rem;
-}
-
-.library-table {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-thead {
-    background: #f8f9fa;
-}
-
-th {
-    text-align: left;
-    padding: 1rem;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.table-row {
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.table-row:hover {
-    background: #f8f9fa;
-}
-
-td {
-    padding: 1rem;
-    border-top: 1px solid #ecf0f1;
-}
-
-.title-cell {
-    display: flex;
-    flex-direction: column;
-}
-
-.description {
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    margin-top: 0.25rem;
-}
-
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.status-badge.completed {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-badge.processing {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-badge.failed {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.mini-chart {
-    display: flex;
-    height: 20px;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.bar {
-    height: 100%;
-}
-
-.bar.positive { background: #27ae60; }
-.bar.negative { background: #e74c3c; }
-.bar.neutral { background: #95a5a6; }
-
-.actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0.25rem;
-}
-
-.btn-icon.delete:hover {
-    opacity: 0.7;
-}
-</style>

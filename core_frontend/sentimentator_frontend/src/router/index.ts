@@ -1,8 +1,4 @@
-import {
-  createRouter,
-  createWebHistory,
-  type RouteRecordRaw,
-} from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import LoginPanel from '@/views/LoginPanel.vue';
 import SearchPanel from '@/views/SearchPanel.vue';
 import ListOfAnalysisView from '@/views/ListOfAnalysisView.vue';
@@ -15,7 +11,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', redirect: { name: 'Search' } },
   { path: '/search', name: 'Search', component: SearchPanel },
   { path: '/list', name: 'List', component: ListOfAnalysisView },
- // { path: '/analysis', name: 'Analysis', component: Analysis },
+  // { path: '/analysis', name: 'Analysis', component: Analysis },
 ];
 
 const router = createRouter({

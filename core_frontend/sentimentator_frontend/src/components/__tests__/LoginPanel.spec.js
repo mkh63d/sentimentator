@@ -51,10 +51,58 @@ describe('LoginPanel', () => {
   });
 
   it('should_enable_submit_button_when_both_fields_are_filled', async () => {
-    await wrapper.find('input[type="email"]').setValue('testuser');
+    await wrapper.find('input[type="email"]').setValue('testuser@example.com');
     await wrapper.find('input[type="password"]').setValue('testpassword');
 
     const button = wrapper.find('button[type="submit"]');
     expect(button.attributes('disabled')).toBeUndefined();
+  });
+
+  it('should_change_header_text_based_on_mode', async () => {
+    const header = wrapper.find('h1').text();
+
+    expect(header).toBe('Login');
+
+    await wrapper.setData({ isLogin: false });
+
+    expect(wrapper.find('h1').text()).toBe('Register');
+  });
+
+  it('should_change_button_text_based_on_mode', async () => {
+    const button = wrapper.find('button[type="submit"]');
+    expect(button.text()).toBe('Login');
+
+    await wrapper.setData({ isLogin: false });
+
+    expect(button.text()).toBe('Register');
+  });
+
+  it('should_toggle_mode_when_toggle_link_is_clicked', async () => {
+    const toggleLink = wrapper.find('.toggle-mode');
+    expect(wrapper.vm.isLogin).toBe(true);
+
+    await toggleLink.find('p').find('a').trigger('click');
+
+    expect(wrapper.vm.isLogin).toBe(false);
+  });
+
+  it('should_display_error_message_when_different_passwords_are_entered_during_registration', async () => {
+    await wrapper.setData({ isLogin: false });
+    await wrapper.find('input[type="email"]').setValue('testuser@example.com');
+    await wrapper.find('input[type="password"]').setValue('password1');
+    await wrapper.find('input[id="confirmPassword"]').setValue('password2');
+    await wrapper.find('form').trigger('submit.prevent');
+
+    expect(wrapper.find('.error-message').exists()).toBe(true);
+  });
+
+  it('should_emit_register_event_when_registration_form_is_submitted', async () => {
+    await wrapper.setData({ isLogin: false });
+    await wrapper.find('input[type="email"]').setValue('testuser@example.com');
+    await wrapper.find('input[type="password"]').setValue('password1');
+    await wrapper.find('input[id="confirmPassword"]').setValue('password1');
+    await wrapper.find('form').trigger('submit.prevent');
+
+    expect(wrapper.emitted()).toHaveProperty('register');
   });
 });

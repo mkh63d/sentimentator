@@ -106,7 +106,7 @@ export default {
                     // Implement registration logic
                     console.log('Registering:', this.form.email)
                     // await this.$store.dispatch('register', { email: this.form.email, password: this.form.password })
-                    this.$emit('login', { email: this.form.email, password: this.form.password })
+                    this.$emit('register', { email: this.form.email, password: this.form.password })
                 }
                 this.$router.push('/list')
             } catch (err) {

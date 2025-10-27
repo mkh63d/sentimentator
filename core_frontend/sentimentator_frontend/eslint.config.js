@@ -23,6 +23,9 @@ export default [
       parserOptions: {
         projectService: true,
         ecmaVersion: 'latest',
+        ecmaFeatures: {
+          interfaces: true
+        },
         sourceType: 'module',
       },
       globals: {

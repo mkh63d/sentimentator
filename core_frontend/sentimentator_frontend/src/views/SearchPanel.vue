@@ -47,7 +47,7 @@
           @click="removeLink(i)"
           aria-label="Remove link"
         >
-          ✕
+          <X size="16" />
         </button>
       </li>
     </ul>
@@ -77,11 +77,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useLoadingStore } from '@/stores/useLoadingStore';
+import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
 const loading = useLoadingStore();
 
-const emit = defineEmits(['analyze']);
+const emit = defineEmits(['analyze', 'add-link', 'clear-all']);
 
 const current = ref('');
 const bulk = ref('');
@@ -101,6 +102,7 @@ const addLink = () => {
   if (!val) return;
   if (isValidUrl(val) && !links.value.includes(val)) {
     links.value.push(val);
+    emit('add-link', val);
   }
   current.value = '';
 };
@@ -133,6 +135,7 @@ const clearAll = () => {
   links.value = [];
   bulk.value = '';
   current.value = '';
+  emit('clear-all', null);
 };
 
 const invalidCount = computed(() => {
@@ -148,125 +151,11 @@ const invalidCount = computed(() => {
 const submit = async () => {
   if (!links.value.length) return;
 
+  emit('analyze', links.value.slice());
+
   // Mock Loading
-  loading.show('Analyzing links..?');
+  loading.show('Analyzing links...');
   await new Promise((resolve) => setTimeout(resolve, 1000));
   loading.hide();
-
-  emit('analyze', links.value.slice());
 };
 </script>
-
-<style scoped>
-/* .search-panel {
-  max-width: 680px;
-  margin: 1rem auto;
-  padding: 1rem;
-  border: 1px solid #e6e6e6;
-  border-radius: 6px;
-  background: #fafafa;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial;
-} */
-/* h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.05rem;
-} */
-/* Tailwind: class="mb-3 text-[1.05rem]" */
-
-/* .row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-} */
-/* Tailwind: class="flex gap-2 mb-3" */
-
-/* input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-} */
-/* Tailwind: class="flex-1 p-2 border border-gray-300 rounded" */
-
-/* textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  resize: vertical;
-} */
-/* Tailwind: class="w-full min-h-[80px] p-2 border border-gray-300 rounded resize-y" */
-
-/* button {
-  padding: 0.45rem 0.7rem;
-  border: none;
-  background: #2d8cf0;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-} */
-/* Tailwind: class="py-1 px-3 border-0 bg-blue-500 text-white rounded cursor-pointer" */
-/* If you prefer exact color: use bg-[#2d8cf0] instead of bg-blue-500 */
-
-/* button:disabled {
-  opacity: 0.5;
-  cursor: default;
-} */
-/* Tailwind: add "disabled:opacity-50 disabled:cursor-not-allowed" to the button */
-
-/* .invalid {
-  border-color: #e55;
-} */
-/* Tailwind: add "border-red-500" to the element (and keep border class) */
-
-/* .links {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.75rem 0;
-} */
-/* Tailwind: class="list-none p-0 m-0 mb-3" */
-
-/* .links li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px dashed #eee;
-} */
-/* Tailwind: class="flex items-center gap-2 py-1 border-b border-dashed border-gray-200" */
-
-/* .links a {
-  color: #0366d6;
-  word-break: break-all;
-  text-decoration: none;
-} */
-/* Tailwind: class="text-blue-600 break-all no-underline" */
-
-/* .remove {
-  margin-left: auto;
-  background: transparent;
-  color: #888;
-  font-size: 0.9rem;
-  padding: 0 0.4rem;
-} */
-/* Tailwind: class="ml-auto bg-transparent text-gray-500 text-sm px-1" */
-
-/* .actions {
-  display: flex;
-  gap: 0.5rem;
-} */
-/* Tailwind: class="flex gap-2" */
-
-/* .hint {
-  color: #a00;
-  margin: 0 0 0.5rem 0;
-} */
-/* Tailwind: class="text-red-700 mb-2" */
-</style>

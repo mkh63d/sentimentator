@@ -47,7 +47,11 @@
             />
           </div>
 
-          <div v-if="error" class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm">
+          <div
+            data-testid="error-message"
+            v-if="error"
+            class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm"
+          >
             {{ error }}
           </div>
 

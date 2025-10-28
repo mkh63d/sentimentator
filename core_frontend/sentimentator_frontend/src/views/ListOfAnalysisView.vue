@@ -81,10 +81,10 @@
             </td>
             <td class="p-4 border-t border-gray-100 flex gap-2 items-center" @click.stop>
               <button @click="openAnalysis(analysis.id)" class="bg-transparent border-none cursor-pointer text-xl p-1" title="View">
-                👁️
+                <Eye class="w-5 h-5 inline" />
               </button>
               <button @click="deleteAnalysis(analysis.id)" class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70" title="Delete">
-                🗑️
+                <Trash2 class="w-5 h-5 inline" />
               </button>
             </td>
           </tr>
@@ -97,6 +97,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Eye, Trash2 } from 'lucide-vue-next';
+import Swal from 'sweetalert2';
 
 interface Sentiment {
   positive: number;
@@ -151,19 +153,47 @@ const createNew = () => {
 };
 
 const deleteAnalysis = async (id: string) => {
-  if (!confirm('Are you sure you want to delete this analysis?')) return;
-
-  try {
-    const response = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete');
-    analyses.value = analyses.value.filter(a => a.id !== id);
-  } catch (err) {
-    alert('Failed to delete analysis');
-  }
+  // Use SweetAlert2 for confirmation
+  // Make sure to install sweetalert2 and import it
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you really want to delete this analysis?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then(async (result) => {
+    // Mock handling
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed to delete');
+        analyses.value = analyses.value.filter(a => a.id !== id);
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'This analysis has been deleted.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (err) {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to delete analysis.',
+          icon: 'error',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+    }
+  })
 };
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  const locale = navigator.language || navigator.languages?.[0] || 'en-US';
+  return new Date(dateString).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

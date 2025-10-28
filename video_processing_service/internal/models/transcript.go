@@ -27,10 +27,10 @@ const (
 
 type Transcript struct {
 	ID          uint             `gorm:"primaryKey" json:"id"`
-	VideoID     uint             `gorm:"not null;index" json:"video_id"`
+	VideoID     uint             `gorm:"not null;index:idx_transcripts_video_id" json:"video_id"`
 	Language    string           `gorm:"size:10;default:'en'" json:"language"`
 	Method      TranscriptMethod `gorm:"type:varchar(50);not null" json:"method"`
-	Status      TranscriptStatus `gorm:"type:varchar(50);default:'pending';index" json:"status"`
+	Status      TranscriptStatus `gorm:"type:varchar(50);default:'pending';index:idx_transcripts_status" json:"status"`
 	Text        string           `gorm:"type:text" json:"text,omitempty"`
 	Segments    SegmentArray     `gorm:"type:jsonb" json:"segments,omitempty"`
 	Error       string           `gorm:"type:text" json:"error,omitempty"`
@@ -38,8 +38,6 @@ type Transcript struct {
 	UpdatedAt   time.Time        `json:"updated_at"`
 	CompletedAt *time.Time       `json:"completed_at,omitempty"`
 	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"-"`
-
-	Video Video `gorm:"foreignKey:VideoID" json:"video,omitempty"`
 }
 
 func (Transcript) TableName() string {

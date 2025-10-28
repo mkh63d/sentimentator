@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 )
 
@@ -24,7 +23,7 @@ func NewService(videoService *video.Service, whisperAPIKey string) *Service {
 	}
 }
 
-func (s *Service) GetTranscript(ctx context.Context, videoURL, lang string) (*models.Transcript, error) {
+func (s *Service) GetTranscript(ctx context.Context, videoURL, lang string) (*Result, error) {
 	metadata, err := s.videoService.GetVideoMetadata(ctx, videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video metadata: %w", err)
@@ -42,13 +41,7 @@ func (s *Service) GetTranscript(ctx context.Context, videoURL, lang string) (*mo
 		}
 
 		slog.Info("Transcript strategy succeeded", "strategy", strategy.Name())
-		return &models.Transcript{
-			VideoID:  metadata.VideoID,
-			Language: lang,
-			Method:   result.Method,
-			Status:   models.StatusCompleted,
-			Text:     result.Text,
-		}, nil
+		return result, nil
 	}
 
 	return nil, fmt.Errorf("all transcript strategies failed: %w", lastErr)

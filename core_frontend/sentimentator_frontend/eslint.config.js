@@ -24,7 +24,7 @@ export default [
         projectService: true,
         ecmaVersion: 'latest',
         ecmaFeatures: {
-          interfaces: true
+          interfaces: true,
         },
         sourceType: 'module',
       },

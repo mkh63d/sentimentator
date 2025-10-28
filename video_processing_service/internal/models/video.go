@@ -1,14 +1,29 @@
 package models
 
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
 type Video struct {
-	ID        string `json:"id" db:"id"`
-	URL       string `json:"url" db:"url"`
-	Platform  string `json:"platform" db:"platform"`
-	VideoID   string `json:"video_id" db:"video_id"`
-	Title     string `json:"title" db:"title"`
-	Duration  int    `json:"duration" db:"duration"` //  in seconds
-	AudioURL  string `json:"audio_url,omitempty" db:"audio_url"`
-	CreatedAt string `json:"created_at" db:"created_at"`
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	VideoID     string         `gorm:"uniqueIndex:idx_video_platform;not null" json:"video_id"`
+	Platform    string         `gorm:"uniqueIndex:idx_video_platform;size:45;not null" json:"platform"`
+	OriginalURL string         `gorm:"type:text;not null" json:"original_url"`
+	Title       string         `gorm:"size:255" json:"title"`
+	Duration    int            `json:"duration"` // in seconds
+	AudioURL    string         `gorm:"type:text" json:"audio_url,omitempty"`
+	Status      string         `gorm:"size:50;default:'pending';index:idx_videos_status" json:"status"`
+	CreatedAt   time.Time      `gorm:"index:idx_videos_created_at,sort:desc" json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Transcripts []Transcript `gorm:"foreignKey:VideoID;references:ID" json:"transcripts,omitempty"`
+}
+
+func (Video) TableName() string {
+	return "videos"
 }
 
 type VideoMetadata struct {

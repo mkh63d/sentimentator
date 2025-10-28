@@ -1,21 +1,40 @@
 package models
 
-import "time"
+import (
+	"time"
 
-type JobTypes string
+	"gorm.io/gorm"
+)
+
+type JobType string
 
 const (
-	JobTypeTranscript JobTypes = "transcript"
+	JobTypeTranscript   JobType = "transcript"
+	JobTypeAudioExtract JobType = "audio_extract"
+)
+
+type JobStatus string
+
+const (
+	JobStatusPending    JobStatus = "pending"
+	JobStatusProcessing JobStatus = "processing"
+	JobStatusCompleted  JobStatus = "completed"
+	JobStatusFailed     JobStatus = "failed"
 )
 
 type Job struct {
-	ID          string    `json:"id" db:"id"`
-	Type        JobTypes  `json:"type" db:"type"`
-	Payload     string    `json:"payload" db:"payload"`
-	Status      string    `json:"status" db:"status"`
-	Attempts    int       `json:"attempts" db:"attempts"`
-	MaxAttempts int       `json:"max_attempts" db:"max_attempts"`
-	Error       string    `json:"error,omitempty" db:"error"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	Type        JobType        `gorm:"type:varchar(50);not null;index:idx_jobs_type_status,priority:1" json:"type"`
+	Payload     string         `gorm:"type:jsonb" json:"payload"`
+	Status      JobStatus      `gorm:"type:varchar(50);default:'pending';index:idx_jobs_type_status,priority:2;index:idx_jobs_status_created,priority:1" json:"status"`
+	Attempts    int            `gorm:"default:0" json:"attempts"`
+	MaxAttempts int            `gorm:"default:3" json:"max_attempts"`
+	Error       string         `gorm:"type:text" json:"error,omitempty"`
+	CreatedAt   time.Time      `gorm:"index:idx_jobs_status_created,priority:2" json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+func (Job) TableName() string {
+	return "jobs"
 }

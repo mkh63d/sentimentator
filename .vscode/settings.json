@@ -6,6 +6,7 @@
         "dylib",
         "EOSQL",
         "godotenv",
+        "gorm",
         "Goroutines",
         "healthcheck",
         "initdb",
@@ -25,6 +26,7 @@
         "psql",
         "rabbitmq",
         "Sentimentator",
+        "Sprintf",
         "sslmode",
         "stdlib",
         "templ",
@@ -35,6 +37,7 @@
         "VARCHAR",
         "vibecoded",
         "Vosk",
+        "webhandlers",
         "webp",
         "youtu",
         "ytdlp"

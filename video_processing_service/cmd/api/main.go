@@ -50,7 +50,7 @@ func main() {
 
 	go gracefulShutdown(srv, httpServer, done)
 
-	slog.Info("Server starting on", "addr", httpServer.Addr)
+	slog.Info("Server starting", slog.String("addr", httpServer.Addr))
 	err := httpServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))

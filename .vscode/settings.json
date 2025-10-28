@@ -26,6 +26,7 @@
         "psql",
         "rabbitmq",
         "Sentimentator",
+        "Sprintf",
         "sslmode",
         "stdlib",
         "templ",

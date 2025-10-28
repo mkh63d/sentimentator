@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentimentator.Backend", "Sentimentator.Backend\Sentimentator.Backend.csproj", "{BB172C23-5CC2-4BD3-AB9C-44BE6DC3BC62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentimentator.Backend.Api", "Sentimentator.Backend.Api\Sentimentator.Backend.Api.csproj", "{3806DC59-B8F4-4283-A275-0485E05C1110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentimentator.Backend.Service", "Sentimentator.Backend.Service\Sentimentator.Backend.Service.csproj", "{9FAD4A4F-C80D-42CE-8D8B-65E45E515025}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{BB172C23-5CC2-4BD3-AB9C-44BE6DC3BC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB172C23-5CC2-4BD3-AB9C-44BE6DC3BC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB172C23-5CC2-4BD3-AB9C-44BE6DC3BC62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3806DC59-B8F4-4283-A275-0485E05C1110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3806DC59-B8F4-4283-A275-0485E05C1110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3806DC59-B8F4-4283-A275-0485E05C1110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3806DC59-B8F4-4283-A275-0485E05C1110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FAD4A4F-C80D-42CE-8D8B-65E45E515025}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FAD4A4F-C80D-42CE-8D8B-65E45E515025}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FAD4A4F-C80D-42CE-8D8B-65E45E515025}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FAD4A4F-C80D-42CE-8D8B-65E45E515025}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -44,6 +44,11 @@ type Service interface {
 	MarkJobProcessing(ctx context.Context, jobID uint) error
 	MarkJobCompleted(ctx context.Context, jobID uint) error
 	MarkJobFailed(ctx context.Context, jobID uint, errMsg string) error
+	GetJobStats(ctx context.Context) (map[string]int64, error)
+	GetAllJobs(ctx context.Context, limit int) ([]models.Job, error)
+
+	// Video list operations
+	ListVideos(ctx context.Context, limit, offset int) ([]models.Video, int64, error)
 }
 
 type service struct {
@@ -324,4 +329,74 @@ func (s *service) MarkJobFailed(ctx context.Context, jobID uint, errMsg string) 
 			"status": models.JobStatusFailed,
 			"error":  errMsg,
 		}).Error
+}
+
+func (s *service) GetJobStats(ctx context.Context) (map[string]int64, error) {
+	stats := make(map[string]int64)
+
+	var total int64
+	if err := s.db.WithContext(ctx).Model(&models.Job{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+	stats["total"] = total
+
+	type StatusCount struct {
+		Status models.JobStatus
+		Count  int64
+	}
+
+	var statusCounts []StatusCount
+	if err := s.db.WithContext(ctx).
+		Model(&models.Job{}).
+		Select("status, COUNT(*) as count").
+		Group("status").
+		Find(&statusCounts).Error; err != nil {
+		return nil, err
+	}
+
+	stats["pending"] = 0
+	stats["processing"] = 0
+	stats["completed"] = 0
+	stats["failed"] = 0
+
+	for _, sc := range statusCounts {
+		stats[string(sc.Status)] = sc.Count
+	}
+
+	return stats, nil
+}
+
+func (s *service) GetAllJobs(ctx context.Context, limit int) ([]models.Job, error) {
+	var jobs []models.Job
+	query := s.db.WithContext(ctx).
+		Order("created_at DESC")
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&jobs).Error
+	return jobs, err
+}
+
+func (s *service) ListVideos(ctx context.Context, limit, offset int) ([]models.Video, int64, error) {
+	var videos []models.Video
+	var total int64
+
+	if err := s.db.WithContext(ctx).Model(&models.Video{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := s.db.WithContext(ctx).
+		Preload("Transcripts").
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&videos).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return videos, total, nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/cmd/web"
 	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
+	webhandlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/web"
 
 	"github.com/a-h/templ"
 )
@@ -29,12 +30,16 @@ func (s *Server) RegisterRoutes() http.Handler {
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/status", handlers.ServiceStatus)
+		v1.POST("/transcript", s.transcriptHandler.GetTranscript)
+
 	}
 
 	staticFiles, err := fs.Sub(web.Files, "assets")
 	if err != nil {
 		panic("failed to find 'assets' subdirectory in embedded filesystem: " + err.Error())
 	}
+
+	videoWebHandler := webhandlers.NewVideoHandler(s.db, s.videoService, s.transcriptService, s.queueService)
 
 	wr := r.Group("/web")
 	{
@@ -49,9 +54,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 			templ.Handler(component).ServeHTTP(c.Writer, c.Request)
 		})
 
-		wr.POST("/video/process", func(c *gin.Context) {
-			web.VideoUrlWebHandler(c.Writer, c.Request, s.db)
-		})
+		wr.POST("/video/process", videoWebHandler.ProcessVideo)
+
+		wr.GET("/jobs/stats", videoWebHandler.GetJobStats)
+
+		wr.GET("/videos/list", videoWebHandler.ListVideos)
 	}
 
 	return r

@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/server"
 )
 
-func gracefulShutdown(apiServer *http.Server, done chan bool) {
+func gracefulShutdown(srv *server.Server, apiServer *http.Server, done chan bool) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -21,6 +22,8 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 
 	log.Println("shutting down gracefully, press Ctrl+C again to force")
 	stop()
+
+	srv.Shutdown()
 
 	// The context is used to inform the server it has 5 seconds to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -35,26 +38,20 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
-	log.Println("Starting Video Processing Service...")
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+	slog.Info("Starting video processing service")
 
-	// Initialize database and run migrations
-	db := database.New()
-	defer db.Close()
-
-	log.Println("Running database migrations...")
-	if err := database.AutoMigrate(db); err != nil {
-		log.Printf("Warning: Migration failed: %v", err)
-		log.Println("Service will continue, but database operations may fail")
-	}
-
-	server := server.NewServer()
+	srv, httpServer := server.NewServer()
 
 	done := make(chan bool, 1)
 
-	go gracefulShutdown(server, done)
+	go gracefulShutdown(srv, httpServer, done)
 
-	log.Printf("Server starting on %s", server.Addr)
-	err := server.ListenAndServe()
+	slog.Info("Server starting", slog.String("addr", httpServer.Addr))
+	err := httpServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}

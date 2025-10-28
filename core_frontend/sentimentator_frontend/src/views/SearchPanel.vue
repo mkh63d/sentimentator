@@ -1,34 +1,73 @@
 <template>
-  <section class="search-panel">
-    <h2>Links</h2>
+  <section
+    class="max-w-[680px] mx-auto my-4 p-4 border border-gray-200 rounded-md bg-gray-50 font-sans"
+  >
+    <h2 class="mb-3 text-[1.05rem]">Links</h2>
 
     <!-- Single link input -->
-    <div class="row">
+    <div class="flex gap-2 mb-3">
       <input
+        class="flex-1 p-2 border border-gray-300 rounded"
         v-model="current"
         @keyup.enter="addLink"
-        :class="{ invalid: current && !isValidUrl(current) }"
+        :class="{ 'border-red-500': current && !isValidUrl(current) }"
         placeholder="Enter a URL (press Enter or Add)"
         aria-label="Add link"
       />
-      <button @click="addLink" :disabled="!current">Add</button>
+      <button
+        class="py-1 px-3 border-0 bg-[#2d8cf0] text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="addLink"
+        :disabled="!current"
+      >
+        Add
+      </button>
     </div>
 
     <!-- Validation / hint -->
-    <p class="hint" v-if="invalidCount > 0">{{ invalidCount }} invalid link(s) ignored.</p>
+    <p class="text-red-700 mb-2" v-if="invalidCount > 0">
+      {{ invalidCount }} invalid link(s) ignored.
+    </p>
 
     <!-- Links list -->
-    <ul class="links" v-if="links.length">
-      <li v-for="(link, i) in links" :key="link">
-        <a :href="link" target="_blank" rel="noopener noreferrer">{{ link }}</a>
-        <button class="remove" @click="removeLink(i)" aria-label="Remove link">✕</button>
+    <ul class="list-none p-0 m-0 mb-3" v-if="links.length">
+      <li
+        class="flex items-center gap-2 py-1 border-b border-dashed border-gray-200"
+        v-for="(link, i) in links"
+        :key="link"
+      >
+        <a
+          class="text-blue-600 break-all no-underline"
+          :href="link"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ link }}</a
+        >
+        <button
+          class="ml-auto bg-transparent text-gray-500 text-sm px-1"
+          @click="removeLink(i)"
+          aria-label="Remove link"
+        >
+          <X size="16" />
+        </button>
       </li>
     </ul>
 
     <!-- Actions -->
-    <div class="actions">
-      <button @click="submit" :disabled="!links.length">Analyze</button>
-      <button @click="clearAll" :disabled="!links.length">Clear</button>
+    <div class="flex gap-2">
+      <button
+        class="py-1 px-3 border-0 bg-[#2d8cf0] text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="submit"
+        :disabled="!links.length"
+      >
+        Analyze
+      </button>
+      <button
+        class="py-1 px-3 border-0 bg-[#2d8cf0] text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="clearAll"
+        :disabled="!links.length"
+      >
+        Clear
+      </button>
     </div>
 
     <LoadingOverlay />
@@ -38,11 +77,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useLoadingStore } from '@/stores/useLoadingStore';
+import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
 const loading = useLoadingStore();
 
-const emit = defineEmits(['analyze']);
+const emit = defineEmits(['analyze', 'add-link', 'clear-all']);
 
 const current = ref('');
 const bulk = ref('');
@@ -62,6 +102,7 @@ const addLink = () => {
   if (!val) return;
   if (isValidUrl(val) && !links.value.includes(val)) {
     links.value.push(val);
+    emit('add-link', val);
   }
   current.value = '';
 };
@@ -94,6 +135,7 @@ const clearAll = () => {
   links.value = [];
   bulk.value = '';
   current.value = '';
+  emit('clear-all', null);
 };
 
 const invalidCount = computed(() => {
@@ -109,101 +151,11 @@ const invalidCount = computed(() => {
 const submit = async () => {
   if (!links.value.length) return;
 
+  emit('analyze', links.value.slice());
+
   // Mock Loading
   loading.show('Analyzing links...');
   await new Promise((resolve) => setTimeout(resolve, 1000));
   loading.hide();
-
-  emit('analyze', links.value.slice());
 };
 </script>
-
-<style scoped>
-.search-panel {
-  max-width: 680px;
-  margin: 1rem auto;
-  padding: 1rem;
-  border: 1px solid #e6e6e6;
-  border-radius: 6px;
-  background: #fafafa;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial;
-}
-h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.05rem;
-}
-
-.row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  resize: vertical;
-}
-button {
-  padding: 0.45rem 0.7rem;
-  border: none;
-  background: #2d8cf0;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.invalid {
-  border-color: #e55;
-}
-
-.links {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.75rem 0;
-}
-.links li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px dashed #eee;
-}
-.links a {
-  color: #0366d6;
-  word-break: break-all;
-  text-decoration: none;
-}
-.remove {
-  margin-left: auto;
-  background: transparent;
-  color: #888;
-  font-size: 0.9rem;
-  padding: 0 0.4rem;
-}
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-.hint {
-  color: #a00;
-  margin: 0 0 0.5rem 0;
-}
-</style>

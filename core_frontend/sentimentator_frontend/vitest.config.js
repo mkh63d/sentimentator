@@ -8,7 +8,9 @@ export default mergeConfig(
     test: {
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/**'],
+      // eslint-disable-next-line no-undef
       root: fileURLToPath(new URL('./', import.meta.url)),
+      setupFiles: './vitest.setup.js',
     },
   }),
 );

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
@@ -75,11 +76,33 @@ func New() Service {
 		host, username, password, database, port, schema,
 	)
 
+	gormLogLevelStr := os.Getenv("SENTIMENTATOR_GORM_LOG_LEVEL")
+	if gormLogLevelStr == "" {
+		gormLogLevelStr = os.Getenv("GORM_LOG_LEVEL")
+	}
+
+	var gormLogLevel logger.LogLevel = logger.Info
+	switch strings.ToLower(gormLogLevelStr) {
+	case "silent":
+		gormLogLevel = logger.Silent
+	case "error":
+		gormLogLevel = logger.Error
+	case "warn", "warning":
+		gormLogLevel = logger.Warn
+	case "info":
+		gormLogLevel = logger.Info
+	case "":
+		gormLogLevel = logger.Error
+	default:
+		gormLogLevel = logger.Error
+		log.Printf("unknown SENTIMENTATOR_GORM_LOG_LEVEL='%s', defaulting to 'error'", gormLogLevelStr)
+	}
+
 	gormLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
-			LogLevel:                  logger.Info,
+			LogLevel:                  gormLogLevel,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
 		},

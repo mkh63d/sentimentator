@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -32,12 +33,17 @@ type Service interface {
 	// Transcript operations
 	CreateTranscript(ctx context.Context, transcript *models.Transcript) error
 	GetTranscriptByID(ctx context.Context, id uint) (*models.Transcript, error)
+	GetTranscriptByVideoID(ctx context.Context, videoID uint, language string) (*models.Transcript, error)
+	HasTranscript(ctx context.Context, videoID uint, language string) (bool, *models.Transcript, error)
 	UpdateTranscriptStatus(ctx context.Context, id uint, status models.TranscriptStatus) error
 
 	// Job operations
 	CreateJob(ctx context.Context, job *models.Job) error
 	GetPendingJobs(ctx context.Context, jobType models.JobType, limit int) ([]models.Job, error)
-	UpdateJobStatus(ctx context.Context, id uint, status models.JobStatus, errorMsg string) error
+	GetJobByID(ctx context.Context, id uint) (*models.Job, error)
+	MarkJobProcessing(ctx context.Context, jobID uint) error
+	MarkJobCompleted(ctx context.Context, jobID uint) error
+	MarkJobFailed(ctx context.Context, jobID uint, errMsg string) error
 }
 
 type service struct {
@@ -208,12 +214,44 @@ func (s *service) CreateTranscript(ctx context.Context, transcript *models.Trans
 func (s *service) GetTranscriptByID(ctx context.Context, id uint) (*models.Transcript, error) {
 	var transcript models.Transcript
 	err := s.db.WithContext(ctx).
-		Preload("Video").
 		First(&transcript, id).Error
 	if err != nil {
 		return nil, err
 	}
 	return &transcript, nil
+}
+
+func (s *service) GetTranscriptByVideoID(ctx context.Context, videoID uint, language string) (*models.Transcript, error) {
+	var transcript models.Transcript
+	err := s.db.WithContext(ctx).
+		Where("video_id = ? AND language = ? AND status IN ?",
+			videoID,
+			language,
+			[]models.TranscriptStatus{
+				models.StatusCompleted,
+				models.StatusProcessing,
+				models.StatusPending,
+			}).
+		Order("created_at DESC").
+		First(&transcript).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &transcript, nil
+}
+
+// HasTranscript checks if a video already has a transcript for the given language
+func (s *service) HasTranscript(ctx context.Context, videoID uint, language string) (bool, *models.Transcript, error) {
+	transcript, err := s.GetTranscriptByVideoID(ctx, videoID, language)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil, nil
+		}
+		return false, nil, err
+	}
+	return true, transcript, nil
 }
 
 func (s *service) UpdateTranscriptStatus(ctx context.Context, id uint, status models.TranscriptStatus) error {
@@ -248,17 +286,42 @@ func (s *service) GetPendingJobs(ctx context.Context, jobType models.JobType, li
 	return jobs, err
 }
 
-func (s *service) UpdateJobStatus(ctx context.Context, id uint, status models.JobStatus, errorMsg string) error {
-	updates := map[string]interface{}{
-		"status": status,
+func (s *service) GetJobByID(ctx context.Context, id uint) (*models.Job, error) {
+	var job models.Job
+	err := s.db.WithContext(ctx).
+		First(&job, id).Error
+	if err != nil {
+		return nil, err
 	}
+	return &job, nil
+}
 
-	if errorMsg != "" {
-		updates["error"] = errorMsg
-	}
-
+func (s *service) MarkJobProcessing(ctx context.Context, jobID uint) error {
 	return s.db.WithContext(ctx).
 		Model(&models.Job{}).
-		Where("id = ?", id).
-		Updates(updates).Error
+		Where("id = ? AND status = ?", jobID, models.JobStatusPending).
+		Updates(map[string]any{
+			"status":   models.JobStatusProcessing,
+			"attempts": gorm.Expr("attempts + ?", 1),
+		}).Error
+}
+
+func (s *service) MarkJobCompleted(ctx context.Context, jobID uint) error {
+	return s.db.WithContext(ctx).
+		Model(&models.Job{}).
+		Where("id = ?", jobID).
+		Updates(map[string]any{
+			"status": models.JobStatusCompleted,
+			"error":  "",
+		}).Error
+}
+
+func (s *service) MarkJobFailed(ctx context.Context, jobID uint, errMsg string) error {
+	return s.db.WithContext(ctx).
+		Model(&models.Job{}).
+		Where("id = ?", jobID).
+		Updates(map[string]any{
+			"status": models.JobStatusFailed,
+			"error":  errMsg,
+		}).Error
 }

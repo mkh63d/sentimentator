@@ -21,6 +21,7 @@ type Server struct {
 	db                database.Service
 	videoService      *video.Service
 	transcriptService *transcript.Service
+	queueService      *queue.Service
 	transcriptHandler handlers.TranscriptHandler
 	workerPool        *queue.WorkerPool
 }
@@ -57,6 +58,7 @@ func NewServer() (*Server, *http.Server) {
 		db:                db,
 		videoService:      videoService,
 		transcriptService: transcriptService,
+		queueService:      queueService,
 		transcriptHandler: *transcriptHandler,
 		workerPool:        workerPool,
 	}

@@ -164,20 +164,16 @@ func (wp *WorkerPool) processTranscriptJob(ctx context.Context, job *models.Job)
 	now := time.Now()
 	transcriptRecord.CompletedAt = &now
 
-	// Save the updated transcript
 	if err := wp.db.GetDB().WithContext(ctx).Save(transcriptRecord).Error; err != nil {
 		errMsg := "failed to save completed transcript: " + err.Error()
 		_ = wp.queueService.UpdateJobStatus(ctx, job.ID, models.JobStatusFailed, errMsg)
 		return err
 	}
 
-	// Update video status to completed
 	if err := wp.db.UpdateVideoStatus(ctx, payload.VideoID, "completed"); err != nil {
 		slog.Warn("failed to update video status", "error", err.Error())
-		// Continue anyway, transcript is saved
 	}
 
-	// Mark job as completed
 	if err := wp.queueService.UpdateJobStatus(ctx, job.ID, models.JobStatusCompleted, ""); err != nil {
 		slog.Error("failed to mark job as completed", "error", err.Error())
 		return err

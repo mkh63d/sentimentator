@@ -6,6 +6,7 @@
         "dylib",
         "EOSQL",
         "godotenv",
+        "gorm",
         "Goroutines",
         "healthcheck",
         "initdb",

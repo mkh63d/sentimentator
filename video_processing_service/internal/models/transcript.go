@@ -1,6 +1,13 @@
 package models
 
-import "time"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type TranscriptStatus string
 
@@ -15,21 +22,28 @@ type TranscriptMethod string
 
 const (
 	MethodCaption TranscriptMethod = "caption"
-	MethodWhisper TranscriptMethod = "whisper"
+	MethodWhisper TranscriptMethod = "whisper_api"
 )
 
 type Transcript struct {
-	ID          string           `json:"id" db:"id"`
-	VideoID     string           `json:"video_id" db:"video_id"`
-	Language    string           `json:"language" db:"language"`
-	Method      TranscriptMethod `json:"method" db:"method"`
-	Status      TranscriptStatus `json:"status" db:"status"`
-	Text        string           `json:"text,omitempty" db:"text"`
-	Segments    string           `json:"segments,omitempty" db:"-"`
-	Error       string           `json:"error,omitempty" db:"error"`
-	CreatedAt   time.Time        `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at" db:"updated_at"`
-	CompletedAt *time.Time       `json:"completed_at,omitempty" db:"completed_at"`
+	ID          uint             `gorm:"primaryKey" json:"id"`
+	VideoID     uint             `gorm:"not null;index" json:"video_id"`
+	Language    string           `gorm:"size:10;default:'en'" json:"language"`
+	Method      TranscriptMethod `gorm:"type:varchar(50);not null" json:"method"`
+	Status      TranscriptStatus `gorm:"type:varchar(50);default:'pending';index" json:"status"`
+	Text        string           `gorm:"type:text" json:"text,omitempty"`
+	Segments    SegmentArray     `gorm:"type:jsonb" json:"segments,omitempty"`
+	Error       string           `gorm:"type:text" json:"error,omitempty"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	CompletedAt *time.Time       `json:"completed_at,omitempty"`
+	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"-"`
+
+	Video Video `gorm:"foreignKey:VideoID" json:"video,omitempty"`
+}
+
+func (Transcript) TableName() string {
+	return "transcripts"
 }
 
 type Segment struct {
@@ -38,14 +52,25 @@ type Segment struct {
 	Text  string  `json:"text"`
 }
 
-type TranscriptRequest struct {
-	VideoURL string `json:"video_url" validate:"required,url"`
-	Language string `json:"language,omitempty"`
+type SegmentArray []Segment
+
+func (s *SegmentArray) Scan(value any) error {
+	if value == nil {
+		*s = SegmentArray{}
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("failed to scan SegmentArray")
+	}
+
+	return json.Unmarshal(bytes, s)
 }
 
-type TranscriptResponse struct {
-	ID         string           `json:"id"`
-	Status     TranscriptStatus `json:"status"`
-	Video      *Video           `json:"video,omitempty"`
-	Transcript *Transcript      `json:"transcript,omitempty"`
+func (s SegmentArray) Value() (driver.Value, error) {
+	if len(s) == 0 {
+		return nil, nil
+	}
+	return json.Marshal(s)
 }

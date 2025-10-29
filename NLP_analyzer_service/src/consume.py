@@ -1,6 +1,8 @@
-# consumer.py
+# consume.py
 import json
 import pika
+import threading
+import time
 
 RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"
 EXCHANGE = "events"
@@ -9,52 +11,112 @@ ROUTING_KEY = "video.transcript.ready"
 
 
 class RabbitConsumer:
-    """Consumes transcript messages from RabbitMQ."""
+    """Consumes transcript messages from RabbitMQ and stores the latest one."""
 
     def __init__(self, rabbit_url=RABBITMQ_URL):
         self.rabbit_url = rabbit_url
         self.connection = None
         self.channel = None
+        self._latest_message = None
+        self._lock = threading.Lock()
+        self._new_message_event = threading.Event()
+        self._consuming = False
+        self._consumer_thread = None
 
     def connect(self):
-        """Establish connection and declare exchange/queue."""
-        params = pika.URLParameters(self.rabbit_url)
-        self.connection = pika.BlockingConnection(params)
-        self.channel = self.connection.channel()
-        self.channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
-        self.channel.queue_declare(queue=QUEUE, durable=True)
-        self.channel.queue_bind(exchange=EXCHANGE, queue=QUEUE, routing_key=ROUTING_KEY)
+        """Establish connection with error handling"""
+        try:
+            params = pika.URLParameters(self.rabbit_url)
+            self.connection = pika.BlockingConnection(params)
+            self.channel = self.connection.channel()
+            self.channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
+            self.channel.queue_declare(queue=QUEUE, durable=True)
+            self.channel.queue_bind(exchange=EXCHANGE, queue=QUEUE, routing_key=ROUTING_KEY)
+            return True
+        except Exception as e:
+            print(f"[!] Failed to connect to RabbitMQ: {e}")
+            return False
 
-    def on_message(self, ch, method, properties, body):
-        """Callback for received messages."""
+    def _on_message(self, ch, method, properties, body):
         try:
             data = json.loads(body)
+            print(f"[📥] Received message for video: {data.get('video_id', 'unknown')}")
+            
+            with self._lock:
+                self._latest_message = data
+                self._new_message_event.set()
+
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            
         except json.JSONDecodeError:
             print("[!] Received invalid JSON")
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
+        except Exception as e:
+            print(f"[!] Error processing message: {e}")
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
-        print(f"[x] Received message: {json.dumps(data, indent=2)}")
+    def start_background(self):
+        """Start consuming in a background thread."""
+        if not self.connect():
+            return False
+            
+        def _consume():
+            print("[*] Waiting for 'video.transcript.ready' messages...")
+            try:
+                self.channel.basic_consume(queue=QUEUE, on_message_callback=self._on_message)
+                self._consuming = True
+                self.channel.start_consuming()
+            except Exception as e:
+                print(f"[!] Consumer stopped: {e}")
+            finally:
+                self._consuming = False
 
-        # For now, just acknowledge — later we’ll forward to analyzer
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        self._consumer_thread = threading.Thread(target=_consume, daemon=True)
+        self._consumer_thread.start()
+        return True
 
-    def start(self):
-        """Start consuming messages."""
-        self.connect()
-        print("[*] Waiting for 'video.transcript.ready' messages...")
-        self.channel.basic_consume(queue=QUEUE, on_message_callback=self.on_message)
-        try:
-            self.channel.start_consuming()
-        except KeyboardInterrupt:
-            print("\n[!] Stopping consumer...")
-            self.stop()
+    def wait_for_message(self, timeout=None):
+        """Block until a new message arrives or timeout."""
+        received = self._new_message_event.wait(timeout)
+        if received:
+            self._new_message_event.clear()
+        return received
+
+    def get_video_id(self):
+        with self._lock:
+            return self._latest_message.get("video_id") if self._latest_message else None
+
+    def get_text(self):
+        with self._lock:
+            return self._latest_message.get("transcript") if self._latest_message else None
 
     def stop(self):
-        """Cleanly close connections."""
+        """Safely stop the consumer."""
+        print("[*] Stopping RabbitMQ consumer...")
+        
+        # Stop consuming first
+        if self.channel and self.channel.is_open and self._consuming:
+            try:
+                self.channel.stop_consuming()
+                print("[*] Stopped consuming messages")
+            except Exception as e:
+                print(f"[*] Error stopping consumption: {e}")
+        
+        # Close channel
         if self.channel and self.channel.is_open:
-            self.channel.stop_consuming()
+            try:
+                self.channel.close()
+                print("[*] Closed channel")
+            except Exception as e:
+                print(f"[*] Error closing channel: {e}")
+        
+        # Close connection
         if self.connection and self.connection.is_open:
-            self.connection.close()
-        print("[x] Connection closed.")
-
+            try:
+                self.connection.close()
+                print("[*] Closed connection")
+            except Exception as e:
+                print(f"[*] Error closing connection: {e}")
+        
+        self._consuming = False
+        print("[*] RabbitMQ consumer stopped.")

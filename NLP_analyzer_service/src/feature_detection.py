@@ -12,7 +12,6 @@ class FeatureDetector:
     def __init__(self, custom_features: List[str] = None):
         self.features = set(custom_features or self.DEFAULT_FEATURES)
         self.nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
-        # ✅ Add lightweight sentence splitter
         if "sentencizer" not in self.nlp.pipe_names:
             self.nlp.add_pipe("sentencizer")
 

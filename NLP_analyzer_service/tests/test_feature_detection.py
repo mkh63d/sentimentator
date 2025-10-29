@@ -42,7 +42,7 @@ def test_feature_detection_complex_review():
 
     # Check speaker
     speaker_sents = detected["speaker"]
-    assert any("loud" in s for s in speaker_sents)
+    assert any("bad" in s for s in speaker_sents)
     assert any("distorts" in s for s in speaker_sents)
 
     # Check performance

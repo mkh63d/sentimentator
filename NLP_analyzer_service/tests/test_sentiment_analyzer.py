@@ -14,11 +14,11 @@ REVIEW_FILE = os.path.join(RESOURCE_DIR, "review_text.txt")
 
 # Expected sentiment results based on documented review
 EXPECTED_SENTIMENTS = {
-    "camera": "positive",       # 2 positive, 1 negative → we decide “positive”
-    "battery": "neutral",      # 1 positive, 2 negative → we decide “negative”
+    "camera": "positive",       
+    "battery": "neutral",      
     "display": "positive",
-    "speaker": "negative",      # 1 positive, 1 negative → we decide “negative”
-    "performance": "positive",  # 1 positive, 1 negative → we decide “positive”
+    "speaker": "negative",      
+    "performance": "positive",  
 }
 
 @pytest.mark.unit

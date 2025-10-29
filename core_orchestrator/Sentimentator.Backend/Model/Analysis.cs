@@ -2,8 +2,8 @@
 
 public class Analysis
 {
-    public Guid Id { get; set; }
-    public required string Url { get; set; }
+    public Guid Id { get; init; }
+    public required string Url { get; init; }
     public string? Transcription { get; set; }
-    public string? Summary  { get; set; }
+    public string? Summary { get; set; }
 }

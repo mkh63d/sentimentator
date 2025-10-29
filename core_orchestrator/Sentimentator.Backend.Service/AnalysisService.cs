@@ -4,18 +4,18 @@ namespace Sentimentator.Backend.Service;
 
 public class AnalysisService(SentimentatorContext context)
 {
-    public bool Add(string url)
+    public Analysis? Add(string url)
     {
         try
         {
             var analysis = new Analysis { Id = Guid.NewGuid(), Url = url };
             context.Analyses.Add(analysis);
             context.SaveChanges();
-            return true;
+            return analysis;
         }
         catch
         {
-            return false;
+            return null;
         }
     }
 
@@ -29,6 +29,11 @@ public class AnalysisService(SentimentatorContext context)
     {
         var a = context.Analyses.FirstOrDefault(x => x.Url == url);
         return a ?? throw new KeyNotFoundException("Analysis not found");
+    }
+
+    public List<Analysis> Get()
+    {
+        return context.Analyses.ToList();
     }
 
     public bool Update(Guid id, string transcription, string summary)

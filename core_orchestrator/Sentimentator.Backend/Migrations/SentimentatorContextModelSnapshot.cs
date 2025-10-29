@@ -175,7 +175,7 @@ namespace Sentimentator.Backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Analyses");
+                    b.ToTable("Analyses", (string)null);
                 });
 
             modelBuilder.Entity("Sentimentator.Backend.Model.User", b =>

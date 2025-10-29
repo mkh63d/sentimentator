@@ -1,7 +1,9 @@
 using System.Web;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
+using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
 
@@ -14,14 +16,14 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, _, _) =>
     {
-        document.Info = new()
+        document.Info = new OpenApiInfo
         {
-            Title = "Sentimentator backup API",
+            Title = "Sentimentator backend API",
             Version = "v1",
             Description = """
-                          API for retrieving sentiment analisis data
+                          API for retrieving sentiment analysis data
                           """,
-            Contact = new()
+            Contact = new OpenApiContact
             {
                 Name = "API Support",
                 Email = "api@example.com",
@@ -39,35 +41,10 @@ app.MapScalarApiReference();
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription();
 
-app.MapGet("/analyses/{id:guid}", (Guid id) =>
-{
-    using var scope = app.Services.CreateScope();
-    var service = scope.ServiceProvider.GetService<AnalysisService>();
-    try
-    {
-        var analysis = service!.Get(id);
-        return Results.Ok(analysis);
-    }
-    catch
-    {
-        return Results.NotFound();
-    }
-});
-
-app.MapGet("/analyses/{url}", (string url) =>
-{
-    url = HttpUtility.UrlDecode(url);
-    using var scope = app.Services.CreateScope();
-    var service = scope.ServiceProvider.GetService<AnalysisService>();
-    try
-    {
-        var analysis = service!.Get(url);
-        return Results.Ok(analysis);
-    }
-    catch
-    {
-        return Results.NotFound();
-    }
-});
+app.MapGroup("/analyses")
+    .AnalysisPostGroup()
+    .AnalysisGetGroup()
+    .AnalysisPutGroup()
+    .AnalysisDeleteGroup();
 
 app.Run();

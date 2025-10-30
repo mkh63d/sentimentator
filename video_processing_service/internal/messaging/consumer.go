@@ -6,20 +6,32 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type MessageHandler func(ctx context.Context, body []byte) error
 
 type Consumer struct {
-	rabbitmq *RabbitMQ
-	handlers map[string]MessageHandler
+	rabbitmq          *RabbitMQ
+	handlers          map[string]MessageHandler
+	db                database.Service
+	videoService      *video.Service
+	transcriptService *transcript.Service
+	producer          *Producer
 }
 
-func NewConsumer(rabbitmq *RabbitMQ) *Consumer {
+func NewConsumer(rabbitmq *RabbitMQ, db database.Service, transcriptService *transcript.Service, videoService *video.Service, producer *Producer) *Consumer {
 	return &Consumer{
-		rabbitmq: rabbitmq,
-		handlers: make(map[string]MessageHandler),
+		rabbitmq:          rabbitmq,
+		handlers:          make(map[string]MessageHandler),
+		db:                db,
+		videoService:      videoService,
+		transcriptService: transcriptService,
+		producer:          producer,
 	}
 }
 
@@ -101,7 +113,7 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 	slog.Debug("Message processed successfully", slog.String("queue", queueName))
 }
 
-func HandleVideoReceivedEvent(ctx context.Context, body []byte) error {
+func (c *Consumer) HandleVideoReceivedEvent(ctx context.Context, body []byte) error {
 	var event VideoReceivedEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		return fmt.Errorf("failed to unmarshal event: %w", err)
@@ -112,7 +124,85 @@ func HandleVideoReceivedEvent(ctx context.Context, body []byte) error {
 		slog.String("url", event.URL),
 		slog.String("platform", event.Platform))
 
-	// TODO: Implement actual video processing logic here
+	metadata, err := c.videoService.GetVideoMetadata(ctx, event.URL)
+	if err != nil {
+		return fmt.Errorf("failed to get video metadata: %w", err)
+	}
+
+	videoRecord, err := c.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
+	if err != nil {
+		videoRecord = &models.Video{
+			VideoID:     metadata.VideoID,
+			Platform:    metadata.Platform,
+			OriginalURL: event.URL,
+			Title:       metadata.Title,
+			Duration:    metadata.Duration,
+			AudioURL:    metadata.AudioURL,
+			Status:      string(models.StatusPending),
+		}
+
+		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {
+			return fmt.Errorf("failed to save video record: %w", err)
+		}
+	}
+
+	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord.ID, "en")
+	if err != nil {
+		return fmt.Errorf("failed to check for existing transcript: %w", err)
+	}
+
+	if hasTranscript {
+		if existingTranscript.Status == models.StatusCompleted {
+			transcriptEvent := TranscriptReadyEvent{
+				VideoID:  videoRecord.VideoID,
+				Text:     existingTranscript.Text,
+				Language: existingTranscript.Language,
+			}
+
+			err := c.producer.PublishTranscriptReady(ctx, transcriptEvent)
+			if err != nil {
+				return fmt.Errorf("failed to publish transcript ready event: %w", err)
+			}
+		}
+	}
+
+	result, err := c.transcriptService.GetTranscript(ctx, event.URL, "en")
+	if err != nil {
+		slog.Error("Failed to get transcript",
+			slog.String("video_id", videoRecord.VideoID),
+			slog.String("url", event.URL),
+			slog.String("error", err.Error()),
+		)
+		return fmt.Errorf("failed to get transcript: %w", err)
+	}
+
+	transcriptRecord := &models.Transcript{
+		VideoID:  videoRecord.ID,
+		Language: "en",
+		Method:   result.Method,
+		Status:   models.StatusCompleted,
+		Text:     result.Text,
+		Segments: result.Segments,
+	}
+	if err := c.db.CreateTranscript(ctx, transcriptRecord); err != nil {
+		return fmt.Errorf("failed to save transcript record: %w", err)
+	}
+
+	transcriptEvent := TranscriptReadyEvent{
+		VideoID:      videoRecord.VideoID,
+		TranscriptID: fmt.Sprintf("%d", transcriptRecord.ID),
+		Text:         result.Text,
+		Language:     transcriptRecord.Language,
+	}
+
+	if err := c.producer.PublishTranscriptReady(ctx, transcriptEvent); err != nil {
+		slog.Error("Failed to publish transcript completed event",
+			slog.String("video_id", videoRecord.VideoID),
+			slog.String("transcript_id", fmt.Sprintf("%d", transcriptRecord.ID)),
+			slog.String("error", err.Error()),
+		)
+		return fmt.Errorf("failed to publish transcript ready event: %w", err)
+	}
 
 	return nil
 }

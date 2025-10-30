@@ -83,9 +83,9 @@ func NewServer() (*Server, *http.Server) {
 	workerPool := queue.NewWorkerPool(db, transcriptService, 1, 5*time.Second)
 
 	producer := messaging.NewProducer(rabbitmq)
-	consumer := messaging.NewConsumer(rabbitmq)
+	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, videoService, producer)
 
-	consumer.RegisterHandler(messaging.QueueVideoProcessing, messaging.HandleVideoReceivedEvent)
+	consumer.RegisterHandler(messaging.QueueVideoProcessing, consumer.HandleVideoReceivedEvent)
 
 	consumerCtx, consumerCancel := context.WithCancel(context.Background())
 

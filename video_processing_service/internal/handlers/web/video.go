@@ -9,12 +9,11 @@ import (
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/cmd/web"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/queue"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -22,20 +21,20 @@ type VideoHandler struct {
 	db                database.Service
 	videoService      *video.Service
 	transcriptService *transcript.Service
-	queueService      *queue.Service
+	producer          *messaging.Producer
 }
 
 func NewVideoHandler(
 	db database.Service,
 	videoService *video.Service,
 	transcriptService *transcript.Service,
-	queueService *queue.Service,
+	producer *messaging.Producer,
 ) *VideoHandler {
 	return &VideoHandler{
 		db:                db,
 		videoService:      videoService,
 		transcriptService: transcriptService,
-		queueService:      queueService,
+		producer:          producer,
 	}
 }
 
@@ -115,83 +114,28 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 			slog.Uint64("db_id", uint64(videoRecord.ID)))
 	}
 
-	if err := h.db.UpdateVideoStatus(ctx, videoRecord.ID, "processing"); err != nil {
-		slog.Error("failed to update video status",
-			slog.String("error", err.Error()),
-			slog.Uint64("db_id", uint64(videoRecord.ID)))
+	// Publish VideoReceivedEvent to RabbitMQ for processing
+	event := messaging.VideoReceivedEvent{
+		VideoID:   metadata.VideoID,
+		URL:       videoURL,
+		Platform:  metadata.Platform,
+		Timestamp: time.Now(),
 	}
 
-	language := "en" // TODO: get from form input
-
-	hasTranscript, existingTranscript, err := h.db.HasTranscript(ctx, videoRecord.ID, language)
-	if err != nil {
-		slog.Error("failed to check for existing transcript",
+	if err := h.producer.PublishVideoReceived(ctx, event); err != nil {
+		slog.Error("failed to publish video received event",
 			slog.String("error", err.Error()),
-			slog.Uint64("video_id", uint64(videoRecord.ID)))
-		component := web.VideoUrlError("Failed to check for existing transcript")
+			slog.String("video_id", metadata.VideoID))
+		component := web.VideoUrlError("Failed to queue video for processing")
 		if renderErr := component.Render(c.Request.Context(), c.Writer); renderErr != nil {
 			c.String(http.StatusInternalServerError, renderErr.Error())
 		}
 		return
 	}
 
-	var transcriptRecord *models.Transcript
-
-	// Only create new transcript and job if one doesn't exist or if it failed
-	if !hasTranscript || existingTranscript.Status == models.StatusFailed {
-		transcriptRecord = &models.Transcript{
-			VideoID:  videoRecord.ID,
-			Language: language,
-			Method:   models.MethodWhisper,
-			Status:   models.StatusPending,
-		}
-
-		if err := h.db.CreateTranscript(ctx, transcriptRecord); err != nil {
-			slog.Error("failed to create transcript record",
-				slog.String("error", err.Error()),
-				slog.Uint64("video_id", uint64(videoRecord.ID)))
-			component := web.VideoUrlError("Failed to create transcript record")
-			if renderErr := component.Render(c.Request.Context(), c.Writer); renderErr != nil {
-				c.String(http.StatusInternalServerError, renderErr.Error())
-			}
-			return
-		}
-
-		slog.Info("created transcript record",
-			slog.Uint64("transcript_id", uint64(transcriptRecord.ID)),
-			slog.Uint64("video_id", uint64(videoRecord.ID)))
-
-		jobID := uuid.New().String()
-		jobPayload := &queue.TranscriptJobPayload{
-			VideoURL:     videoURL,
-			Language:     language,
-			VideoID:      videoRecord.ID,
-			TranscriptID: transcriptRecord.ID,
-			JobID:        jobID,
-		}
-
-		job, err := h.queueService.CreateTranscriptJob(ctx, jobPayload)
-		if err != nil {
-			slog.Error("failed to create job",
-				slog.String("error", err.Error()),
-				slog.Uint64("transcript_id", uint64(transcriptRecord.ID)))
-			component := web.VideoUrlError("Failed to queue transcript job")
-			if renderErr := component.Render(c.Request.Context(), c.Writer); renderErr != nil {
-				c.String(http.StatusInternalServerError, renderErr.Error())
-			}
-			return
-		}
-
-		slog.Info("created transcript job",
-			slog.Uint64("job_id", uint64(job.ID)),
-			slog.Uint64("transcript_id", uint64(transcriptRecord.ID)),
-			slog.String("tracking_id", jobID))
-	} else {
-		slog.Info("transcript already exists, skipping job creation",
-			slog.Uint64("transcript_id", uint64(existingTranscript.ID)),
-			slog.String("status", string(existingTranscript.Status)))
-		transcriptRecord = existingTranscript
-	}
+	slog.Info("published video received event to RabbitMQ",
+		slog.String("video_id", metadata.VideoID),
+		slog.Uint64("db_id", uint64(videoRecord.ID)))
 
 	component := web.VideoUrlPost(
 		metadata.VideoID,
@@ -208,22 +152,18 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 
 	slog.Info("video processing request completed successfully",
 		slog.String("video_id", metadata.VideoID),
-		slog.Uint64("db_id", uint64(videoRecord.ID)),
-		slog.Uint64("transcript_id", uint64(transcriptRecord.ID)))
+		slog.Uint64("db_id", uint64(videoRecord.ID)))
 }
 
 func (h *VideoHandler) GetJobStats(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	stats, err := h.db.GetJobStats(ctx)
-	if err != nil {
-		slog.Error("failed to get job stats", slog.String("error", err.Error()))
-		component := web.JobStatsError("Failed to load job statistics")
-		if renderErr := component.Render(c.Request.Context(), c.Writer); renderErr != nil {
-			c.String(http.StatusInternalServerError, renderErr.Error())
-		}
-		return
+	// Job stats are no longer tracked in database, using RabbitMQ now
+	// Return empty stats or implement RabbitMQ queue inspection
+	stats := map[string]int64{
+		"total":      0,
+		"pending":    0,
+		"processing": 0,
+		"completed":  0,
+		"failed":     0,
 	}
 
 	component := web.JobStatsComponent(stats)

@@ -44,18 +44,3 @@ func (si *ServiceIntegrator) PublishTranscriptFromModel(ctx context.Context, tra
 
 	return si.producer.PublishTranscriptReady(ctx, event)
 }
-
-// PublishJobFailure publishes a processing failed event from a Job model
-func (si *ServiceIntegrator) PublishJobFailure(ctx context.Context, job *models.Job, stage, errorMsg string) error {
-	videoID := "unknown"
-
-	event := ProcessingFailedEvent{
-		VideoID:  videoID,
-		Stage:    stage,
-		Error:    errorMsg,
-		Attempts: job.Attempts,
-		FailedAt: time.Now(),
-	}
-
-	return si.producer.PublishProcessingFailed(ctx, event)
-}

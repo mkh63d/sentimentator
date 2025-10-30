@@ -14,7 +14,6 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/queue"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 )
@@ -24,9 +23,7 @@ type Server struct {
 	db                database.Service
 	videoService      *video.Service
 	transcriptService *transcript.Service
-	queueService      *queue.Service
 	transcriptHandler handlers.TranscriptHandler
-	workerPool        *queue.WorkerPool
 	rabbitmq          *messaging.RabbitMQ
 	producer          *messaging.Producer
 	consumer          *messaging.Consumer
@@ -77,13 +74,10 @@ func NewServer() (*Server, *http.Server) {
 	// Initialize services
 	videoService := video.NewService()
 	transcriptService := transcript.NewService(videoService, whisperAPIKey)
-	queueService := queue.NewService(db)
-	transcriptHandler := handlers.NewTranscriptHandler(db, videoService, queueService)
-
-	workerPool := queue.NewWorkerPool(db, transcriptService, 1, 5*time.Second)
 
 	producer := messaging.NewProducer(rabbitmq)
 	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, videoService, producer)
+	transcriptHandler := handlers.NewTranscriptHandler(db, videoService, producer)
 
 	consumer.RegisterHandler(messaging.QueueVideoProcessing, consumer.HandleVideoReceivedEvent)
 
@@ -94,17 +88,13 @@ func NewServer() (*Server, *http.Server) {
 		db:                db,
 		videoService:      videoService,
 		transcriptService: transcriptService,
-		queueService:      queueService,
 		transcriptHandler: *transcriptHandler,
-		workerPool:        workerPool,
 		rabbitmq:          rabbitmq,
 		producer:          producer,
 		consumer:          consumer,
 		consumerCtx:       consumerCtx,
 		consumerCancel:    consumerCancel,
 	}
-
-	workerPool.Start()
 
 	if err := consumer.StartConsuming(consumerCtx); err != nil {
 		panic(fmt.Sprintf("failed to start consuming messages: %v", err))
@@ -156,16 +146,12 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 	return nil
 }
 
-// Shutdown gracefully stops the worker pool, consumer, and closes RabbitMQ connection
+// Shutdown gracefully stops the consumer and closes RabbitMQ connection
 func (s *Server) Shutdown() {
 	slog.Info("Shutting down server...")
 
 	if s.consumerCancel != nil {
 		s.consumerCancel()
-	}
-
-	if s.workerPool != nil {
-		s.workerPool.Stop()
 	}
 
 	if s.rabbitmq != nil {

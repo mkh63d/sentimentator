@@ -38,16 +38,6 @@ type Service interface {
 	HasTranscript(ctx context.Context, videoID uint, language string) (bool, *models.Transcript, error)
 	UpdateTranscriptStatus(ctx context.Context, id uint, status models.TranscriptStatus) error
 
-	// Job operations
-	CreateJob(ctx context.Context, job *models.Job) error
-	GetPendingJobs(ctx context.Context, jobType models.JobType, limit int) ([]models.Job, error)
-	GetJobByID(ctx context.Context, id uint) (*models.Job, error)
-	MarkJobProcessing(ctx context.Context, jobID uint) error
-	MarkJobCompleted(ctx context.Context, jobID uint) error
-	MarkJobFailed(ctx context.Context, jobID uint, errMsg string) error
-	GetJobStats(ctx context.Context) (map[string]int64, error)
-	GetAllJobs(ctx context.Context, limit int) ([]models.Job, error)
-
 	// Video list operations
 	ListVideos(ctx context.Context, limit, offset int) ([]models.Video, int64, error)
 }
@@ -296,110 +286,6 @@ func (s *service) UpdateTranscriptStatus(ctx context.Context, id uint, status mo
 		Model(&models.Transcript{}).
 		Where("id = ?", id).
 		Updates(updates).Error
-}
-
-// Job operations
-
-func (s *service) CreateJob(ctx context.Context, job *models.Job) error {
-	return s.db.WithContext(ctx).Create(job).Error
-}
-
-func (s *service) GetPendingJobs(ctx context.Context, jobType models.JobType, limit int) ([]models.Job, error) {
-	var jobs []models.Job
-	err := s.db.WithContext(ctx).
-		Where("type = ? AND status = ?", jobType, models.JobStatusPending).
-		Order("created_at ASC").
-		Limit(limit).
-		Find(&jobs).Error
-	return jobs, err
-}
-
-func (s *service) GetJobByID(ctx context.Context, id uint) (*models.Job, error) {
-	var job models.Job
-	err := s.db.WithContext(ctx).
-		First(&job, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &job, nil
-}
-
-func (s *service) MarkJobProcessing(ctx context.Context, jobID uint) error {
-	return s.db.WithContext(ctx).
-		Model(&models.Job{}).
-		Where("id = ? AND status = ?", jobID, models.JobStatusPending).
-		Updates(map[string]any{
-			"status":   models.JobStatusProcessing,
-			"attempts": gorm.Expr("attempts + ?", 1),
-		}).Error
-}
-
-func (s *service) MarkJobCompleted(ctx context.Context, jobID uint) error {
-	return s.db.WithContext(ctx).
-		Model(&models.Job{}).
-		Where("id = ?", jobID).
-		Updates(map[string]any{
-			"status": models.JobStatusCompleted,
-			"error":  "",
-		}).Error
-}
-
-func (s *service) MarkJobFailed(ctx context.Context, jobID uint, errMsg string) error {
-	return s.db.WithContext(ctx).
-		Model(&models.Job{}).
-		Where("id = ?", jobID).
-		Updates(map[string]any{
-			"status": models.JobStatusFailed,
-			"error":  errMsg,
-		}).Error
-}
-
-func (s *service) GetJobStats(ctx context.Context) (map[string]int64, error) {
-	stats := make(map[string]int64)
-
-	var total int64
-	if err := s.db.WithContext(ctx).Model(&models.Job{}).Count(&total).Error; err != nil {
-		return nil, err
-	}
-	stats["total"] = total
-
-	type StatusCount struct {
-		Status models.JobStatus
-		Count  int64
-	}
-
-	var statusCounts []StatusCount
-	if err := s.db.WithContext(ctx).
-		Model(&models.Job{}).
-		Select("status, COUNT(*) as count").
-		Group("status").
-		Find(&statusCounts).Error; err != nil {
-		return nil, err
-	}
-
-	stats["pending"] = 0
-	stats["processing"] = 0
-	stats["completed"] = 0
-	stats["failed"] = 0
-
-	for _, sc := range statusCounts {
-		stats[string(sc.Status)] = sc.Count
-	}
-
-	return stats, nil
-}
-
-func (s *service) GetAllJobs(ctx context.Context, limit int) ([]models.Job, error) {
-	var jobs []models.Job
-	query := s.db.WithContext(ctx).
-		Order("created_at DESC")
-
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-
-	err := query.Find(&jobs).Error
-	return jobs, err
 }
 
 func (s *service) ListVideos(ctx context.Context, limit, offset int) ([]models.Video, int64, error) {

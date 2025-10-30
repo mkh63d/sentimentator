@@ -1,15 +1,18 @@
-using System.Web;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
+using Sentimentator.Backend.Api.Helpers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<SentimentatorContext>();
-builder.Services.AddIdentity<User, IdentityRole<Guid>>().AddEntityFrameworkStores<SentimentatorContext>();
+builder.Services
+    .AddIdentityApiEndpoints<User>()
+    .AddEntityFrameworkStores<SentimentatorContext>();
+builder.Services.AddAuthorizationBuilder();
+
 builder.Services.AddScoped<AnalysisService>();
 
 builder.Services.AddOpenApi(options =>
@@ -32,19 +35,39 @@ builder.Services.AddOpenApi(options =>
         };
         return Task.CompletedTask;
     });
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
 var app = builder.Build();
 app.MapOpenApi().CacheOutput();
-app.MapScalarApiReference();
+app.MapScalarApiReference(options =>
+{
+    options.Authentication = new ScalarAuthenticationOptions
+    {
+        PreferredSecuritySchemes = ["Bearer"]
+    };
+    options.Theme = ScalarTheme.BluePlanet;
+});
+
+app.UseAuthorization();
 
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription();
+
+app.MapGet("/hello", () => Results.Ok("Hello World!"))
+    .WithTags("Hello")
+    .RequireAuthorization();
 
 app.MapGroup("/analyses")
     .AnalysisPostGroup()
     .AnalysisGetGroup()
     .AnalysisPutGroup()
-    .AnalysisDeleteGroup();
+    .AnalysisDeleteGroup()
+    .WithTags("Analysis")
+    .RequireAuthorization();
+
+app.MapGroup("/account")
+    .MapIdentityApi<User>()
+    .WithTags("Identity");
 
 app.Run();

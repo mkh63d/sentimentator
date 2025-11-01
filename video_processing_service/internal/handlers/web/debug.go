@@ -31,113 +31,166 @@ func (h *DebugHandler) ServeDebugPage(c *gin.Context) {
 }
 
 // PublishVideoReceived handles publishing a video received event
+
 func (h *DebugHandler) PublishVideoReceived(c *gin.Context) {
+
 	if err := c.Request.ParseForm(); err != nil {
+
 		slog.Error("failed to parse form", slog.String("error", err.Error()))
+
 		h.renderError(c, "video.received", "Failed to parse form data")
+
 		return
+
 	}
 
-	event := messaging.VideoReceivedEvent{
-		VideoID:   c.Request.FormValue("video_id"),
-		URL:       c.Request.FormValue("url"),
-		Platform:  c.Request.FormValue("platform"),
-		UserID:    c.Request.FormValue("user_id"),
+	event := messaging.VideoTranscriptRequestedEvent{
+		AnalysisID: c.Request.FormValue("analysis_id"),
+		URL:        c.Request.FormValue("url"),
+
 		Timestamp: time.Now(),
 	}
 
 	if err := h.producer.PublishVideoReceived(c.Request.Context(), event); err != nil {
-		slog.Error("failed to publish video received event",
+
+		slog.Error("failed to publish transcript requested event",
 			slog.String("error", err.Error()),
-			slog.String("video_id", event.VideoID))
+
+			slog.String("analysis_id", event.AnalysisID))
 		h.renderError(c, "video.received", err.Error())
+
 		return
+
 	}
 
-	slog.Info("published video received event via debug UI",
-		slog.String("video_id", event.VideoID),
+	slog.Info("published transcript requested event via debug UI",
+
+		slog.String("analysis_id", event.AnalysisID),
 		slog.String("url", event.URL))
 
 	h.renderSuccess(c, "video.received")
+
 }
 
 // PublishTranscriptReady handles publishing a transcript ready event
+
 func (h *DebugHandler) PublishTranscriptReady(c *gin.Context) {
+
 	if err := c.Request.ParseForm(); err != nil {
+
 		slog.Error("failed to parse form", slog.String("error", err.Error()))
+
 		h.renderError(c, "transcript.ready", "Failed to parse form data")
+
 		return
+
 	}
 
 	durationStr := c.Request.FormValue("duration")
-	duration, err := strconv.ParseFloat(durationStr, 64)
+
+	duration, err := strconv.Atoi(durationStr)
 	if err != nil {
 		duration = 0
 	}
 
 	text := c.Request.FormValue("text")
-	wordCount := len(text) / 5 // Rough estimate
 
-	event := messaging.TranscriptReadyEvent{
-		VideoID:      c.Request.FormValue("video_id"),
+	event := messaging.VideoTranscriptCompletedEvent{
+		AnalysisID: c.Request.FormValue("analysis_id"),
+		VideoID:    c.Request.FormValue("video_id"),
+
 		TranscriptID: c.Request.FormValue("transcript_id"),
-		Text:         text,
-		Language:     c.Request.FormValue("language"),
-		Duration:     duration,
-		WordCount:    wordCount,
-		CreatedAt:    time.Now(),
+
+		Text: text,
+
+		Language: c.Request.FormValue("language"),
+
+		Duration: duration,
+
+		CreatedAt: time.Now(),
 	}
 
 	if err := h.producer.PublishTranscriptReady(c.Request.Context(), event); err != nil {
-		slog.Error("failed to publish transcript ready event",
+
+		slog.Error("failed to publish transcript completed event",
 			slog.String("error", err.Error()),
+
 			slog.String("video_id", event.VideoID))
+
 		h.renderError(c, "transcript.ready", err.Error())
+
 		return
+
 	}
 
-	slog.Info("published transcript ready event via debug UI",
+	slog.Info("published transcript completed event via debug UI",
+
 		slog.String("video_id", event.VideoID),
+
 		slog.String("transcript_id", event.TranscriptID))
 
 	h.renderSuccess(c, "transcript.ready")
+
 }
 
 // PublishProcessingFailed handles publishing a processing failed event
+
 func (h *DebugHandler) PublishProcessingFailed(c *gin.Context) {
+
 	if err := c.Request.ParseForm(); err != nil {
+
 		slog.Error("failed to parse form", slog.String("error", err.Error()))
+
 		h.renderError(c, "processing.failed", "Failed to parse form data")
+
 		return
+
 	}
 
 	attemptsStr := c.Request.FormValue("attempts")
+
 	attempts, err := strconv.Atoi(attemptsStr)
+
 	if err != nil {
+
 		attempts = 1
+
 	}
 
-	event := messaging.ProcessingFailedEvent{
-		VideoID:  c.Request.FormValue("video_id"),
-		Stage:    c.Request.FormValue("stage"),
-		Error:    c.Request.FormValue("error"),
+	event := messaging.VideoTranscriptFailedEvent{
+		AnalysisID: c.Request.FormValue("analysis_id"),
+		VideoID:    c.Request.FormValue("video_id"),
+		Stage:      c.Request.FormValue("stage"),
+
+		Error: c.Request.FormValue("error"),
+
 		Attempts: attempts,
+
 		FailedAt: time.Now(),
 	}
 
 	if err := h.producer.PublishProcessingFailed(c.Request.Context(), event); err != nil {
+
 		slog.Error("failed to publish processing failed event",
+
 			slog.String("error", err.Error()),
+
 			slog.String("video_id", event.VideoID))
+
 		h.renderError(c, "processing.failed", err.Error())
+
 		return
+
 	}
 
 	slog.Info("published processing failed event via debug UI",
+
 		slog.String("video_id", event.VideoID),
+
 		slog.String("stage", event.Stage))
 
 	h.renderSuccess(c, "processing.failed")
+
 }
 
 func (h *DebugHandler) renderSuccess(c *gin.Context, eventType string) {

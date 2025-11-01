@@ -13,34 +13,49 @@ type ServiceIntegrator struct {
 }
 
 func NewServiceIntegrator(producer *Producer) *ServiceIntegrator {
+
 	return &ServiceIntegrator{
+
 		producer: producer,
 	}
+
 }
 
-// PublishVideoFromModel publishes a video event from a Video model
+// PublishVideoFromModel publishes a transcript request event from a Video model
+
 func (si *ServiceIntegrator) PublishVideoFromModel(ctx context.Context, video *models.Video) error {
-	event := VideoReceivedEvent{
-		VideoID:   fmt.Sprintf("%d", video.ID),
-		URL:       video.OriginalURL,
-		Platform:  video.Platform,
+	event := VideoTranscriptRequestedEvent{
+
+		AnalysisID: fmt.Sprintf("%d", video.ID),
+
+		URL: video.OriginalURL,
+
 		Timestamp: time.Now(),
 	}
 
 	return si.producer.PublishVideoReceived(ctx, event)
+
 }
 
-// PublishTranscriptFromModel publishes a transcript ready event from Transcript and Video models
+// PublishTranscriptFromModel publishes a transcript completed event from Transcript and Video models
 func (si *ServiceIntegrator) PublishTranscriptFromModel(ctx context.Context, transcript *models.Transcript, video *models.Video) error {
-	event := TranscriptReadyEvent{
-		VideoID:      fmt.Sprintf("%d", video.ID),
+	event := VideoTranscriptCompletedEvent{
+
+		AnalysisID: fmt.Sprintf("%d", video.ID),
+
+		VideoID: fmt.Sprintf("%d", video.ID),
+
 		TranscriptID: fmt.Sprintf("%d", transcript.ID),
-		Text:         transcript.Text,
-		Language:     "en",
-		Duration:     float64(video.Duration),
-		WordCount:    len(transcript.Text) / 5, // is there a better way to estimate word count?
-		CreatedAt:    transcript.CreatedAt,
+
+		Text: transcript.Text,
+
+		Language: "en",
+
+		Duration: video.Duration,
+
+		CreatedAt: transcript.CreatedAt,
 	}
 
 	return si.producer.PublishTranscriptReady(ctx, event)
+
 }

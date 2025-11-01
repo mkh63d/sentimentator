@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
@@ -98,7 +99,6 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 			slog.String("queue", queueName),
 			slog.String("error", err.Error()))
 
-		// Reject and requeue the message (or send to DLQ based on your config)
 		if err := msg.Nack(false, true); err != nil {
 			slog.Error("Failed to nack message", slog.String("error", err.Error()))
 		}
@@ -113,16 +113,13 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 	slog.Debug("Message processed successfully", slog.String("queue", queueName))
 }
 
-func (c *Consumer) HandleVideoReceivedEvent(ctx context.Context, body []byte) error {
-	var event VideoReceivedEvent
+func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte) error {
+	var event VideoTranscriptRequestedEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	slog.Info("Received video event",
-		slog.String("video_id", event.VideoID),
-		slog.String("url", event.URL),
-		slog.String("platform", event.Platform))
+	slog.Info("Received transcript request event", slog.String("url", event.URL))
 
 	metadata, err := c.videoService.GetVideoMetadata(ctx, event.URL)
 	if err != nil {
@@ -153,16 +150,26 @@ func (c *Consumer) HandleVideoReceivedEvent(ctx context.Context, body []byte) er
 
 	if hasTranscript {
 		if existingTranscript.Status == models.StatusCompleted {
-			transcriptEvent := TranscriptReadyEvent{
-				VideoID:  videoRecord.VideoID,
-				Text:     existingTranscript.Text,
-				Language: existingTranscript.Language,
+			transcriptEvent := VideoTranscriptCompletedEvent{
+				AnalysisID:   event.AnalysisID,
+				VideoID:      videoRecord.VideoID,
+				TranscriptID: fmt.Sprintf("%d", existingTranscript.ID),
+				Text:         existingTranscript.Text,
+				Language:     existingTranscript.Language,
+				Duration:     videoRecord.Duration,
+				CreatedAt:    time.Now(),
 			}
 
 			err := c.producer.PublishTranscriptReady(ctx, transcriptEvent)
 			if err != nil {
 				return fmt.Errorf("failed to publish transcript ready event: %w", err)
 			}
+
+			slog.Info("Transcript already exists, published ready event",
+				slog.String("video_id", videoRecord.VideoID),
+				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)),
+			)
+			return nil
 		}
 	}
 
@@ -177,22 +184,27 @@ func (c *Consumer) HandleVideoReceivedEvent(ctx context.Context, body []byte) er
 	}
 
 	transcriptRecord := &models.Transcript{
-		VideoID:  videoRecord.ID,
-		Language: "en",
-		Method:   result.Method,
-		Status:   models.StatusCompleted,
-		Text:     result.Text,
-		Segments: result.Segments,
+		VideoID:   videoRecord.ID,
+		Language:  "en",
+		Method:    result.Method,
+		Status:    models.StatusCompleted,
+		Text:      result.Text,
+		Segments:  result.Segments,
+		UpdatedAt: time.Now(),
+		CreatedAt: time.Now(),
 	}
 	if err := c.db.CreateTranscript(ctx, transcriptRecord); err != nil {
 		return fmt.Errorf("failed to save transcript record: %w", err)
 	}
 
-	transcriptEvent := TranscriptReadyEvent{
+	transcriptEvent := VideoTranscriptCompletedEvent{
+		AnalysisID:   event.AnalysisID,
 		VideoID:      videoRecord.VideoID,
 		TranscriptID: fmt.Sprintf("%d", transcriptRecord.ID),
 		Text:         result.Text,
 		Language:     transcriptRecord.Language,
+		Duration:     videoRecord.Duration,
+		CreatedAt:    time.Now(),
 	}
 
 	if err := c.producer.PublishTranscriptReady(ctx, transcriptEvent); err != nil {

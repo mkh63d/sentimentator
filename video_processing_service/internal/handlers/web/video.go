@@ -114,11 +114,12 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 			slog.Uint64("db_id", uint64(videoRecord.ID)))
 	}
 
-	// Publish VideoReceivedEvent to RabbitMQ for processing
-	event := messaging.VideoReceivedEvent{
-		VideoID:   metadata.VideoID,
-		URL:       videoURL,
-		Platform:  metadata.Platform,
+	// Publish VideoTranscriptRequestedEvent to RabbitMQ for processing
+
+	event := messaging.VideoTranscriptRequestedEvent{
+		AnalysisID: metadata.VideoID,
+		URL:        videoURL,
+
 		Timestamp: time.Now(),
 	}
 

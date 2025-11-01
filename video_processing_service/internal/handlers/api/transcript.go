@@ -135,12 +135,10 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 		"transcript_id", transcriptRecord.ID,
 		"video_id", videoRecord.ID)
 
-	// Publish VideoReceivedEvent to RabbitMQ for processing
-	event := messaging.VideoReceivedEvent{
-		VideoID:   metadata.VideoID,
-		URL:       req.VideoURL,
-		Platform:  metadata.Platform,
-		Timestamp: time.Now(),
+	event := messaging.VideoTranscriptRequestedEvent{
+		AnalysisID: fmt.Sprintf("%d", transcriptRecord.ID),
+		URL:        req.VideoURL,
+		Timestamp:  time.Now(),
 	}
 
 	if err := h.producer.PublishVideoReceived(ctx, event); err != nil {

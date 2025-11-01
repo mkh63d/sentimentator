@@ -81,7 +81,7 @@ func NewServer() (*Server, *http.Server) {
 	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, videoService, producer)
 	transcriptHandler := handlers.NewTranscriptHandler(db, videoService, producer)
 
-	consumer.RegisterHandler(messaging.QueueVideoProcessing, consumer.HandleVideoReceivedEvent)
+	consumer.RegisterHandler(messaging.QueueVideoProcessing, consumer.HandleTranscriptRequestEvent)
 
 	consumerCtx, consumerCancel := context.WithCancel(context.Background())
 
@@ -121,9 +121,10 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 	}
 
 	queues := []string{
+
 		messaging.QueueVideoProcessing,
+
 		messaging.QueueTranscript,
-		messaging.QueueDeadLetter,
 	}
 
 	for _, queueName := range queues {
@@ -132,10 +133,9 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 		}
 	}
 
-	// Bind queues to exchange with routing keys
 	bindings := map[string]string{
-		messaging.QueueVideoProcessing: messaging.RoutingKeyVideoReceived,
-		messaging.QueueTranscript:      messaging.RoutingKeyTranscriptReady,
+		messaging.QueueVideoProcessing: messaging.RoutingKeyVideoTranscriptRequested,
+		messaging.QueueTranscript:      messaging.RoutingKeyVideoTranscriptCompleted,
 	}
 
 	for queueName, routingKey := range bindings {

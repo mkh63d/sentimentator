@@ -113,8 +113,6 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 			slog.Uint64("db_id", uint64(videoRecord.ID)))
 	}
 
-	// Publish VideoTranscriptRequestedEvent to RabbitMQ for processing
-
 	event := messaging.VideoTranscriptRequestedEvent{
 		AnalysisID: metadata.VideoID,
 		URL:        videoURL,
@@ -153,24 +151,6 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 	slog.Info("video processing request completed successfully",
 		slog.String("video_id", metadata.VideoID),
 		slog.Uint64("db_id", uint64(videoRecord.ID)))
-}
-
-func (h *VideoHandler) GetJobStats(c *gin.Context) {
-	// Job stats are no longer tracked in database, using RabbitMQ now
-	// Return empty stats or implement RabbitMQ queue inspection
-	stats := map[string]int64{
-		"total":      0,
-		"pending":    0,
-		"processing": 0,
-		"completed":  0,
-		"failed":     0,
-	}
-
-	component := web.JobStatsComponent(stats)
-	if err := component.Render(c.Request.Context(), c.Writer); err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		slog.Error("failed to render job stats component", slog.String("error", err.Error()))
-	}
 }
 
 func (h *VideoHandler) ListVideos(c *gin.Context) {

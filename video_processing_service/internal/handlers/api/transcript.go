@@ -120,7 +120,6 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 	transcriptRecord := &models.Transcript{
 		VideoID:  videoRecord.ID,
 		Language: req.Language,
-		Method:   models.MethodWhisper, // TODO: think about default method
 		Status:   models.StatusPending,
 	}
 

@@ -57,8 +57,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		wr.POST("/video/process", videoWebHandler.ProcessVideo)
 
-		wr.GET("/jobs/stats", videoWebHandler.GetJobStats)
-
 		wr.GET("/videos/list", videoWebHandler.ListVideos)
 
 		wr.GET("/debug/events", debugHandler.ServeDebugPage)

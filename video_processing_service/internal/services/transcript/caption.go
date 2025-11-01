@@ -31,9 +31,17 @@ func (c *CaptionStrategy) GetTranscript(
 		return nil, err
 	}
 
+	// Check if platform supports captions before attempting to fetch
 	segments, err := platform.GetCaptions(ctx, videoID, lang)
 	if err != nil {
+		if strings.Contains(err.Error(), "does not provide captions") {
+			return nil, err
+		}
 		return nil, err
+	}
+
+	if len(segments) == 0 {
+		return nil, models.ErrNoCaptionsAvailable
 	}
 
 	var textBuilder strings.Builder
@@ -45,7 +53,7 @@ func (c *CaptionStrategy) GetTranscript(
 	return &Result{
 		Text:     strings.TrimSpace(textBuilder.String()),
 		Segments: segments,
-		Method:   models.MethodCaption,
+		Method:   models.TranscriptMethod(c.Name()),
 	}, nil
 
 }

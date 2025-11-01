@@ -14,6 +14,7 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/audio"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 )
@@ -73,7 +74,8 @@ func NewServer() (*Server, *http.Server) {
 
 	// Initialize services
 	videoService := video.NewService()
-	transcriptService := transcript.NewService(videoService, whisperAPIKey)
+	audioService := audio.NewService(videoService)
+	transcriptService := transcript.NewService(videoService, audioService, whisperAPIKey)
 
 	producer := messaging.NewProducer(rabbitmq)
 	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, videoService, producer)

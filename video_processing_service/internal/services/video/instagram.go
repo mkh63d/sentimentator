@@ -95,6 +95,20 @@ func (i *InstagramPlatform) GetAudioURL(
 	ctx context.Context,
 	videoID string,
 ) (string, error) {
-	// TODO implement audio extraction for Instagram
+	// TODO: implement audio extraction for Instagram
 	return fmt.Sprintf("https://www.instagram.com/p/%s/", videoID), nil
+}
+
+func (i *InstagramPlatform) GetDownloadConfig() *DownloadConfig {
+	return &DownloadConfig{
+		UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+		Referer:   "https://www.instagram.com/",
+		Headers: map[string]string{
+			"Accept-Language":  "en-US,en;q=0.9",
+			"X-Requested-With": "XMLHttpRequest",
+		},
+		ExtraArgs: []string{
+			"--no-check-certificates",
+		},
+	}
 }

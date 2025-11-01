@@ -48,7 +48,7 @@ type VideoTranscriptCompletedEvent struct {
 	TranscriptID string    `json:"transcript_id,omitempty"`
 	Text         string    `json:"text"`
 	Language     string    `json:"language,omitempty"`
-	Duration     float64   `json:"duration,omitempty"`
+	Duration     int       `json:"duration,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 

@@ -108,9 +108,9 @@ sequenceDiagram
 
 | Event                     | Producer | Consumer | Description                                |
 | ------------------------- | -------- | -------- | ------------------------------------------ |
-| `video.download.request`  | C#       | Go       | Request to fetch & transcribe video        |
-| `video.transcript.ready`  | Go       | Python   | Transcript ready for NLP                   |
-| `video.analysis.complete` | Python   | C#       | Final sentiment analysis ready for storage |
+| `video.transcript.requested`  | C#       | Go       | Request to fetch & transcribe video        |
+| `video.transcript.completed`  | Go       | Python   | Transcript ready for NLP                   |
+| `video.analysis.completed` | Python   | C#       | Final sentiment analysis ready for storage |
 
 ## 🔄 Data Flow Diagram
 

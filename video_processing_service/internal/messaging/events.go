@@ -3,16 +3,15 @@ package messaging
 import "time"
 
 const (
-	EventTypeVideoReceived    = "video.received"
-	EventTypeVideoProcessed   = "video.processed"
-	EventTypeTranscriptReady  = "transcript.ready"
-	EventTypeProcessingFailed = "processing.failed"
+	EventTypeVideoTranscriptRequested = "video.transcript.requested"
+	EventTypeVideoTranscriptStarted   = "video.transcript.started"
+	EventTypeVideoTranscriptCompleted = "video.transcript.completed"
+	EventTypeVideoTranscriptFailed    = "video.transcript.failed"
 )
 
 const (
 	QueueVideoProcessing = "video.processing"
 	QueueTranscript      = "video.transcript"
-	QueueDeadLetter      = "video.dlq"
 )
 
 const (
@@ -21,46 +20,44 @@ const (
 )
 
 const (
-	RoutingKeyVideoReceived    = "video.received"
-	RoutingKeyVideoProcessed   = "video.processed"
-	RoutingKeyTranscriptReady  = "transcript.ready"
-	RoutingKeyProcessingFailed = "processing.failed"
+	RoutingKeyVideoTranscriptRequested = "video.transcript.requested"
+	RoutingKeyVideoTranscriptStarted   = "video.transcript.started"
+	RoutingKeyVideoTranscriptCompleted = "video.transcript.completed"
+	RoutingKeyVideoTranscriptFailed    = "video.transcript.failed"
 )
 
-// VideoReceivedEvent represents a new video that needs processing
-type VideoReceivedEvent struct {
-	VideoID   string    `json:"video_id"`
-	URL       string    `json:"url"`
-	Platform  string    `json:"platform"`
-	UserID    string    `json:"user_id,omitempty"`
-	Timestamp time.Time `json:"timestamp"`
+// VideoTranscriptRequestedEvent represents a new video URL that needs processing to get a transcript
+type VideoTranscriptRequestedEvent struct {
+	AnalysisID string    `json:"analysis_id"`
+	URL        string    `json:"url"`
+	Timestamp  time.Time `json:"timestamp"`
 }
 
-// VideoProcessedEvent represents a successfully processed video
-type VideoProcessedEvent struct {
-	VideoID     string    `json:"video_id"`
-	URL         string    `json:"url"`
-	AudioPath   string    `json:"audio_path,omitempty"`
-	Duration    float64   `json:"duration"`
-	ProcessedAt time.Time `json:"processed_at"`
+// VideoTranscriptStartedEvent represents that processing for the transcript has begun
+type VideoTranscriptStartedEvent struct {
+	AnalysisID string    `json:"analysis_id"`
+	VideoID    string    `json:"video_id,omitempty"`
+	Stage      string    `json:"stage,omitempty"` // e.g., "download", "transcription"
+	StartedAt  time.Time `json:"started_at"`
 }
 
-// TranscriptReadyEvent represents a completed transcription
-type TranscriptReadyEvent struct {
-	VideoID      string    `json:"video_id"`
-	TranscriptID string    `json:"transcript_id"`
+// VideoTranscriptCompletedEvent represents a finished transcription
+type VideoTranscriptCompletedEvent struct {
+	AnalysisID   string    `json:"analysis_id"`
+	VideoID      string    `json:"video_id,omitempty"`
+	TranscriptID string    `json:"transcript_id,omitempty"`
 	Text         string    `json:"text"`
 	Language     string    `json:"language,omitempty"`
-	Duration     float64   `json:"duration"`
-	WordCount    int       `json:"word_count"`
+	Duration     float64   `json:"duration,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-// ProcessingFailedEvent represents a processing failure
-type ProcessingFailedEvent struct {
-	VideoID  string    `json:"video_id"`
-	Stage    string    `json:"stage"` // e.g., "download", "transcription"
-	Error    string    `json:"error"`
-	Attempts int       `json:"attempts"`
-	FailedAt time.Time `json:"failed_at"`
+// VideoTranscriptFailedEvent represents a failure in the transcript workflow.
+type VideoTranscriptFailedEvent struct {
+	AnalysisID string    `json:"analysis_id"`
+	VideoID    string    `json:"video_id,omitempty"`
+	Stage      string    `json:"stage"` // "download" | "transcription" | "storage" ...
+	Error      string    `json:"error"`
+	Attempts   int       `json:"attempts"`
+	FailedAt   time.Time `json:"failed_at"`
 }

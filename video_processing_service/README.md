@@ -13,11 +13,11 @@ This service is responsible for processing video content in such a way to extrac
 
 ## 🧱 Workflow
 
-1.  **Consume** a `video.download.request` event from the message queue. The event contains the URL of content.
+1.  **Consume** a `video.transcript.requested` event from the message queue. The event contains the URL of content.
 2.  **Download** the audio from the provided URL or video.
 3.  **Transformation** ensure possession of audio format suitable for the transcription service (`.mp3`).
 4.  **Transcribe** the audio to text by calling the **OpenAI Whisper API**.
-5.  **Publish** a `video.transcript.ready` event to the message queue, containing the transcript text and associated metadata.
+5.  **Publish** a `video.transcript.completed` event to the message queue, containing the transcript text and associated metadata.
 
 ## 🧩 Event Flow
 
@@ -30,12 +30,12 @@ sequenceDiagram
     participant YouTube
     participant WhisperAPI as OpenAI Whisper API
 
-    RabbitMQ-->>VideoProcessor: Consume `video.download.request`
+    RabbitMQ-->>VideoProcessor: Consume `video.transcript.requested`
     VideoProcessor->>YouTube: Download content via yt-dlp
     YouTube-->>VideoProcessor: Audio stream/file
     VideoProcessor->>WhisperAPI: Request transcription
     WhisperAPI-->>VideoProcessor: Return transcript text
-    VideoProcessor->>RabbitMQ: Publish `video.transcript.ready`
+    VideoProcessor->>RabbitMQ: Publish `video.transcript.completed`
 ```
 
 ## 🛠️ Technology Stack
@@ -66,6 +66,5 @@ The service includes a web-based debug interface for development and testing.
 -   **URL**: http://localhost:8080/web/debug/events
 -   Manually trigger RabbitMQ events for testing
 -   Test event types:
-    -   **video.received**: Simulate new video submission
-    -   **transcript.ready**: Simulate completed transcription
-    -   **processing.failed**: Test error handling
+    -   **video.transcript.requested**: Simulate new video submission
+    -   **video.transcript.completed**: Simulate completed transcription

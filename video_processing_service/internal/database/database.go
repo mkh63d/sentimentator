@@ -29,7 +29,6 @@ type Service interface {
 	SaveVideo(ctx context.Context, video *models.Video) error
 	GetVideoByID(ctx context.Context, id uint) (*models.Video, error)
 	GetVideoByVideoID(ctx context.Context, videoID, platform string) (*models.Video, error)
-	UpdateVideoStatus(ctx context.Context, id uint, status string) error
 
 	// Transcript operations
 	CreateTranscript(ctx context.Context, transcript *models.Transcript) error
@@ -214,13 +213,6 @@ func (s *service) GetVideoByVideoID(ctx context.Context, videoID, platform strin
 		return nil, err
 	}
 	return &video, nil
-}
-
-func (s *service) UpdateVideoStatus(ctx context.Context, id uint, status string) error {
-	return s.db.WithContext(ctx).
-		Model(&models.Video{}).
-		Where("id = ?", id).
-		Update("status", status).Error
 }
 
 // Transcript operations

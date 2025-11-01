@@ -14,7 +14,6 @@ type Video struct {
 	Title       string         `gorm:"size:255" json:"title"`
 	Duration    int            `json:"duration"` // in seconds
 	AudioURL    string         `gorm:"type:text" json:"audio_url,omitempty"`
-	Status      string         `gorm:"size:50;default:'pending';index:idx_videos_status" json:"status"`
 	CreatedAt   time.Time      `gorm:"index:idx_videos_created_at,sort:desc" json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`

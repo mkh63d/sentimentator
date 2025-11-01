@@ -135,7 +135,6 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
 			AudioURL:    metadata.AudioURL,
-			Status:      string(models.StatusPending),
 		}
 
 		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {

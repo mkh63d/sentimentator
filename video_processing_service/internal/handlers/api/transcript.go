@@ -68,7 +68,6 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
 			AudioURL:    metadata.AudioURL,
-			Status:      "pending",
 		}
 
 		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {

@@ -23,7 +23,7 @@ templ DebugEventsPage() {
 			<main class="py-10">
 				<div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
 					<!-- Events Grid -->
-					<div class="grid gap-6 md:grid-cols-3">
+					<div class="grid gap-6 md:grid-cols-2">
 						<!-- Video Received Event -->
 						<div class="overflow-hidden bg-white shadow-lg rounded-xl ring-1 ring-black ring-opacity-5">
 							<div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -34,8 +34,8 @@ templ DebugEventsPage() {
 										</svg>
 									</div>
 									<div class="ml-4">
-										<h3 class="text-lg font-semibold text-gray-900">Video Received</h3>
-										<p class="text-sm text-gray-600">Event: <span class="font-mono">video.received</span></p>
+										<h3 class="text-lg font-semibold text-gray-900">Video Transcript Requested</h3>
+										<p class="text-sm text-gray-600">Event: <span class="font-mono">video.transcript.requested</span></p>
 									</div>
 								</div>
 							</div>
@@ -49,7 +49,7 @@ templ DebugEventsPage() {
 										<label class="block text-sm font-medium text-gray-700">URL</label>
 										<input type="text" name="url" placeholder="https://youtube.com/watch?v=abc" class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required/>
 									</div>
-									<button type="submit" class="inline-flex items-center justify-center w-full px-4 py-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600">
+									<button type="submit" class="inline-flex cursor-pointer items-center justify-center w-full px-4 py-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600">
 										<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
 										</svg>
@@ -75,8 +75,8 @@ templ DebugEventsPage() {
 										</svg>
 									</div>
 									<div class="ml-4">
-										<h3 class="text-lg font-semibold text-gray-900">Transcript Ready</h3>
-										<p class="text-sm text-gray-600">Event: <span class="font-mono">transcript.ready</span></p>
+										<h3 class="text-lg font-semibold text-gray-900">Video Transcript Completed</h3>
+										<p class="text-sm text-gray-600">Event: <span class="font-mono">video.transcript.completed</span></p>
 									</div>
 								</div>
 							</div>
@@ -94,7 +94,7 @@ templ DebugEventsPage() {
 										<label class="block text-sm font-medium text-gray-700">Language</label>
 										<input type="text" name="language" value="en" class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
 									</div>
-									<button type="submit" class="inline-flex items-center justify-center w-full px-4 py-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600">
+									<button type="submit" class="inline-flex items-center cursor-pointer justify-center w-full px-4 py-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600">
 										<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
 										</svg>

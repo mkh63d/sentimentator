@@ -39,7 +39,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		panic("failed to find 'assets' subdirectory in embedded filesystem: " + err.Error())
 	}
 
-	videoWebHandler := webhandlers.NewVideoHandler(s.db, s.videoService, s.transcriptService, s.queueService)
+	videoWebHandler := webhandlers.NewVideoHandler(s.db, s.videoService, s.transcriptService, s.producer)
+	debugHandler := webhandlers.NewDebugHandler(s.producer)
 
 	wr := r.Group("/web")
 	{
@@ -56,9 +57,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		wr.POST("/video/process", videoWebHandler.ProcessVideo)
 
-		wr.GET("/jobs/stats", videoWebHandler.GetJobStats)
-
 		wr.GET("/videos/list", videoWebHandler.ListVideos)
+
+		wr.GET("/debug/events", debugHandler.ServeDebugPage)
+		wr.POST("/debug/events/video-received", debugHandler.PublishVideoReceived)
+		wr.POST("/debug/events/transcript-ready", debugHandler.PublishTranscriptReady)
+		wr.POST("/debug/events/processing-failed", debugHandler.PublishProcessingFailed)
 	}
 
 	return r

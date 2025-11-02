@@ -207,11 +207,11 @@ func (y *YouTubePlatform) GetAudioURL(
 	ctx context.Context,
 	videoID string,
 ) (string, error) {
-	// TODO implement audio extraction for YouTube
+	// TODO: implement audio extraction for YouTube
 	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID), nil
 }
 
-// TODO test this way of getting captions, because this part was vibecoded
+// TODO: test this way of getting captions, because this part was vibecoded
 
 func (y *YouTubePlatform) getCaptionURL(
 	ctx context.Context,
@@ -312,4 +312,17 @@ func parseYouTubeCaptions(data []byte) ([]models.Segment, error) {
 	}
 
 	return segments, nil
+}
+
+func (y *YouTubePlatform) GetDownloadConfig() *DownloadConfig {
+	return &DownloadConfig{
+		UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		Referer:   "https://www.youtube.com/",
+		Headers: map[string]string{
+			"Accept-Language": "en-US,en;q=0.9",
+		},
+		ExtraArgs: []string{
+			"--no-check-certificates",
+		},
+	}
 }

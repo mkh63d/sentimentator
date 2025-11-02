@@ -3,14 +3,20 @@ package web
 templ MainPage() {
 	@Base() {
 		<div class="min-h-full">
-			<header class="bg-white shadow-sm">
+			<header class="shadow-sm bg-white">
 				<div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
 					<div class="flex items-center justify-between">
 						<div>
 							<h1 class="text-3xl font-bold tracking-tight text-gray-900">Sentimentator Debug Interface</h1>
 							<p class="mt-2 text-sm text-gray-600">Video Processing Service - Development Tools</p>
 						</div>
-						<div class="flex items-center space-x-2">
+						<div class="flex items-center space-x-3">
+							<a href="/web/debug/events" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors">
+								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+								</svg>
+								Event Emulator
+							</a>
 							<span class="inline-flex items-center px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
 								<span class="w-2 h-2 mr-1.5 bg-green-600 rounded-full"></span>
 								Service Active
@@ -22,18 +28,6 @@ templ MainPage() {
 			<!-- Main Content -->
 			<main class="py-10">
 				<div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-					<!-- Job Statistics Section -->
-					<div class="mb-8">
-						<h2 class="mb-4 text-xl font-semibold text-gray-900">Job Statistics</h2>
-						<div id="job-stats-container" hx-get="/web/jobs/stats" hx-trigger="load, every 5s" hx-swap="innerHTML">
-							<div class="flex items-center justify-center p-8">
-								<svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
-									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-								</svg>
-							</div>
-						</div>
-					</div>
 					<!-- Debug Options Grid -->
 					<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 						<!-- YouTube URL Submission Card -->

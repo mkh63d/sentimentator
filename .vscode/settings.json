@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "amqp",
+        "appvhost",
         "Buildx",
         "dbname",
         "dylib",
@@ -35,6 +36,7 @@
         "tmpl",
         "Tracklist",
         "VARCHAR",
+        "VHOST",
         "vibecoded",
         "Vosk",
         "webhandlers",

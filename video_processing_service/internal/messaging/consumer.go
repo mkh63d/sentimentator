@@ -9,8 +9,8 @@ import (
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -20,17 +20,17 @@ type Consumer struct {
 	rabbitmq          *RabbitMQ
 	handlers          map[string]MessageHandler
 	db                database.Service
-	videoService      *video.Service
+	extractorService  extractor.Service
 	transcriptService *transcript.Service
 	producer          *Producer
 }
 
-func NewConsumer(rabbitmq *RabbitMQ, db database.Service, transcriptService *transcript.Service, videoService *video.Service, producer *Producer) *Consumer {
+func NewConsumer(rabbitmq *RabbitMQ, db database.Service, transcriptService *transcript.Service, extractorService extractor.Service, producer *Producer) *Consumer {
 	return &Consumer{
 		rabbitmq:          rabbitmq,
 		handlers:          make(map[string]MessageHandler),
 		db:                db,
-		videoService:      videoService,
+		extractorService:  extractorService,
 		transcriptService: transcriptService,
 		producer:          producer,
 	}
@@ -121,7 +121,7 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 
 	slog.Info("Received transcript request event", slog.String("url", event.URL))
 
-	metadata, err := c.videoService.GetVideoMetadata(ctx, event.URL)
+	metadata, err := c.extractorService.GetMetadata(ctx, event.URL)
 	if err != nil {
 		return fmt.Errorf("failed to get video metadata: %w", err)
 	}
@@ -134,7 +134,6 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 			OriginalURL: event.URL,
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
-			AudioURL:    metadata.AudioURL,
 		}
 
 		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {

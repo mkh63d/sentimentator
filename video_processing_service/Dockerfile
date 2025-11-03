@@ -1,5 +1,6 @@
 FROM golang:1.25-alpine AS build
-RUN apk add --no-cache curl libstdc++ libgcc
+RUN apk add --no-cache curl libstdc++ libgcc python3 py3-pip ffmpeg && \
+    pip3 install --break-system-packages yt-dlp
 
 WORKDIR /app
 
@@ -17,6 +18,8 @@ RUN go install github.com/a-h/templ/cmd/templ@latest && \
 RUN go build -o main cmd/api/main.go
 
 FROM alpine:latest AS prod
+RUN apk add --no-cache python3 py3-pip ffmpeg && \
+    pip3 install --break-system-packages yt-dlp
 WORKDIR /app
 COPY --from=build /app/main /app/main
 EXPOSE 8080

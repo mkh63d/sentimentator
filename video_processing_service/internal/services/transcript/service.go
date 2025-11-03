@@ -7,17 +7,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/audio"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 )
 
 type Service struct {
-	videoService *video.Service
-	audioService *audio.Service
-	strategies   []Strategy
+	extractorService extractor.Service
+	strategies       []Strategy
 }
 
-func NewService(videoService *video.Service, audioService *audio.Service, whisperAPIKey string) *Service {
+func NewService(extractorService extractor.Service) *Service {
 	useMockWhisper := isMockWhisperEnabled()
 
 	var whisperStrategy Strategy
@@ -26,14 +24,13 @@ func NewService(videoService *video.Service, audioService *audio.Service, whispe
 		whisperStrategy = NewMockWhisperStrategy()
 	} else {
 		slog.Info("Using real Whisper API for transcription")
-		whisperStrategy = NewWhisperStrategy(whisperAPIKey, audioService)
+		whisperStrategy = NewWhisperStrategy(extractorService)
 	}
 
 	return &Service{
-		videoService: videoService,
-		audioService: audioService,
+		extractorService: extractorService,
 		strategies: []Strategy{
-			NewCaptionStrategy(videoService),
+			NewCaptionStrategy(extractorService),
 			whisperStrategy,
 		},
 	}
@@ -47,7 +44,7 @@ func isMockWhisperEnabled() bool {
 }
 
 func (s *Service) GetTranscript(ctx context.Context, videoURL, lang string) (*Result, error) {
-	metadata, err := s.videoService.GetVideoMetadata(ctx, videoURL)
+	metadata, err := s.extractorService.GetMetadata(ctx, videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video metadata: %w", err)
 	}

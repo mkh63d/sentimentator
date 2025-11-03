@@ -18,14 +18,15 @@ services:
                 condition: service_healthy
         environment:
             - PORT=8080
-            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - APP_ENV=${APP_ENV}
             - SENTIMENTATOR_VPS_DB_HOST=postgres
             - SENTIMENTATOR_VPS_DB_PORT=5432
-            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
-            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
             - SENTIMENTATOR_VPS_DB_DATABASE=video_processing_db
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
-            - RABBITMQ_URL=${AMQP_URL}
+            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
+            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - AMQP_URL=${AMQP_URL}
         ports:
             - "8080:8080"
 

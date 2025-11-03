@@ -11,25 +11,25 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/gin-gonic/gin"
 )
 
 type TranscriptHandler struct {
-	db           database.Service
-	videoService *video.Service
-	producer     *messaging.Producer
+	db        database.Service
+	extractor extractor.Service
+	producer  *messaging.Producer
 }
 
 func NewTranscriptHandler(
 	db database.Service,
-	videoService *video.Service,
+	extractorService extractor.Service,
 	producer *messaging.Producer,
 ) *TranscriptHandler {
 	return &TranscriptHandler{
-		db:           db,
-		videoService: videoService,
-		producer:     producer,
+		db:        db,
+		extractor: extractorService,
+		producer:  producer,
 	}
 }
 
@@ -52,7 +52,7 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	metadata, err := h.videoService.GetVideoMetadata(ctx, req.VideoURL)
+	metadata, err := h.extractor.GetMetadata(ctx, req.VideoURL)
 	if err != nil {
 		slog.Error("failed to get video metadata", "error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get video metadata: " + err.Error()})
@@ -67,7 +67,6 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 			OriginalURL: req.VideoURL,
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
-			AudioURL:    metadata.AudioURL,
 		}
 
 		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {

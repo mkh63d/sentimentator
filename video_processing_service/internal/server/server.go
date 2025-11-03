@@ -14,15 +14,14 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	handlers "github.com/Oskarowski/sentimentator/video_processing_service/internal/handlers/api"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/audio"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 )
 
 type Server struct {
 	port              int
 	db                database.Service
-	videoService      *video.Service
+	extractorService  extractor.Service
 	transcriptService *transcript.Service
 	transcriptHandler handlers.TranscriptHandler
 	rabbitmq          *messaging.RabbitMQ
@@ -40,11 +39,6 @@ func NewServer() (*Server, *http.Server) {
 	port, err := strconv.Atoi(portEnv)
 	if err != nil {
 		port = 8080
-	}
-
-	whisperAPIKey := os.Getenv("OPENAI_API_KEY")
-	if whisperAPIKey == "" {
-		panic("OPENAI_API_KEY environment variable is required")
 	}
 
 	rabbitmqURL := os.Getenv("AMQP_URL")
@@ -73,13 +67,12 @@ func NewServer() (*Server, *http.Server) {
 	}
 
 	// Initialize services
-	videoService := video.NewService()
-	audioService := audio.NewService(videoService)
-	transcriptService := transcript.NewService(videoService, audioService, whisperAPIKey)
+	extractorService := extractor.NewService("")
+	transcriptService := transcript.NewService(extractorService)
 
 	producer := messaging.NewProducer(rabbitmq)
-	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, videoService, producer)
-	transcriptHandler := handlers.NewTranscriptHandler(db, videoService, producer)
+	consumer := messaging.NewConsumer(rabbitmq, db, transcriptService, extractorService, producer)
+	transcriptHandler := handlers.NewTranscriptHandler(db, extractorService, producer)
 
 	consumer.RegisterHandler(messaging.QueueVideoProcessing, consumer.HandleTranscriptRequestEvent)
 
@@ -88,7 +81,7 @@ func NewServer() (*Server, *http.Server) {
 	srv := &Server{
 		port:              port,
 		db:                db,
-		videoService:      videoService,
+		extractorService:  extractorService,
 		transcriptService: transcriptService,
 		transcriptHandler: *transcriptHandler,
 		rabbitmq:          rabbitmq,

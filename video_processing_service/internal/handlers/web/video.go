@@ -11,28 +11,28 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type VideoHandler struct {
 	db                database.Service
-	videoService      *video.Service
+	extractorService  extractor.Service
 	transcriptService *transcript.Service
 	producer          *messaging.Producer
 }
 
 func NewVideoHandler(
 	db database.Service,
-	videoService *video.Service,
+	extractorService extractor.Service,
 	transcriptService *transcript.Service,
 	producer *messaging.Producer,
 ) *VideoHandler {
 	return &VideoHandler{
 		db:                db,
-		videoService:      videoService,
+		extractorService:  extractorService,
 		transcriptService: transcriptService,
 		producer:          producer,
 	}
@@ -55,7 +55,7 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	metadata, err := h.videoService.GetVideoMetadata(ctx, videoURL)
+	metadata, err := h.extractorService.GetMetadata(ctx, videoURL)
 	if err != nil {
 		slog.Error("failed to get video metadata",
 			slog.String("error", err.Error()),
@@ -94,7 +94,6 @@ func (h *VideoHandler) ProcessVideo(c *gin.Context) {
 			OriginalURL: videoURL,
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
-			AudioURL:    metadata.AudioURL,
 		}
 
 		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {

@@ -5,16 +5,16 @@ import (
 	"strings"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 )
 
 type CaptionStrategy struct {
-	videoService *video.Service
+	extractor extractor.Service
 }
 
-func NewCaptionStrategy(videoService *video.Service) *CaptionStrategy {
+func NewCaptionStrategy(extractorService extractor.Service) *CaptionStrategy {
 	return &CaptionStrategy{
-		videoService: videoService,
+		extractor: extractorService,
 	}
 }
 
@@ -26,13 +26,8 @@ func (c *CaptionStrategy) GetTranscript(
 	ctx context.Context,
 	videoURL, platformName, videoID, lang string,
 ) (*Result, error) {
-	platform, err := c.videoService.DetectPlatform(videoURL)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if platform supports captions before attempting to fetch
-	segments, err := platform.GetCaptions(ctx, videoID, lang)
+	// Use extractor service to retrieve captions directly
+	segments, err := c.extractor.GetCaptions(ctx, videoURL, lang)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not provide captions") {
 			return nil, err
@@ -50,9 +45,15 @@ func (c *CaptionStrategy) GetTranscript(
 		textBuilder.WriteString(" ")
 	}
 
+	// Convert extractor segments to models segments
+	mSegments := make([]models.Segment, len(segments))
+	for i, seg := range segments {
+		mSegments[i] = models.Segment{Start: seg.Start, End: seg.End, Text: seg.Text}
+	}
+
 	return &Result{
 		Text:     strings.TrimSpace(textBuilder.String()),
-		Segments: segments,
+		Segments: mSegments,
 		Method:   models.TranscriptMethod(c.Name()),
 	}, nil
 

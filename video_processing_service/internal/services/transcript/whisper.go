@@ -12,20 +12,25 @@ import (
 	"path/filepath"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/audio"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 )
 
 type WhisperStrategy struct {
-	apiKey       string
-	client       *http.Client
-	audioService *audio.Service
+	apiKey    string
+	client    *http.Client
+	extractor extractor.Service
 }
 
-func NewWhisperStrategy(apiKey string, audioService *audio.Service) *WhisperStrategy {
+func NewWhisperStrategy(extractorService extractor.Service) *WhisperStrategy {
+	whisperAPIKey := os.Getenv("OPENAI_API_KEY")
+	if whisperAPIKey == "" {
+		panic("OPENAI_API_KEY environment variable is required")
+	}
+
 	return &WhisperStrategy{
-		apiKey:       apiKey,
-		client:       &http.Client{},
-		audioService: audioService,
+		apiKey:    whisperAPIKey,
+		client:    &http.Client{},
+		extractor: extractorService,
 	}
 }
 
@@ -34,10 +39,11 @@ func (w *WhisperStrategy) Name() string {
 }
 
 func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
-	audioPath, err := w.audioService.ExtractAudio(ctx, videoURL)
+	audioResult, err := w.extractor.ExtractAudio(ctx, videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract audio from %s: %w", platformName, err)
 	}
+	audioPath := audioResult.FilePath
 	defer os.Remove(audioPath)
 
 	transcript, err := w.transcribeWithWhisper(ctx, audioPath)

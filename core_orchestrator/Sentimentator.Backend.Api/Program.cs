@@ -1,4 +1,6 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
@@ -11,31 +13,35 @@ builder.Services.AddDbContext<SentimentatorContext>();
 builder.Services
     .AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<SentimentatorContext>();
-builder.Services.AddAuthorizationBuilder();
-
 builder.Services.AddScoped<AnalysisService>();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = "Bearer";
+    options.DefaultChallengeScheme = "Bearer";
+});
+
+builder.Services.AddAuthorizationBuilder();
 builder.Services.AddOpenApi(options =>
 {
-    options.AddDocumentTransformer((document, _, _) =>
-    {
-        document.Info = new OpenApiInfo
+    options
+        .AddDocumentTransformer((document, _, _) =>
         {
-            Title = "Sentimentator backend API",
-            Version = "v1",
-            Description = """
-                          API for retrieving sentiment analysis data
-                          """,
-            Contact = new OpenApiContact
+            document.Info = new OpenApiInfo
             {
-                Name = "API Support",
-                Email = "api@example.com",
-                Url = new Uri("https://api.example.com/support")
-            }
-        };
-        return Task.CompletedTask;
-    });
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                Title = "Sentimentator backend API",
+                Version = "v1",
+                Description = "API for retrieving sentiment analysis data",
+                Contact = new OpenApiContact
+                {
+                    Name = "API Support",
+                    Email = "api@example.com",
+                    Url = new Uri("https://api.example.com/support")
+                }
+            };
+            return Task.CompletedTask;
+        })
+        .AddBearerSecurityScheme();
 });
 
 var app = builder.Build();
@@ -49,6 +55,7 @@ app.MapScalarApiReference(options =>
     options.Theme = ScalarTheme.BluePlanet;
 });
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))

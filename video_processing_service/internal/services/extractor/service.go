@@ -80,6 +80,7 @@ func NewService(tempDir string) Service {
 	}
 
 	s.RegisterPlatform(NewYouTubePlatform(td))
+	s.RegisterPlatform(NewInstagramPlatform(td))
 
 	return s
 }

@@ -25,6 +25,13 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm install
 ```
 
+### Compile for Production (Docker)
+
+```sh
+docker build --tag sentimentator_frontend .
+docker compose up --build
+```
+
 ### Compile and Hot-Reload for Development
 
 ```sh

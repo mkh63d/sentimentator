@@ -59,7 +59,7 @@ func (ip *InstagramPlatform) ExtractVideoID(rawVideoURL string) (string, error) 
 
 func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*VideoMetadata, error) {
 	if videoID == "" || strings.TrimSpace(videoID) == "" {
-		return nil, errors.New("instagram Video URL cannot be empty")
+		return nil, errors.New("instagram video ID cannot be empty")
 	}
 
 	videoURL := fmt.Sprintf("https://www.instagram.com/reels/%s/", videoID)

@@ -159,11 +159,15 @@ func (ip *InstagramPlatform) ExtractAudio(ctx context.Context, videoID string) (
 		return nil, fmt.Errorf("audio file was not created at %s", outputPath)
 	}
 
+	fileInfo, err := os.Stat(outputPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat audio file: %w", err)
+	}
 	return &AudioResult{
 		FilePath: outputPath,
 		Format:   "mp3",
 		Duration: -1,
-		FileSize: int64(stderr.Len()),
+		FileSize: fileInfo.Size(),
 		Metadata: nil,
 	}, nil
 }

@@ -1,28 +1,28 @@
 <template>
   <div class="min-h-screen bg-background">
     <!-- Hero Section -->
-    <section class="bg-linear-to-br from-primary via-secondary to-[#011936]">
+    <section class="bg-linear-to-br from-primary via-secondary to-fourthary">
       <nav class="px-4 py-5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-          <div class="text-2xl font-bold text-textBase">Sentimentator</div>
+          <div class="text-2xl font-bold text-background">Sentimentator</div>
           <ul class="hidden md:flex gap-8">
             <li>
-              <a href="#features" class="text-textBase font-medium hover:text-indigo-100 transition"
+              <a href="#features" class="text-background font-medium hover:text-indigo-100 transition"
                 >Features</a
               >
             </li>
             <li>
-              <a href="#methods" class="text-textBase font-medium hover:text-indigo-100 transition"
+              <a href="#methods" class="text-background font-medium hover:text-indigo-100 transition"
                 >Methods</a
               >
             </li>
             <li>
-              <a href="#about" class="text-textBase font-medium hover:text-indigo-100 transition"
+              <a href="#about" class="text-background font-medium hover:text-indigo-100 transition"
                 >About</a
               >
             </li>
             <li>
-              <a href="#team" class="text-textBase font-medium hover:text-indigo-100 transition"
+              <a href="#team" class="text-background font-medium hover:text-indigo-100 transition"
                 >Team</a
               >
             </li>
@@ -31,13 +31,15 @@
             <li>
               <button
                 class="px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
+                @click="goToLogin"
               >
                 Try for Free
               </button>
             </li>
             <li>
               <button
-                class="px-6 py-2 bg-transparent text-textBase rounded-lg font-semibold transition border-3 border-background"
+                class="px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
+                @click="goToLogin"
               >
                 Login
               </button>
@@ -49,7 +51,7 @@
         </div>
       </nav>
 
-      <div class="max-w-7xl mx-auto px-4 py-20 md:py-32 text-center text-textBase">
+      <div class="max-w-7xl mx-auto px-4 py-20 md:py-32 text-center text-background">
         <h1 class="text-5xl md:text-6xl font-extrabold mb-5">Analyze Video Reviews in Seconds</h1>
         <p class="text-xl mb-10 opacity-90">
           Transform your favourite video reviews into actionable sentiment insights with ease.
@@ -57,11 +59,13 @@
         <div class="flex flex-col sm:flex-row gap-5 justify-center">
           <button
             class="px-8 py-4 bg-background text-primary rounded-lg text-lg font-semibold hover:bg-secondary transition"
+            @click="goToLogin"
           >
             Start Now!
           </button>
           <button
             class="px-8 py-4 bg-transparent text-background border-2 border-background rounded-lg text-lg font-semibold hover:bg-background hover:text-primary transition"
+            @click="goToLogin"
           >
             Sign In
           </button>
@@ -318,6 +322,9 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const scrollContainer = ref(null);
 
@@ -351,6 +358,6 @@ onBeforeUnmount(() => {
 });
 
 const goToLogin = () => {
-  // Logic to navigate to the login page
+  router.push({ name: 'login' });
 };
 </script>

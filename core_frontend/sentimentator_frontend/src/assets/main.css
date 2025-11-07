@@ -11,16 +11,18 @@ html {
   --color-accent: var(--theme-accent);
   --color-background: var(--theme-background);
   --color-textBase: var(--theme-textBase);
+  --color-fourthary: var(--theme-fourthary);
 
 }
 
 [data-theme="light"] {
-    --color-primary: hsl(118, 87%, 34%);
+    --color-primary: #10a20b;
     --color-secondary: hsl(210, 30%, 80%);
     --color-tertiary: #3d4d5c;
     --color-accent: hsl(350, 100%, 50%);
-    --color-textBase: hsl(0, 0%, 100%);
+    --color-textBase: hsl(0, 0%, 9%);
     --color-background: hsl(0, 0%, 100%);
+    --color-fourthary: #011936;
 } 
 
 [data-theme="dark"] {
@@ -28,8 +30,9 @@ html {
     --color-secondary: hsl(210, 20%, 30%);
     --color-tertiary: hsl(210, 30%, 80%);
     --color-accent:  hsl(92, 100%, 50%);
-    --color-textBase: hsl(0, 0%, 9%);
+    --color-textBase: hsl(0, 0%, 100%);
     --color-background: hsl(0, 0%, 9%);
+    --color-fourthary: #011936;
 }
 
 .scrollbar-hide::-webkit-scrollbar {

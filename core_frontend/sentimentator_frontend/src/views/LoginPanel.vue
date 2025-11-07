@@ -1,79 +1,85 @@
 <template>
-  <div
-    class="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-500 to-purple-700"
-  >
-    <div class="w-full max-w-md p-5">
-      <div class="bg-white p-10 rounded-xl shadow-lg">
-        <h1 class="text-center mb-8 text-gray-800 text-3xl font-bold">
-          {{ isLogin ? 'Login' : 'Register' }}
-        </h1>
-
-        <form @submit.prevent="handleSubmit">
-          <div class="mb-5">
-            <label for="email" class="block mb-1 text-gray-700 font-medium">Email</label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              placeholder="Enter your email"
-              required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
-
-          <div class="mb-5">
-            <label for="password" class="block mb-1 text-gray-700 font-medium">Password</label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="Enter your password"
-              required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
-
-          <div v-if="!isLogin" class="mb-5">
-            <label for="confirmPassword" class="block mb-1 text-gray-700 font-medium"
-              >Confirm Password</label
-            >
-            <input
-              id="confirmPassword"
-              v-model="form.confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
-
-          <div
-            data-testid="error-message"
-            v-if="error"
-            class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm"
-          >
-            {{ error }}
-          </div>
-
-          <button
-            type="submit"
-            class="w-full p-3 bg-indigo-500 text-white rounded-md text-lg font-semibold hover:bg-indigo-600 transition disabled:opacity-60"
-            :disabled="!isFormValid"
-          >
+  <div class="bg-linear-to-bl from-primary via-secondary to-fourthary">
+    <navbar class="px-2 py-5">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">Sentimentator</div>
+        <ThemeSwitcher class="mx-5" />
+      </div>
+    </navbar>
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="w-full max-w-md p-5">
+        <div class="bg-background p-10 rounded-xl shadow-lg">
+          <h1 class="text-center mb-8 text-tertiary text-3xl font-bold">
             {{ isLogin ? 'Login' : 'Register' }}
-          </button>
-        </form>
+          </h1>
 
-        <div class="text-center mt-6">
-          <p class="text-gray-600 text-sm">
-            {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
-            <a
-              @click="toggleMode"
-              class="text-indigo-500 font-semibold cursor-pointer hover:underline ml-1"
+          <form @submit.prevent="handleSubmit">
+            <div class="mb-5">
+              <label for="email" class="block mb-1 text-tertiary font-medium">Email</label>
+              <input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="Enter your email"
+                required
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+              />
+            </div>
+
+            <div class="mb-5">
+              <label for="password" class="block mb-1 text-tertiary font-medium">Password</label>
+              <input
+                id="password"
+                v-model="form.password"
+                type="password"
+                placeholder="Enter your password"
+                required
+                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+              />
+            </div>
+
+            <div v-if="!isLogin" class="mb-5">
+              <label for="confirmPassword" class="block mb-1 text-tertiary font-medium"
+                >Confirm Password</label
+              >
+              <input
+                id="confirmPassword"
+                v-model="form.confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                required
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+              />
+            </div>
+
+            <div
+              data-testid="error-message"
+              v-if="error"
+              class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm"
             >
-              {{ isLogin ? 'Register' : 'Login' }}
-            </a>
-          </p>
+              {{ error }}
+            </div>
+
+            <button
+              type="submit"
+              class="w-full p-3 bg-fourthary text-white rounded-md text-lg font-semibold hover:bg-fourthary transition disabled:opacity-60"
+              :disabled="!isFormValid"
+            >
+              {{ isLogin ? 'Login' : 'Register' }}
+            </button>
+          </form>
+
+          <div class="text-center mt-6">
+            <p class="text-gray-600 text-sm">
+              {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+              <a
+                @click="toggleMode"
+                class="text-accent font-semibold cursor-pointer hover:underline ml-1"
+              >
+                {{ isLogin ? 'Register' : 'Login' }}
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -81,6 +87,7 @@
 </template>
 
 <script lang="ts" setup>
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';

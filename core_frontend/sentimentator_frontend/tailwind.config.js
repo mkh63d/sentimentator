@@ -8,6 +8,7 @@ export const theme = {
       accent: '(var(--color-accent))',
       background: '(var(--color-background))',
       textBase: '(var(--color-text-base))',
+      fourthary: '(var(--color-fourthary))',
     },
   },
   darkMode: ['class', '[data-theme="dark"]'],

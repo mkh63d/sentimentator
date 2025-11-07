@@ -1,13 +1,13 @@
 <template>
   <button
     @click="toggleTheme"
-    class="group scale-400 relative flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-300"
+    class="group scale-400 relative flex items-center justify-center h-10 rounded-full transition-colors duration-300 mr-8"
   >
     <!-- SVG container -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 40 40"
-      class="w-6 h-6 stroke-white stroke-[1] transition-transform duration-500"
+      class="w-6 h-6 stroke-white stroke-1 transition-transform duration-500"
     >
       <!-- Sun -->
       <circle

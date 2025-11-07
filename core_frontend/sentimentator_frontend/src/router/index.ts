@@ -8,6 +8,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', redirect: { name: 'search' } },
   { path: '/search', name: 'search', component: () => import('@/views/SearchPanel.vue') },
   { path: '/list', name: 'list', component: () => import('@/views/ListOfAnalysisView.vue') },
+  { path: '/home', name: 'home', component: () => import('@/views/HomePage.vue') },
   // { path: '/analysis', name: 'analysis', component: analysis },
 ];
 

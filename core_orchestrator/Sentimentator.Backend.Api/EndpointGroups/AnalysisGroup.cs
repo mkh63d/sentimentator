@@ -16,8 +16,8 @@ public static class AnalysisGroup
             try
             {
                 var user = await userManager.GetUserAsync(principal);
-                var analysis = service.Get(id);
-                return user!.Analyses!.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
+                var analysis = await service.Get(id);
+                return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
             }
             catch
             {
@@ -31,8 +31,8 @@ public static class AnalysisGroup
             {
                 url = HttpUtility.UrlDecode(url);
                 var user = await userManager.GetUserAsync(principal);
-                var analysis = service.Get(url);
-                return user!.Analyses!.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
+                var analysis = await service.Get(url);
+                return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
             }
             catch
             {
@@ -40,12 +40,12 @@ public static class AnalysisGroup
             }
         });
 
-        group.MapGet("/", async (AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
+        group.MapGet("/", async (UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
             try
             {
                 var user = await userManager.GetUserAsync(principal);
-                return Results.Ok(user!.Analyses!.ToList());
+                return Results.Ok(user!.Analyses.ToList());
             }
             catch
             {
@@ -58,10 +58,10 @@ public static class AnalysisGroup
 
     public static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
     {
-        group.MapPost("/{url}", (string url, AnalysisService service) =>
+        group.MapPost("/{url}", async (string url, AnalysisService service, ClaimsPrincipal principal) =>
         {
             url = HttpUtility.UrlDecode(url);
-            var result = service.Add(url);
+            var result = await service.Add(principal, url);
             return result is not null
                 ? Results.Created($"/analyses/{result.Id}", result)
                 : Results.InternalServerError();
@@ -72,16 +72,26 @@ public static class AnalysisGroup
 
     public static RouteGroupBuilder AnalysisPutGroup(this RouteGroupBuilder group)
     {
-        group.MapPut("/{id:guid}", (Guid id, AnalysisDetails content, AnalysisService service) =>
+        group.MapPut("/{id:guid}", async (Guid id, AnalysisDetails content, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
-            var result = service.Update(id, content.Transcription, content.Summary);
+            var user = await userManager.GetUserAsync(principal);
+            var result = false;
+            if (user!.Analyses.Contains(await service.Get(id)))
+            {
+                result = await service.Update(id, content.Transcription, content.Summary);
+            }
             return result ? Results.Ok() : Results.NotFound();
         });
 
-        group.MapPut("/{url}", (string url, AnalysisDetails content, AnalysisService service) =>
+        group.MapPut("/{url}", async (string url, AnalysisDetails content, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
             url = HttpUtility.UrlDecode(url);
-            var result = service.Update(url, content.Transcription, content.Summary);
+            var user = await userManager.GetUserAsync(principal);
+            var result = false;
+            if (user!.Analyses.Contains(await service.Get(url)))
+            {
+                result = await service.Update(url, content.Transcription, content.Summary);
+            }
             return result ? Results.Ok() : Results.NotFound();
         });
 
@@ -90,9 +100,14 @@ public static class AnalysisGroup
 
     public static RouteGroupBuilder AnalysisDeleteGroup(this RouteGroupBuilder group)
     {
-        group.MapDelete("/{id:guid}", (Guid id, AnalysisService service) =>
+        group.MapDelete("/{id:guid}", async (Guid id, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
-            var result = service.Remove(id);
+            var user = await userManager.GetUserAsync(principal);
+            var result = false;
+            if (user!.Analyses.Contains(await service.Get(id)))
+            {
+                result = await service.Remove(id);
+            }
             return result ? Results.Ok() : Results.NotFound();
         });
 

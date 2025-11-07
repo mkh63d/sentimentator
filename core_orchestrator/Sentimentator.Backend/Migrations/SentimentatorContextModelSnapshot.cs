@@ -17,7 +17,7 @@ namespace Sentimentator.Backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -175,7 +175,7 @@ namespace Sentimentator.Backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Analyses", (string)null);
+                    b.ToTable("Analyses");
                 });
 
             modelBuilder.Entity("Sentimentator.Backend.Model.User", b =>

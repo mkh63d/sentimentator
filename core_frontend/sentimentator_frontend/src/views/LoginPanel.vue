@@ -2,7 +2,9 @@
   <div class="bg-linear-to-bl from-primary via-secondary to-fourthary">
     <navbar class="px-2 py-5">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">Sentimentator</div>
+        <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
+          Sentimentator
+        </div>
         <ThemeSwitcher class="mx-5" />
       </div>
     </navbar>

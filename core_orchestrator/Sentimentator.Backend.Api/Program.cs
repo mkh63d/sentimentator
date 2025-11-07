@@ -1,69 +1,101 @@
-using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
-using Sentimentator.Backend.Api.Helpers;
+using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<SentimentatorContext>();
 builder.Services
-    .AddIdentityApiEndpoints<User>()
-    .AddEntityFrameworkStores<SentimentatorContext>();
-builder.Services.AddScoped<AnalysisService>();
+    .AddIdentityCore<User>(options =>
+    {
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+        options.User.RequireUniqueEmail = true;
 
-builder.Services.AddAuthentication(options =>
+        options.Password.RequireDigit = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+
+        options.SignIn.RequireConfirmedEmail = false;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<SentimentatorContext>()
+    .AddApiEndpoints();
+
+builder.Services
+    .AddAuthentication()
+    .AddBearerToken(IdentityConstants.BearerScheme, options =>
+    {
+        options.BearerTokenExpiration = TimeSpan.FromSeconds(3600);
+        options.RefreshTokenExpiration = TimeSpan.FromSeconds(7200);
+    });
+
+builder.Services.AddAuthorization(options =>
 {
-    options.DefaultAuthenticateScheme = "Bearer";
-    options.DefaultChallengeScheme = "Bearer";
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes(IdentityConstants.BearerScheme)
+        .Build();
+
+    options.FallbackPolicy = options.DefaultPolicy;
 });
 
-builder.Services.AddAuthorizationBuilder();
 builder.Services.AddOpenApi(options =>
 {
     options
-        .AddDocumentTransformer((document, _, _) =>
-        {
-            document.Info = new OpenApiInfo
-            {
-                Title = "Sentimentator backend API",
-                Version = "v1",
-                Description = "API for retrieving sentiment analysis data",
-                Contact = new OpenApiContact
-                {
-                    Name = "API Support",
-                    Email = "api@example.com",
-                    Url = new Uri("https://api.example.com/support")
-                }
-            };
-            return Task.CompletedTask;
-        })
+        .AddInfo()
+        .AddTags()
         .AddBearerSecurityScheme();
 });
 
+builder.Services.AddScoped<AnalysisService>();
+
 var app = builder.Build();
-app.MapOpenApi().CacheOutput();
-app.MapScalarApiReference(options =>
-{
-    options.Authentication = new ScalarAuthenticationOptions
-    {
-        PreferredSecuritySchemes = ["Bearer"]
-    };
-    options.Theme = ScalarTheme.BluePlanet;
-});
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapOpenApi()
+    .AllowAnonymous()
+    .CacheOutput();
+
+app.MapScalarApiReference(options =>
+{
+    options.ShowSidebar = true;
+    options.TagSorter = TagSorter.Alpha;
+    options.Layout = ScalarLayout.Modern;
+    options.HideClientButton = true;
+    options.Theme = ScalarTheme.BluePlanet;
+    options.DocumentDownloadType = DocumentDownloadType.Both;
+    options.DefaultOpenAllTags = false;
+    options.DefaultHttpClient =
+        new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    options.Authentication = new ScalarAuthenticationOptions
+    {
+        PreferredSecuritySchemes = [IdentityConstants.BearerScheme]
+    };
+}).AllowAnonymous();
+
+app.UseHttpsRedirection();
+
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
-    .ExcludeFromDescription();
+    .ExcludeFromDescription()
+    .AllowAnonymous();
 
 app.MapGet("/hello", () => Results.Ok("Hello World!"))
     .WithTags("Hello")
-    .RequireAuthorization();
+    .AllowAnonymous();
+
+app.MapGet("/hello-with-auth", () => Results.Ok("Hello World! You're authenticated!"))
+    .WithTags("Hello")
+    .AddOperationBearerSecuritySchemeWithAuthorization();
 
 app.MapGroup("/analyses")
     .AnalysisPostGroup()
@@ -71,10 +103,11 @@ app.MapGroup("/analyses")
     .AnalysisPutGroup()
     .AnalysisDeleteGroup()
     .WithTags("Analysis")
-    .RequireAuthorization();
+    .AddOperationBearerSecuritySchemeWithAuthorization();
 
 app.MapGroup("/account")
     .MapIdentityApi<User>()
-    .WithTags("Identity");
+    .WithTags("Identity")
+    .AllowAnonymous();
 
 app.Run();

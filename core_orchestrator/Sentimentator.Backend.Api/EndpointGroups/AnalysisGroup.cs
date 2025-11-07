@@ -1,7 +1,5 @@
-using System.Security.Claims;
 using System.Web;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Mvc;
 using Sentimentator.Backend.Service;
 
 namespace Sentimentator.Backend.Api.EndpointGroups;
@@ -59,15 +57,14 @@ public static class AnalysisGroup
         {
             url = HttpUtility.UrlDecode(url);
             var result = service.Add(url);
-            return result is not null ? Results.Created($"/analyses/{result.Id}", result) : Results.InternalServerError();
+            return result is not null
+                ? Results.Created($"/analyses/{result.Id}", result)
+                : Results.InternalServerError();
         });
-        
+
         return group;
     }
 
-    [UsedImplicitly]
-    private record AnalysisDetails(string Transcription, string Summary);
-    
     public static RouteGroupBuilder AnalysisPutGroup(this RouteGroupBuilder group)
     {
         group.MapPut("/{id:guid}", (Guid id, AnalysisDetails content, AnalysisService service) =>
@@ -75,14 +72,14 @@ public static class AnalysisGroup
             var result = service.Update(id, content.Transcription, content.Summary);
             return result ? Results.Ok() : Results.NotFound();
         });
-        
+
         group.MapPut("/{url}", (string url, AnalysisDetails content, AnalysisService service) =>
         {
             url = HttpUtility.UrlDecode(url);
             var result = service.Update(url, content.Transcription, content.Summary);
             return result ? Results.Ok() : Results.NotFound();
         });
-        
+
         return group;
     }
 
@@ -93,7 +90,10 @@ public static class AnalysisGroup
             var result = service.Remove(id);
             return result ? Results.Ok() : Results.NotFound();
         });
-        
+
         return group;
     }
+
+    [UsedImplicitly]
+    private record AnalysisDetails(string Transcription, string Summary);
 }

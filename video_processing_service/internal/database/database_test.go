@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"flag"
 	"log"
 	"testing"
 	"time"
@@ -54,6 +55,14 @@ func mustStartPostgresContainer() (func(context.Context, ...testcontainers.Termi
 }
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+
+	if testing.Short() {
+		log.Println("Skipping database integration tests in short mode")
+		m.Run()
+		return
+	}
+
 	teardown, err := mustStartPostgresContainer()
 	if err != nil {
 		log.Fatalf("could not start postgres container: %v", err)
@@ -67,6 +76,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestNew(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping database integration test in short mode")
+	}
 	srv := New()
 	if srv == nil {
 		t.Fatal("New() returned nil")
@@ -74,6 +86,9 @@ func TestNew(t *testing.T) {
 }
 
 func TestHealth(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping database integration test in short mode")
+	}
 	srv := New()
 
 	stats := srv.Health()
@@ -92,6 +107,9 @@ func TestHealth(t *testing.T) {
 }
 
 func TestClose(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping database integration test in short mode")
+	}
 	srv := New()
 
 	if srv.Close() != nil {

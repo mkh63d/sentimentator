@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using System.Web;
 using JetBrains.Annotations;
+using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Microsoft.AspNetCore.Identity;
 
 namespace Sentimentator.Backend.Api.EndpointGroups;
 
@@ -8,12 +11,13 @@ public static class AnalysisGroup
 {
     public static RouteGroupBuilder AnalysisGetGroup(this RouteGroupBuilder group)
     {
-        group.MapGet("/{id:guid}", (Guid id, AnalysisService service) =>
+        group.MapGet("/{id:guid}", async (Guid id, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
             try
             {
+                var user = await userManager.GetUserAsync(principal);
                 var analysis = service.Get(id);
-                return Results.Ok(analysis);
+                return user!.Analyses!.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
             }
             catch
             {
@@ -21,13 +25,14 @@ public static class AnalysisGroup
             }
         });
 
-        group.MapGet("/{url}", (string url, AnalysisService service) =>
+        group.MapGet("/{url}", async (string url, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
             try
             {
                 url = HttpUtility.UrlDecode(url);
+                var user = await userManager.GetUserAsync(principal);
                 var analysis = service.Get(url);
-                return Results.Ok(analysis);
+                return user!.Analyses!.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
             }
             catch
             {
@@ -35,12 +40,12 @@ public static class AnalysisGroup
             }
         });
 
-        group.MapGet("/", (AnalysisService service) =>
+        group.MapGet("/", async (AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
             try
             {
-                var analyses = service.Get();
-                return Results.Ok(analyses);
+                var user = await userManager.GetUserAsync(principal);
+                return Results.Ok(user!.Analyses!.ToList());
             }
             catch
             {

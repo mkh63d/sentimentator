@@ -11,7 +11,8 @@ public static class OpenApiOperationBearerSecuritySchemeTransformer
     {
         return builder
             .AddOpenApiOperationTransformer(new OperationBearerSecuritySchemeTransformer().TransformAsync)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 
     internal sealed class OperationBearerSecuritySchemeTransformer : IOpenApiOperationTransformer

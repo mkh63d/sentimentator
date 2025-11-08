@@ -89,13 +89,9 @@ app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription()
     .AllowAnonymous();
 
-app.MapGet("/hello", () => Results.Ok("Hello World!"))
-    .WithTags("Hello")
-    .AllowAnonymous();
-
-app.MapGet("/hello-with-auth", () => Results.Ok("Hello World! You're authenticated!"))
-    .WithTags("Hello")
-    .AddOperationBearerSecuritySchemeWithAuthorization();
+app.MapGroup("/hello")
+    .HelloGetGroup()
+    .WithTags("Hello");
 
 app.MapGroup("/analyses")
     .AnalysisPostGroup()

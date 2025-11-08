@@ -23,7 +23,9 @@ public static class AnalysisGroup
             {
                 return Results.NotFound();
             }
-        });
+        })
+        .Produces<Analysis>()
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{url}", async (string url, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
@@ -38,7 +40,9 @@ public static class AnalysisGroup
             {
                 return Results.NotFound();
             }
-        });
+        })
+        .Produces<Analysis>()
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", async (UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
@@ -51,7 +55,9 @@ public static class AnalysisGroup
             {
                 return Results.InternalServerError();
             }
-        });
+        })
+        .Produces<List<Analysis>>()
+        .Produces(StatusCodes.Status500InternalServerError);
 
         return group;
     }
@@ -63,9 +69,11 @@ public static class AnalysisGroup
             url = HttpUtility.UrlDecode(url);
             var result = await service.Add(principal, url);
             return result is not null
-                ? Results.Created($"/analyses/{result.Id}", result)
+                ? Results.Accepted($"/analyses/{result.Id}", result)
                 : Results.InternalServerError();
-        });
+        })
+        .Produces<Analysis>(StatusCodes.Status202Accepted)
+        .Produces(StatusCodes.Status500InternalServerError);
 
         return group;
     }
@@ -81,7 +89,9 @@ public static class AnalysisGroup
                 result = await service.Update(id, content.Transcription, content.Summary);
             }
             return result ? Results.Ok() : Results.NotFound();
-        });
+        })
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapPut("/{url}", async (string url, AnalysisDetails content, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
@@ -93,7 +103,9 @@ public static class AnalysisGroup
                 result = await service.Update(url, content.Transcription, content.Summary);
             }
             return result ? Results.Ok() : Results.NotFound();
-        });
+        })
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         return group;
     }
@@ -109,7 +121,9 @@ public static class AnalysisGroup
                 result = await service.Remove(id);
             }
             return result ? Results.Ok() : Results.NotFound();
-        });
+        })
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         return group;
     }

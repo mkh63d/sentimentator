@@ -5,8 +5,8 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
-using Sentimentator.Backend.Service.RabbitMq.Consumer.Model;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
+using Sentimentator.Backend.Service.RabbitMq.Publisher.Model;
 
 namespace Sentimentator.Backend.Api.EndpointGroups;
 

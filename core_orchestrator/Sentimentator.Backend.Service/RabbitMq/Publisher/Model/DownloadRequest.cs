@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Sentimentator.Backend.Service.RabbitMq.Consumer.Model;
+namespace Sentimentator.Backend.Service.RabbitMq.Publisher.Model;
 
 public class DownloadRequest
 {

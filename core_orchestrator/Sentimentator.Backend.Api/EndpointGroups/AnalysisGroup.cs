@@ -9,7 +9,16 @@ namespace Sentimentator.Backend.Api.EndpointGroups;
 
 public static class AnalysisGroup
 {
-    public static RouteGroupBuilder AnalysisGetGroup(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapAnalysis(this RouteGroupBuilder group)
+    {
+        group.AnalysisGetGroup()
+            .AnalysisPostGroup()
+            .AnalysisPutGroup()
+            .AnalysisDeleteGroup();
+        return group;
+    }
+    
+    private static RouteGroupBuilder AnalysisGetGroup(this RouteGroupBuilder group)
     {
         group.MapGet("/{id:guid}", async (Guid id, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
@@ -62,7 +71,7 @@ public static class AnalysisGroup
         return group;
     }
 
-    public static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
+    private static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
     {
         group.MapPost("/{url}", async (string url, AnalysisService service, ClaimsPrincipal principal) =>
         {
@@ -78,7 +87,7 @@ public static class AnalysisGroup
         return group;
     }
 
-    public static RouteGroupBuilder AnalysisPutGroup(this RouteGroupBuilder group)
+    private static RouteGroupBuilder AnalysisPutGroup(this RouteGroupBuilder group)
     {
         group.MapPut("/{id:guid}", async (Guid id, AnalysisDetails content, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {
@@ -110,7 +119,7 @@ public static class AnalysisGroup
         return group;
     }
 
-    public static RouteGroupBuilder AnalysisDeleteGroup(this RouteGroupBuilder group)
+    private static RouteGroupBuilder AnalysisDeleteGroup(this RouteGroupBuilder group)
     {
         group.MapDelete("/{id:guid}", async (Guid id, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
         {

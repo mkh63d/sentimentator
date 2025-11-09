@@ -95,14 +95,11 @@ app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .AllowAnonymous();
 
 app.MapGroup("/hello")
-    .HelloGetGroup()
+    .MapHello()
     .WithTags("Hello");
 
 app.MapGroup("/analyses")
-    .AnalysisPostGroup()
-    .AnalysisGetGroup()
-    .AnalysisPutGroup()
-    .AnalysisDeleteGroup()
+    .MapAnalysis()
     .WithTags("Analysis")
     .AddOperationBearerSecuritySchemeWithAuthorization();
 

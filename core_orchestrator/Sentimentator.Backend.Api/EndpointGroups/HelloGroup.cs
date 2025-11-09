@@ -4,7 +4,13 @@ namespace Sentimentator.Backend.Api.EndpointGroups;
 
 public static class HelloGroup
 {
-    public static RouteGroupBuilder HelloGetGroup(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapHello(this RouteGroupBuilder group)
+    {
+        group.HelloGetGroup();
+        return group;
+    }
+    
+    private static RouteGroupBuilder HelloGetGroup(this RouteGroupBuilder group)
     {
         group.MapGet("/", () => Results.Ok("Hello World!"))
             .Produces<string>()

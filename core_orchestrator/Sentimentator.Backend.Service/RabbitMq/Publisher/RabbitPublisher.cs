@@ -10,13 +10,14 @@ public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
     {
         await using var connection = await Factory.CreateConnectionAsync();
         await using var channel = await connection.CreateChannelAsync();
-        
-        await channel.QueueDeclareAsync(queue: queue, durable: false, exclusive: false, autoDelete: false,
-            arguments: null);
-        
+
+        await channel.QueueDeclareAsync(queue, false, false, false,
+            null);
+
         var body = Encoding.UTF8.GetBytes(message);
-        
-        await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queue, body: body);
-        logger.LogInformation("Message published to queue {} at {} with message \"{}\"", queue, DateTime.UtcNow.ToLongTimeString(), message);
+
+        await channel.BasicPublishAsync(string.Empty, queue, body);
+        logger.LogInformation("Message published to queue {} at {} with message \"{}\"", queue,
+            DateTime.UtcNow.ToLongTimeString(), message);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Sentimentator.Backend.Model;
@@ -45,7 +44,7 @@ public class AnalysisService(SentimentatorContext context, UserManager<User> use
         var a = await context.Analyses.FirstOrDefaultAsync(x => x.Id == id);
         return a ?? throw new KeyNotFoundException("Analysis not found");
     }
-    
+
     public async Task<Analysis> Get(string url)
     {
         var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url == url);
@@ -72,7 +71,7 @@ public class AnalysisService(SentimentatorContext context, UserManager<User> use
             return false;
         }
     }
-    
+
     public async Task<bool> Update(string url, string transcription, string summary)
     {
         try

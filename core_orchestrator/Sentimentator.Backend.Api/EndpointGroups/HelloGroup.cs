@@ -9,7 +9,7 @@ public static class HelloGroup
         group.HelloGetGroup();
         return group;
     }
-    
+
     private static RouteGroupBuilder HelloGetGroup(this RouteGroupBuilder group)
     {
         group.MapGet("/", () => Results.Ok("Hello World!"))

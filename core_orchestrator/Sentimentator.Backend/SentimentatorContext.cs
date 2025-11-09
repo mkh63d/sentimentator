@@ -14,7 +14,10 @@ public class SentimentatorContext
     {
         base.OnModelCreating(modelBuilder);
     }
-    
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=orchestrator"); // TODO: change to environment variable
+    {
+        optionsBuilder.UseNpgsql("Host=localhost;Database=orchestrator");
+        // TODO: change to environment variable
+    }
 }

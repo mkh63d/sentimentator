@@ -14,6 +14,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 #region Identity
+
 builder.Services.AddDbContext<SentimentatorContext>();
 builder.Services
     .AddIdentityCore<User>(options =>
@@ -34,9 +35,11 @@ builder.Services
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<SentimentatorContext>()
     .AddApiEndpoints();
+
 #endregion
 
 #region Auth
+
 builder.Services
     .AddAuthentication()
     .AddBearerToken(IdentityConstants.BearerScheme, options =>
@@ -54,9 +57,11 @@ builder.Services.AddAuthorization(options =>
 
     options.FallbackPolicy = options.DefaultPolicy;
 });
+
 #endregion
 
 #region OpenAPI
+
 builder.Services.AddOpenApi(options =>
 {
     options
@@ -64,13 +69,16 @@ builder.Services.AddOpenApi(options =>
         .AddTags()
         .AddBearerSecurityScheme();
 });
+
 #endregion
 
 #region Services
+
 builder.Services.AddScoped<RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
 builder.Services.AddHostedService<HostedRabbitConsumer>();
+
 #endregion
 
 var app = builder.Build();

@@ -6,7 +6,10 @@ using Sentimentator.Backend.Model;
 
 namespace Sentimentator.Backend.Service;
 
-public class AnalysisService(SentimentatorContext context, UserManager<User> userManager, ILogger<AnalysisService> logger)
+public class AnalysisService(
+    SentimentatorContext context,
+    UserManager<User> userManager,
+    ILogger<AnalysisService> logger)
 {
     public async Task<Analysis?> Add(string url)
     {
@@ -34,7 +37,8 @@ public class AnalysisService(SentimentatorContext context, UserManager<User> use
             var user = await userManager.GetUserAsync(principal);
             user!.Analyses.Add(analysis);
             await userManager.UpdateAsync(user);
-            logger.LogInformation("Added analysis {AnalysisId} for URL {URL} associated with user {UserId}", analysis.Id, url, user.Id);
+            logger.LogInformation("Added analysis {AnalysisId} for URL {URL} associated with user {UserId}",
+                analysis.Id, url, user.Id);
             return analysis;
         }
         catch (Exception ex)
@@ -75,6 +79,7 @@ public class AnalysisService(SentimentatorContext context, UserManager<User> use
                 logger.LogError("Failed to update analysis {AnalysisId}: not found", id);
                 return false;
             }
+
             a.Transcription = transcription;
             a.Summary = summary;
             await context.SaveChangesAsync();
@@ -98,6 +103,7 @@ public class AnalysisService(SentimentatorContext context, UserManager<User> use
                 logger.LogError("Failed to update analysis for URL {Url}: not found", url);
                 return false;
             }
+
             a.Transcription = transcription;
             a.Summary = summary;
             await context.SaveChangesAsync();

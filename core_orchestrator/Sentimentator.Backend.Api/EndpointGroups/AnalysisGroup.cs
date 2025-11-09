@@ -26,16 +26,10 @@ public static class AnalysisGroup
         group.MapGet("/{id:guid}",
                 async (Guid id, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
                 {
-                    try
-                    {
-                        var user = await userManager.GetUserAsync(principal);
-                        var analysis = await service.Get(id);
-                        return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
-                    }
-                    catch
-                    {
-                        return Results.NotFound();
-                    }
+                    var user = await userManager.GetUserAsync(principal);
+                    var analysis = await service.Get(id);
+                    if (analysis is null) return Results.NotFound();
+                    return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
                 })
             .Produces<Analysis>()
             .Produces(StatusCodes.Status404NotFound);
@@ -43,36 +37,21 @@ public static class AnalysisGroup
         group.MapGet("/{url}",
                 async (string url, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
                 {
-                    try
-                    {
-                        url = HttpUtility.UrlDecode(url);
-                        var user = await userManager.GetUserAsync(principal);
-                        var analysis = await service.Get(url);
-                        return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
-                    }
-                    catch
-                    {
-                        return Results.NotFound();
-                    }
+                    url = HttpUtility.UrlDecode(url);
+                    var user = await userManager.GetUserAsync(principal);
+                    var analysis = await service.Get(url);
+                    if (analysis is null) return Results.NotFound();
+                    return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
                 })
             .Produces<Analysis>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", async (UserManager<User> userManager, ClaimsPrincipal principal) =>
             {
-                try
-                {
-                    var user = await userManager.GetUserAsync(principal);
-                    return Results.Ok(user!.Analyses.ToList());
-                }
-                catch
-                {
-                    return Results.InternalServerError();
-                }
+                var user = await userManager.GetUserAsync(principal);
+                return Results.Ok(user!.Analyses.ToList());
             })
-            .Produces<List<Analysis>>()
-            .Produces(StatusCodes.Status500InternalServerError);
-
+            .Produces<List<Analysis>>();
         return group;
     }
 
@@ -108,7 +87,9 @@ public static class AnalysisGroup
                 {
                     var user = await userManager.GetUserAsync(principal);
                     var result = false;
-                    if (user!.Analyses.Contains(await service.Get(id)))
+                    var analysis = await service.Get(id);
+                    if (analysis is null) return Results.NotFound();
+                    if (user!.Analyses.Contains(analysis))
                         result = await service.Update(id, content.Transcription, content.Summary);
                     return result ? Results.Ok() : Results.NotFound();
                 })
@@ -122,7 +103,9 @@ public static class AnalysisGroup
                     url = HttpUtility.UrlDecode(url);
                     var user = await userManager.GetUserAsync(principal);
                     var result = false;
-                    if (user!.Analyses.Contains(await service.Get(url)))
+                    var analysis = await service.Get(url);
+                    if (analysis is null) return Results.NotFound();
+                    if (user!.Analyses.Contains(analysis))
                         result = await service.Update(url, content.Transcription, content.Summary);
                     return result ? Results.Ok() : Results.NotFound();
                 })
@@ -139,7 +122,9 @@ public static class AnalysisGroup
                 {
                     var user = await userManager.GetUserAsync(principal);
                     var result = false;
-                    if (user!.Analyses.Contains(await service.Get(id))) result = await service.Remove(id);
+                    var analysis = await service.Get(id);
+                    if (analysis is null) return Results.NotFound();
+                    if (user!.Analyses.Contains(analysis)) result = await service.Remove(id);
                     return result ? Results.Ok() : Results.NotFound();
                 })
             .Produces(StatusCodes.Status200OK)

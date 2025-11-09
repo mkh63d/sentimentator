@@ -6,7 +6,8 @@ using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
-using Sentimentator.Backend.Service.RabbitMq;
+using Sentimentator.Backend.Service.RabbitMq.Consumer;
+using Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -61,6 +62,8 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddScoped<RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
+builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
+builder.Services.AddHostedService<HostedRabbitConsumer>();
 
 var app = builder.Build();
 

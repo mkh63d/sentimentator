@@ -6,8 +6,12 @@ using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Sentimentator.Backend.Service.RabbitMq;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddDbContext<SentimentatorContext>();
 builder.Services
     .AddIdentityCore<User>(options =>
@@ -55,6 +59,7 @@ builder.Services.AddOpenApi(options =>
         .AddBearerSecurityScheme();
 });
 
+builder.Services.AddScoped<RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 
 var app = builder.Build();

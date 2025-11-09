@@ -20,8 +20,4 @@
         <ProjectReference Include="..\Sentimentator.Backend\Sentimentator.Backend.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="RabbitMq\Model\" />
-    </ItemGroup>
-
 </Project>

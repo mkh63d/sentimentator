@@ -1,9 +1,12 @@
 using System.Security.Claims;
+using System.Text.Json;
 using System.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Sentimentator.Backend.Service.RabbitMq.Consumer.Model;
+using Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 namespace Sentimentator.Backend.Api.EndpointGroups;
 
@@ -75,14 +78,22 @@ public static class AnalysisGroup
 
     private static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
     {
-        group.MapPost("/{url}", async (string url, AnalysisService service, ClaimsPrincipal principal) =>
-            {
-                url = HttpUtility.UrlDecode(url);
-                var result = await service.Add(principal, url);
-                return result is not null
-                    ? Results.Accepted($"/analyses/{result.Id}", result)
-                    : Results.InternalServerError();
-            })
+        group.MapPost("/{url}",
+                async (string url, AnalysisService service, ClaimsPrincipal principal, RabbitPublisher publisher) =>
+                {
+                    url = HttpUtility.UrlDecode(url);
+                    var result = await service.Add(principal, url);
+                    if (result is null) return Results.InternalServerError();
+
+                    var downloadRequest = new DownloadRequest
+                    {
+                        VideoId = result.Id,
+                        Url = new Uri(result.Url)
+                    };
+                    await publisher.Send("video.download.request", JsonSerializer.Serialize(downloadRequest));
+
+                    return Results.Accepted($"/analyses/{result.Id}", result);
+                })
             .Produces<Analysis>(StatusCodes.Status202Accepted)
             .Produces(StatusCodes.Status500InternalServerError);
 

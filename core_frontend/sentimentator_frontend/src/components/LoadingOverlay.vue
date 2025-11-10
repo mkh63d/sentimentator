@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useLoadingStore } from '@/stores/useLoadingStore';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 const store = useLoadingStore();
 const { visible, message } = storeToRefs(store);

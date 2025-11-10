@@ -1,8 +1,8 @@
 <template>
-  <navbar class="px-2 shadow-2xl shadow-gray-500">
-    <div class="max-w-full mx-auto flex justify-between items-center bg-primary p-3">
+  <nav class="px-2 pt-2 shadow-2xl shadow-gray-500">
+    <div class="max-w-full mb-3 mx-auto flex justify-between items-center bg-primary p-3">
       <div class="flex justify-center items-center">
-        <div class="px-1 ml-8 cursor-pointer" @click="isSidebarOpen = switchSidebarOpen()">
+        <div class="pr-1 ml-5 mr-4 cursor-pointer" @click="isSidebarOpen = switchSidebarOpen()">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M4 6H20M4 12H20M4 18H20"
@@ -19,7 +19,7 @@
       </div>
       <ThemeSwitcher class="mx-5" :changeOnTheme="true" />
     </div>
-  </navbar>
+  </nav>
 </template>
 
 <script setup lang="ts">
@@ -37,4 +37,6 @@ function switchSidebarOpen() {
 }
 
 const isSidebarOpen = ref(false);
+
+
 </script>

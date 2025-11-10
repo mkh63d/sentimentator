@@ -9,23 +9,28 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 )
 
 type WhisperStrategy struct {
-	apiKey  string
-	client  *http.Client
-	tempDir string
+	apiKey    string
+	client    *http.Client
+	extractor extractor.Service
 }
 
-func NewWhisperStrategy(apiKey string) *WhisperStrategy {
+func NewWhisperStrategy(extractorService extractor.Service) *WhisperStrategy {
+	whisperAPIKey := os.Getenv("OPENAI_API_KEY")
+	if whisperAPIKey == "" {
+		panic("OPENAI_API_KEY environment variable is required")
+	}
+
 	return &WhisperStrategy{
-		apiKey:  apiKey,
-		client:  &http.Client{},
-		tempDir: os.TempDir(),
+		apiKey:    whisperAPIKey,
+		client:    &http.Client{},
+		extractor: extractorService,
 	}
 }
 
@@ -34,10 +39,11 @@ func (w *WhisperStrategy) Name() string {
 }
 
 func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
-	audioPath, err := w.downloadAudio(ctx, videoURL)
+	audioResult, err := w.extractor.ExtractAudio(ctx, videoURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download audio: %w", err)
+		return nil, fmt.Errorf("failed to extract audio from %s: %w", platformName, err)
 	}
+	audioPath := audioResult.FilePath
 	defer os.Remove(audioPath)
 
 	transcript, err := w.transcribeWithWhisper(ctx, audioPath)
@@ -47,40 +53,13 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 
 	return &Result{
 		Text:     transcript.Text,
-		Segments: nil,
-		Method:   models.MethodWhisper,
+		Segments: transcript.Segments,
+		Method:   transcript.Method,
 	}, nil
 }
 
-func (w *WhisperStrategy) downloadAudio(ctx context.Context, videoURL string) (string, error) {
-	outputPath := filepath.Join(w.tempDir, fmt.Sprintf("temp_audio_%d.mp3", os.Getpid()))
-
-	cmd := exec.CommandContext(
-		ctx, "yt-dlp",
-		"-x",
-		"--audio-format", "mp3",
-		"-o", outputPath,
-		"--no-check-certificates",
-		"--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-		"--referer", "https://www.youtube.com/",
-		"--add-header", "Accept-Language:en-US,en;q=0.9",
-		videoURL,
-	)
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("yt-dlp command failed: %w, stderr: %s", err, stderr.String())
-	}
-
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("audio file was not created at %s", outputPath)
-	}
-
-	return outputPath, nil
-}
-
+// transcribeWithWhisper sends the audio file to OpenAI's Whisper API for transcription.
+// This method is platform-agnostic and only cares about the audio file path.
 func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath string) (*Result, error) {
 	file, err := os.Open(audioPath)
 	if err != nil {
@@ -151,5 +130,6 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 	return &Result{
 		Text:     response.Text,
 		Segments: segments,
+		Method:   models.MethodWhisper,
 	}, nil
 }

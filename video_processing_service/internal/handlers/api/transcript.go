@@ -6,22 +6,30 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/transcript"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type TranscriptHandler struct {
-	service *transcript.Service
+	db        database.Service
+	extractor extractor.Service
+	producer  *messaging.Producer
 }
 
-func NewTranscriptHandler(service *transcript.Service) *TranscriptHandler {
+func NewTranscriptHandler(
+	db database.Service,
+	extractorService extractor.Service,
+	producer *messaging.Producer,
+) *TranscriptHandler {
 	return &TranscriptHandler{
-		service: service,
+		db:        db,
+		extractor: extractorService,
+		producer:  producer,
 	}
 }
 
@@ -37,76 +45,113 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 		return
 	}
 
-	jobID := uuid.New().String()
+	if req.Language == "" {
+		req.Language = "en"
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	metadata, err := h.extractor.GetMetadata(ctx, req.VideoURL)
+	if err != nil {
+		slog.Error("failed to get video metadata", "error", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get video metadata: " + err.Error()})
+		return
+	}
+
+	videoRecord, err := h.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
+	if err != nil {
+		videoRecord = &models.Video{
+			VideoID:     metadata.VideoID,
+			Platform:    metadata.Platform,
+			OriginalURL: req.VideoURL,
+			Title:       metadata.Title,
+			Duration:    metadata.Duration,
+		}
+
+		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {
+			slog.Error("failed to save video", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save video"})
+			return
+		}
+
+		slog.Info("created new video record",
+			"video_id", metadata.VideoID,
+			"db_id", videoRecord.ID)
+	}
+
+	hasTranscript, existingTranscript, err := h.db.HasTranscript(ctx, videoRecord.ID, req.Language)
+	if err != nil {
+		slog.Error("failed to check for existing transcript", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check for existing transcript"})
+		return
+	}
+
+	if hasTranscript {
+		slog.Info("transcript already exists",
+			"transcript_id", existingTranscript.ID,
+			"video_id", videoRecord.ID,
+			"status", existingTranscript.Status)
+
+		switch existingTranscript.Status {
+		case models.StatusCompleted:
+			c.JSON(http.StatusOK, models.TranscriptResponse{
+				ID:     fmt.Sprintf("%d", existingTranscript.ID),
+				Status: existingTranscript.Status,
+			})
+		case models.StatusProcessing, models.StatusPending:
+			c.JSON(http.StatusAccepted, models.TranscriptResponse{
+				ID:     fmt.Sprintf("%d", existingTranscript.ID),
+				Status: existingTranscript.Status,
+			})
+		case models.StatusFailed:
+			slog.Info("retrying failed transcript",
+				"transcript_id", existingTranscript.ID,
+				"video_id", videoRecord.ID)
+		}
+
+		// Don't create a new job if transcript exists and is not failed
+		if existingTranscript.Status != models.StatusFailed {
+			return
+		}
+	}
+
+	transcriptRecord := &models.Transcript{
+		VideoID:  videoRecord.ID,
+		Language: req.Language,
+		Status:   models.StatusPending,
+	}
+
+	if err := h.db.CreateTranscript(ctx, transcriptRecord); err != nil {
+		slog.Error("failed to create transcript record", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create transcript record"})
+		return
+	}
+
+	slog.Info("created transcript record",
+		"transcript_id", transcriptRecord.ID,
+		"video_id", videoRecord.ID)
+
+	event := messaging.VideoTranscriptRequestedEvent{
+		AnalysisID: fmt.Sprintf("%d", transcriptRecord.ID),
+		URL:        req.VideoURL,
+		Timestamp:  time.Now(),
+	}
+
+	if err := h.producer.PublishVideoReceived(ctx, event); err != nil {
+		slog.Error("failed to publish video received event", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to queue transcript job"})
+		return
+	}
+
+	slog.Info("published video received event to RabbitMQ",
+		"transcript_id", transcriptRecord.ID,
+		"video_id", videoRecord.ID)
 
 	response := models.TranscriptResponse{
-		ID:     jobID,
+		ID:     fmt.Sprintf("%d", transcriptRecord.ID),
 		Status: models.StatusPending,
 	}
 
 	c.JSON(http.StatusAccepted, response)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-
-	go func() {
-		defer cancel()
-		h.processTranscript(ctx, jobID, req)
-	}()
-
-}
-
-func (h *TranscriptHandler) processTranscript(
-	ctx context.Context,
-	jobID string,
-	req models.TranscriptRequest,
-) {
-	slog.Info("Starting transcript processing", "jobID", jobID, "videoURL", req.VideoURL)
-
-	transcript, err := h.service.GetTranscript(ctx, req.VideoURL, req.Language)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to get transcript",
-			slog.String("error", err.Error()),
-			slog.String("job_id", jobID))
-		return
-	}
-
-	// TODO rm this
-	// Ensure output directory exists
-	outDir := "transcripts"
-	if err := os.MkdirAll(outDir, 0o755); err != nil {
-		slog.ErrorContext(ctx, "failed to create transcripts directory",
-			slog.String("error", err.Error()),
-			slog.String("job_id", jobID))
-		return
-	}
-	outPath := fmt.Sprintf("%s/%s.txt", outDir, jobID)
-	if err := os.WriteFile(outPath, []byte(transcript.Text), 0o644); err != nil {
-		slog.ErrorContext(ctx, "failed to write transcript file",
-			slog.String("error", err.Error()),
-			slog.String("job_id", jobID),
-			slog.String("path", outPath))
-		return
-	}
-
-	slog.InfoContext(ctx, "transcript completed successfully",
-		slog.String("method", string(transcript.Method)),
-		slog.String("job_id", jobID),
-		slog.String("file_path", outPath),
-		slog.Int("text_length", len(transcript.Text)))
-}
-
-func (h *TranscriptHandler) GetStatus(c *gin.Context) {
-	jobID := c.Query("id")
-	if jobID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id query parameter is required"})
-		return
-	}
-
-	// TODO fetch actual status from storage
-	response := models.TranscriptResponse{
-		ID:     jobID,
-		Status: models.StatusCompleted,
-	}
-
-	c.JSON(http.StatusOK, response)
 }

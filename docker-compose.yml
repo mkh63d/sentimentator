@@ -5,7 +5,7 @@ services:
             - rabbitmq
             - postgres
         environment:
-            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+            - RABBITMQ_URL=${AMQP_URL}
             - DATABASE_URL=postgresql://${ORCHESTRATOR_DB_USER}:${ORCHESTRATOR_DB_PASS}@postgres:5432/orchestrator_db
 
     video-processing-service:
@@ -18,14 +18,15 @@ services:
                 condition: service_healthy
         environment:
             - PORT=8080
-            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - APP_ENV=${APP_ENV}
             - SENTIMENTATOR_VPS_DB_HOST=postgres
             - SENTIMENTATOR_VPS_DB_PORT=5432
-            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
-            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
             - SENTIMENTATOR_VPS_DB_DATABASE=video_processing_db
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
-            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
+            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - AMQP_URL=${AMQP_URL}
         ports:
             - "8080:8080"
 
@@ -34,7 +35,7 @@ services:
         depends_on:
             - rabbitmq
         environment:
-            - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+            - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
         build: ./core_frontend
@@ -43,9 +44,17 @@ services:
 
     rabbitmq:
         image: rabbitmq:4.1.4-management
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
         ports:
             - "5672:5672"
-            - "15672:15672"
+            # Expose management UI to localhost only for debug/development.
+            - "127.0.0.1:15672:15672"
+        # volumes:
+        #     - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+        #     - ./rabbitmq/certs:/etc/rabbitmq/certs:ro
         healthcheck:
             test: rabbitmq-diagnostics -q ping
             interval: 10s

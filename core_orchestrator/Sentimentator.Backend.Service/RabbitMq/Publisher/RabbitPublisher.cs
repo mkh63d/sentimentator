@@ -16,7 +16,7 @@ public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
         var body = Encoding.UTF8.GetBytes(message);
 
         await channel.BasicPublishAsync(string.Empty, queue, body);
-        logger.LogInformation("Message published to queue {} at {} with message \"{}\"", queue,
+        logger.LogInformation("Message published to queue {QUEUE} at {TIME} with message \"{MESSAGE}\"", queue,
             DateTime.UtcNow.ToLongTimeString(), message);
     }
 }

@@ -21,9 +21,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-ENV ORCHESTRATOR_POSTGRES_CONN_STRING='Host=localhost;Database=orchestrator'
-ENV ORCHESTRATOR_RABBITMQ_CONN_STRING='amqp://guest:guest@rabbitmq:5672/'
-
 ARG http_port=80
 ENV ASPNETCORE_URLS=http://+:${http_port}
 EXPOSE ${http_port}

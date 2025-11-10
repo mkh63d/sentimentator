@@ -19,8 +19,8 @@ services:
     ports:
       - "8080:80"
     environment:
-      - ORCHESTRATOR_POSTGRES_CONN_STRING="Host=localhost;Database=orchestrator"
-      - ORCHESTRATOR_RABBITMQ_CONN_STRING="amqp://guest:guest@rabbitmq:5672/"
+      ORCHESTRATOR_POSTGRES_CONN_STRING: 'Host=localhost;Database=orchestrator'
+      ORCHESTRATOR_RABBITMQ_URI: 'amqp://guest:guest@rabbitmq:5672/'
     depends_on:
       rabbitmq:
         condition: service_healthy

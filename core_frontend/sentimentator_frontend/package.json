@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "lucide-vue-next": "^0.548.0",
     "openapi-fetch": "^0.15.0",
     "openapi-typescript-fetch": "^2.2.1",
@@ -23,6 +24,7 @@
     "sweetalert2": "^11.26.3",
     "tailwindcss": "^4.1.16",
     "vue": "^3.5.22",
+    "vue-chartjs": "^5.3.3",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
@@ -42,6 +44,8 @@
     "eslint-plugin-vue": "~10.4.0",
     "globals": "^16.3.0",
     "jsdom": "^27.0.0",
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "openapi-typescript": "^7.10.1",
     "postcss": "^8.5.6",
     "prettier": "3.6.2",

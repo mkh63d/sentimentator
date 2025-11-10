@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8000/api';
+import { apiFetch, apiPost, Endpoints } from './api';
 
 export interface LoginCredentials {
   username: string;
@@ -23,63 +23,18 @@ export interface AuthResponse {
 
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
-
-    if (!response.ok) {
-      throw new Error('Login failed');
-    }
-
-    return response.json();
+    return apiPost(Endpoints.AUTH_LOGIN, credentials);
   },
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Registration failed');
-    }
-
-    return response.json();
+    return apiPost(Endpoints.AUTH_REGISTER, data);
   },
 
   async logout(token: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Logout failed');
-    }
+    await apiFetch(Endpoints.AUTH_LOGOUT, { method: 'POST' }, token);
   },
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Token refresh failed');
-    }
-
-    return response.json();
+    return apiPost(Endpoints.AUTH_REFRESH, { refresh_token: refreshToken });
   },
 };

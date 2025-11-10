@@ -6,6 +6,15 @@ export interface InfoRequest {
   oldPassword?: string | null;
 }
 
+/**
+ * Logs in a user with the provided email and password.
+ *
+ * @param email
+ * @param password
+ * @param useCookies
+ * @param useSessionCookies
+ * @returns
+ */
 export async function login(
   email: string,
   password: string,
@@ -45,6 +54,8 @@ export async function login(
   };
 }
 
+/** Logs out the current user by clearing stored tokens.
+ */
 export async function logout() {
   clearTokens();
 }
@@ -90,6 +101,14 @@ export async function refreshAccount(refreshToken: string) {
   return accessTokenResponse;
 }
 
+/**
+ * Confirms the user's email address.
+ *
+ * @param userId
+ * @param code
+ * @param changedEmail
+ * @returns
+ */
 export async function confirmEmail(userId: string, code: string, changedEmail?: string) {
   const { data, error: fetchError } = await api.GET('/account/confirmEmail', {
     params: {
@@ -164,6 +183,7 @@ export async function getAccountInfo() {
 }
 
 /**
+ * Updates the account information for the logged-in user.
  *
  * @param request
  * @returns

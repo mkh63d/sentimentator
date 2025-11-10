@@ -1,5 +1,5 @@
 import { setActivePinia, createPinia } from 'pinia';
-import { useLoadingStore } from '../../../stores/useLoadingStore';
+import { useLoadingStore } from '../../../stores/loadingStore';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('Loading Store', () => {

@@ -76,7 +76,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useLoadingStore } from '@/stores/useLoadingStore';
+import { useLoadingStore } from '@/stores/loadingStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 

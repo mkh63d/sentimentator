@@ -1,0 +1,31 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.1.4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orchestrator:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        http_port: 80
+    ports:
+      - "8080:80"
+    environment:
+      - ORCHESTRATOR_POSTGRES_CONN_STRING="Host=localhost;Database=orchestrator"
+      - ORCHESTRATOR_RABBITMQ_CONN_STRING="amqp://guest:guest@rabbitmq:5672/"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+        restart: true
+           
+networks:
+  default:
+    name: sentimentator-net-example

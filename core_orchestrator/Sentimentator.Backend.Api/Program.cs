@@ -107,8 +107,6 @@ app.MapScalarApiReference(options =>
     };
 }).AllowAnonymous();
 
-app.UseHttpsRedirection();
-
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription()
     .AllowAnonymous();

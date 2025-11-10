@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { login, logout } from '@/api/account';
+import { login, logout, refreshAccount } from '@/api/account';
 import { getTokens, setTokens } from '@/lib/client';
 
 // Pinia for exposing the tokens and authentication state to the app
@@ -52,6 +52,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function refreshAccountTokens() {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await refreshAccount(refreshToken.value!);
+
+      if (!result || !result.accessToken || !result.refreshToken) {
+        throw new Error('No token data returned from API');
+      }
+
+      accessToken.value = result.accessToken;
+      refreshToken.value = result.refreshToken;
+
+      return result;
+    } catch (err) {
+      error.value = 'Token refresh failed';
+      accessToken.value = null;
+      refreshToken.value = null;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function logoutUser() {
     await logout();
 
@@ -64,6 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     refreshToken,
+    refreshAccountTokens,
     isAuthenticated,
     loading,
     error,

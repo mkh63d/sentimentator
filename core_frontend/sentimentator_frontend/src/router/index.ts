@@ -5,11 +5,10 @@ const routes: RouteRecordRaw[] = [
   //{ path: '/', name: 'Home', component: Home },
   //{ path: '/about', name: 'About', component: About }
   { path: '/login', name: 'login', component: () => import('@/views/LoginPanel.vue') },
-  { path: '/', redirect: { name: 'search' } },
-  { path: '/search', name: 'search', component: () => import('@/views/SearchPanel.vue') },
+  { path: '/', redirect: { name: 'home' } },
   { path: '/list', name: 'list', component: () => import('@/views/ListOfAnalysisView.vue') },
   { path: '/home', name: 'home', component: () => import('@/views/HomePage.vue') },
-  // { path: '/analysis', name: 'analysis', component: analysis },
+  { path: '/analysis', name: 'analysis', component: () => import('@/views/AnalysisView.vue') },
 ];
 
 const router = createRouter({

@@ -86,9 +86,9 @@ public class AnalysisService(
             logger.LogInformation("Updated analysis {AnalysisId}", id);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
-            logger.LogError("Failed to update analysis {AnalysisId}", id);
+            logger.LogError("Failed to update analysis {AnalysisId}: {Exception}", id, ex.Message);
             return false;
         }
     }
@@ -110,9 +110,9 @@ public class AnalysisService(
             logger.LogInformation("Updated analysis {AnalysisId} for URL {Url}", a.Id, url);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
-            logger.LogError("Failed to update analysis for URL {Url}", url);
+            logger.LogError("Failed to update analysis for URL {Url}: {Exception}", url, ex.Message);
             return false;
         }
     }
@@ -128,9 +128,9 @@ public class AnalysisService(
             logger.LogInformation("Removed analysis {AnalysisId}", id);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
-            logger.LogError("Failed to remove analysis {AnalysisId}", id);
+            logger.LogError("Failed to remove analysis {AnalysisId}: {Exception}", id, ex.Message);
             return false;
         }
     }

@@ -10,8 +10,13 @@ using Sentimentator.Backend.Service.RabbitMq.Consumer;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Logging
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
+#endregion
 
 #region Identity
 
@@ -83,12 +88,30 @@ builder.Services.AddHostedService<HostedRabbitConsumer>();
 
 var app = builder.Build();
 
+#region Database Initialization
+
+await using var scope = app.Services.CreateAsyncScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
+await dbContext.Database.EnsureCreatedAsync();
+
+#endregion
+
+#region Auth
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+#endregion
+
+#region OpenAPI
 
 app.MapOpenApi()
     .AllowAnonymous()
     .CacheOutput();
+
+#endregion
+
+#region Scalar
 
 app.MapScalarApiReference(options =>
 {
@@ -107,6 +130,10 @@ app.MapScalarApiReference(options =>
     };
 }).AllowAnonymous();
 
+#endregion
+
+#region Endpoints
+
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription()
     .AllowAnonymous();
@@ -124,5 +151,7 @@ app.MapGroup("/account")
     .MapIdentityApi<User>()
     .WithTags("Identity")
     .AllowAnonymous();
+
+#endregion
 
 app.Run();

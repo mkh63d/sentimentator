@@ -11,8 +11,8 @@ public class SentimentatorContext
     private const string PostgresConnStringEnvVar = "ORCHESTRATOR_POSTGRES_CONN_STRING";
     private const string PostgresDefaultConnString = "Host=localhost;Database=orchestrator";
 
-    private static readonly string RabbitMqUri = Environment.GetEnvironmentVariable(PostgresConnStringEnvVar)
-                                                 ?? PostgresDefaultConnString;
+    private static readonly string PostgresConnString = Environment.GetEnvironmentVariable(PostgresConnStringEnvVar)
+                                                               ?? PostgresDefaultConnString;
 
     public DbSet<Analysis> Analyses { get; set; }
 
@@ -23,6 +23,6 @@ public class SentimentatorContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(RabbitMqUri);
+        optionsBuilder.UseNpgsql(PostgresConnString);
     }
 }

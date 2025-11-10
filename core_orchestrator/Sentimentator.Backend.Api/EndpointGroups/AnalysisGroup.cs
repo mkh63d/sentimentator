@@ -64,12 +64,13 @@ public static class AnalysisGroup
                     var result = await service.Add(principal, url);
                     if (result is null) return Results.InternalServerError();
 
-                    var downloadRequest = new DownloadRequest
+                    var downloadRequest = new TranscriptRequest
                     {
-                        VideoId = result.Id,
-                        Url = new Uri(result.Url)
+                        AnalysisId = result.Id,
+                        Url = new Uri(result.Url),
+                        Timestamp = DateTime.UtcNow
                     };
-                    await publisher.Send("video.download.request", JsonSerializer.Serialize(downloadRequest));
+                    await publisher.Send("video.transcript.requested", JsonSerializer.Serialize(downloadRequest));
 
                     return Results.Accepted($"/analyses/{result.Id}", result);
                 })

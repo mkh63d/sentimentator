@@ -27,8 +27,8 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
     {
         _channel.CloseAsync().Wait();
         _connection.CloseAsync().Wait();
-        _channel.DisposeAsync();
-        _connection.DisposeAsync();
+        _channel.DisposeAsync().AsTask().Wait();
+        _connection.DisposeAsync().AsTask().Wait();
     }
 
     public async Task Receive(string queue)

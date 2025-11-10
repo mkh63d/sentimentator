@@ -1,26 +1,6 @@
 <template>
   <div class="bg-secondary min-h-screen">
-    <navbar class="px-2 py-5 shadow-2xl shadow-gray-500">
-      <div class="max-w-full mx-auto flex justify-between items-center bg-primary p-3">
-        <div class="flex justify-center items-center">
-          <div class="px-1 ml-8 cursor-pointer" @click="isSidebarOpen = !isSidebarOpen">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M4 6H20M4 12H20M4 18H20"
-                stroke="var(--color-secondary)"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              ></path>
-            </svg>
-          </div>
-          <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
-            Sentimentator
-          </div>
-        </div>
-        <ThemeSwitcher class="mx-5" :changeOnTheme="true"/>
-      </div>
-    </navbar>
+    <NavbarComponent :isSidebarOpen="isSidebarOpen" @update:isSidebarOpen="isSidebarOpen = $event" />
     <div class="flex min-h-screen">
       <Sidebar v-model="isSidebarOpen" @update:modelValue="isSidebarOpen = $event">
         <ul class="space-y-2">
@@ -64,7 +44,7 @@
           <h1 class="m-0 text-3xl font-extrabold text-tertiary">Analysis Library</h1>
           <button
             @click="createNew"
-            class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:bg-blue-700 transition"
+            class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
           >
             + New Analysis
           </button>
@@ -96,7 +76,7 @@
         </div>
 
         <div v-else-if="error" class="text-center py-12">
-          <p>{{ error }}</p>
+          <p>Error fetching library: <br/><code>{{ error }}</code></p>
           <button
             @click="fetchAnalyses"
             class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
@@ -191,6 +171,12 @@
         </div>
       </div>
     </div>
+    <SearchModal 
+      v-model="showSearchPanel"
+      @analyze="handleAnalyze"
+      @add-link="handleAddLink"
+      @clear-all="handleClearAll"
+    />
   </div>
 </template>
 
@@ -200,7 +186,8 @@ import { useRouter } from 'vue-router';
 import { Eye, Trash2 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/Sidebar.vue';
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import NavbarComponent from '@/components/NavbarComponent.vue';
+import SearchModal from '@/components/SearchModal.vue';
 
 interface Sentiment {
   positive: number;
@@ -250,8 +237,25 @@ const openAnalysis = (id: string) => {
   router.push({ name: 'analysis', params: { id } });
 };
 
+const showSearchPanel = ref(false);
+
 const createNew = () => {
-  router.push({ name: 'search' });
+  showSearchPanel.value = true;
+};
+
+const handleAnalyze = (links: string[]) => {
+  // Handle the analysis here
+  console.log('Analyzing links:', links);
+  // You might want to create a new analysis entry here
+  showSearchPanel.value = false;
+};
+
+const handleAddLink = (link: string) => {
+  console.log('Added link:', link);
+};
+
+const handleClearAll = () => {
+  console.log('Cleared all links');
 };
 
 const deleteAnalysis = async (id: string) => {

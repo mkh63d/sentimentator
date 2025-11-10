@@ -40,7 +40,7 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            _logger.LogInformation("Received message from queue {} at {} with message \"{}\"", queue,
+            _logger.LogInformation("Received message from queue {Queue} at {Time} with message \"{Message}\"", queue,
                 DateTime.UtcNow.ToLongTimeString(), message);
 
             await HandleMessage(message);
@@ -55,7 +55,7 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
         var data = JsonSerializer.Deserialize<AnalysisComplete>(message);
         if (data is null)
         {
-            _logger.LogError("Failed to deserialize message: {}", message);
+            _logger.LogError("Failed to deserialize message: {Message}", message);
             return;
         }
 

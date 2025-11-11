@@ -54,7 +54,7 @@ func NewServer() (*Server, *http.Server) {
 
 	rabbitmq, err := messaging.NewRabbitMQ(messaging.Config{
 		URL:           rabbitmqURL,
-		MaxRetries:    5,
+		MaxRetries:    2,
 		RetryDelay:    5 * time.Second,
 		PrefetchCount: 1,
 	})

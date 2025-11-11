@@ -15,7 +15,6 @@ const (
 )
 
 const (
-	ExchangeVideo = "video"
 	ExchangeTopic = "sentimentator.topic"
 )
 

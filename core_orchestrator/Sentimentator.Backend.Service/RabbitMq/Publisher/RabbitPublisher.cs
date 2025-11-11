@@ -6,17 +6,19 @@ namespace Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
 {
-    public async Task Send(string queue, string message)
+    private const string ExchangeName = "sentimentator.topic";
+
+    public async Task Send(string routingKey, string message)
     {
         await using var connection = await Factory.CreateConnectionAsync();
         await using var channel = await connection.CreateChannelAsync();
 
-        await channel.QueueDeclareAsync(queue, false, false, false);
+        await channel.ExchangeDeclareAsync(ExchangeName, "topic", durable: true, autoDelete: false);
 
         var body = Encoding.UTF8.GetBytes(message);
 
-        await channel.BasicPublishAsync(string.Empty, queue, body);
-        logger.LogInformation("Message published to queue {Queue} at {Time} with message \"{Message}\"", queue,
-            DateTime.UtcNow.ToLongTimeString(), message);
+        await channel.BasicPublishAsync(ExchangeName, routingKey, body);
+        logger.LogInformation("Message published to exchange {Exchange} with routing key {RoutingKey} at {Time} with message \"{Message}\"",
+            ExchangeName, routingKey, DateTime.UtcNow.ToLongTimeString(), message);
     }
 }

@@ -1,16 +1,19 @@
 services:
     orchestrator:
-        build: ./core_orchestrator
+        image: ghcr.io/oskarowski/sentimentator/core_orchestrator:dev
         depends_on:
-            - rabbitmq
-            - postgres
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
         environment:
-            - RABBITMQ_URL=${AMQP_URL}
-            - DATABASE_URL=postgresql://${ORCHESTRATOR_DB_USER}:${ORCHESTRATOR_DB_PASS}@postgres:5432/orchestrator_db
+            - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
+            - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
+        ports:
+            - "8081:80"
 
     video-processing-service:
-        build: ./video_processing_service
-        # image: replace build with image when using prebuilt image
+        image: ghcr.io/oskarowski/sentimentator/video_processing_service:dev
         depends_on:
             rabbitmq:
                 condition: service_started

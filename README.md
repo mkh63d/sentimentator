@@ -11,10 +11,9 @@ The system is composed of several microservices that communicate asynchronously 
 ```mermaid
 graph TB
     subgraph L1["Client Layer"]
-        direction LR
-            User[👤 User]
-            Browser[🌐 Web Browser]
-            User --> Browser
+        User[👤 User]
+        Browser[🌐 Web Browser]
+        User --> Browser
     end
 
     subgraph L2["Frontend Layer"]
@@ -77,9 +76,6 @@ graph TB
     style RabbitMQ fill:#ff6600
     style OrchestratorDB fill:#336791
     style VideoProcDB fill:#336791
-
-    SPACER1[ ]:::spacer
-    SPACER2[ ]:::spacer
 ```
 
 ## 📈 System Flow Overview

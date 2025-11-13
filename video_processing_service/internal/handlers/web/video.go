@@ -36,6 +36,16 @@ func NewVideoHandler(
 	}
 }
 
+// calculateMaxPage calculates the maximum page number based on total items and items per page.
+// Returns at least 1 to ensure there's always a valid page number.
+func calculateMaxPage(total int64, itemsPerPage int) int {
+	maxPage := (int(total) + itemsPerPage - 1) / itemsPerPage
+	if maxPage < 1 {
+		return 1
+	}
+	return maxPage
+}
+
 func (h *VideoHandler) ListVideos(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
@@ -65,11 +75,7 @@ func (h *VideoHandler) ListVideos(c *gin.Context) {
 			renderListError()
 			return
 		}
-		maxPage := (int(total) + itemsPerPage - 1) / itemsPerPage
-		if maxPage < 1 {
-			maxPage = 1
-		}
-		currentPage = maxPage
+		currentPage = calculateMaxPage(total, itemsPerPage)
 	}
 
 	switch pageParam {
@@ -96,10 +102,7 @@ func (h *VideoHandler) ListVideos(c *gin.Context) {
 		return
 	}
 
-	maxPage := (int(total) + itemsPerPage - 1) / itemsPerPage
-	if maxPage < 1 {
-		maxPage = 1
-	}
+	maxPage := calculateMaxPage(total, itemsPerPage)
 	if currentPage > maxPage {
 		currentPage = maxPage
 		offset = (currentPage - 1) * itemsPerPage

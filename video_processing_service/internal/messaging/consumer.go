@@ -93,9 +93,37 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		slog.String("message_id", msg.MessageId),
 		slog.String("correlation_id", msg.CorrelationId))
 
+	// For video processing, we'll handle async and ack early because it can take a long time to process some videos
+	if queueName == QueueVideoProcessing {
+		processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		go func() {
+			defer cancel()
+			err := handler(processCtx, msg.Body)
+			if err != nil {
+				slog.Error("Failed to process message asynchronously",
+					slog.String("queue", queueName),
+					slog.String("error", err.Error()))
+				if processCtx.Err() == context.DeadlineExceeded {
+					slog.Error("Message processing timeout exceeded",
+						slog.String("queue", queueName),
+						slog.String("timeout", "15 minutes"))
+				}
+			} else {
+				slog.Debug("Message processed successfully (async)", slog.String("queue", queueName))
+			}
+		}()
+
+		// Acknowledge immediately to allow processing next message
+		if err := msg.Ack(false); err != nil {
+			slog.Error("Failed to ack message", slog.String("error", err.Error()))
+		}
+		slog.Debug("Message acknowledged, processing continues in background", slog.String("queue", queueName))
+		return
+	}
+
+	// Synchronous processing for other queues
 	processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
-
 	err := handler(processCtx, msg.Body)
 	if err != nil {
 		slog.Error("Failed to process message",
@@ -142,7 +170,7 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	slog.Info("Received transcript request event",
+	slog.Info("Received transcript request event (async processing)",
 		slog.String("url", event.URL),
 		slog.String("analysis_id", event.AnalysisID))
 

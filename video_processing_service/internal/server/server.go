@@ -56,7 +56,7 @@ func NewServer() (*Server, *http.Server) {
 		URL:           rabbitmqURL,
 		MaxRetries:    2,
 		RetryDelay:    5 * time.Second,
-		PrefetchCount: 1,
+		PrefetchCount: 5,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to RabbitMQ: %v", err))

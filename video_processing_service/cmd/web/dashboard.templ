@@ -301,10 +301,17 @@ templ VideoListError(message string) {
 	</div>
 }
 
-templ PaginationControls(total int) {
+templ PaginationControls(total int, currentPage int, itemsPerPage int) {
 	<div class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
 		<div class="text-sm text-gray-600">
-			Showing <span class="font-semibold text-gray-900">1 - 10</span> of <span class="font-semibold text-gray-900">{ fmt.Sprintf("%d", total) }</span> videos
+			{{
+				start := (currentPage - 1) * itemsPerPage + 1
+				end := currentPage * itemsPerPage
+				if end > total {
+					end = total
+				}
+			}}
+			Showing <span class="font-semibold text-gray-900">{ fmt.Sprintf("%d", start) } - { fmt.Sprintf("%d", end) }</span> of <span class="font-semibold text-gray-900">{ fmt.Sprintf("%d", total) }</span> videos
 		</div>
 		<div class="flex items-center space-x-2">
 			<button

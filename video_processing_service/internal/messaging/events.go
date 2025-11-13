@@ -43,10 +43,11 @@ type VideoTranscriptStartedEvent struct {
 // VideoTranscriptCompletedEvent represents a finished transcription
 type VideoTranscriptCompletedEvent struct {
 	AnalysisID   string    `json:"analysis_id"`
-	VideoID      string    `json:"video_id,omitempty"`
+	OriginalURL  string    `json:"original_url"`
+	VideoID      string    `json:"video_id"`
 	TranscriptID string    `json:"transcript_id,omitempty"`
 	Text         string    `json:"text"`
-	Language     string    `json:"language,omitempty"`
+	Language     string    `json:"language"`
 	Duration     int       `json:"duration,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }

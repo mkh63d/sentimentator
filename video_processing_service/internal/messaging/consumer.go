@@ -226,17 +226,25 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		slog.String("video_id", metadata.VideoID),
 		slog.Int("text_length", len(result.Text)),
 		slog.String("method", string(result.Method)),
+		slog.Int64("audio_extraction_seconds", result.AudioExtractionDuration),
+		slog.Int64("transcription_seconds", result.TranscriptionDuration),
+		slog.Int64("total_processing_seconds", result.TotalProcessingDuration),
+		slog.Int64("audio_file_size_bytes", result.AudioFileSizeBytes),
 		slog.String("transcript_elapsed", time.Since(transcriptStartTime).String()))
 
 	transcriptRecord := &models.Transcript{
-		VideoID:   videoRecord.ID,
-		Language:  "en",
-		Method:    result.Method,
-		Status:    models.StatusCompleted,
-		Text:      result.Text,
-		Segments:  result.Segments,
-		UpdatedAt: time.Now(),
-		CreatedAt: time.Now(),
+		VideoID:                 videoRecord.ID,
+		Language:                result.DetectedLanguage,
+		Method:                  result.Method,
+		Status:                  models.StatusCompleted,
+		Text:                    result.Text,
+		Segments:                result.Segments,
+		AudioExtractionDuration: &result.AudioExtractionDuration,
+		TranscriptionDuration:   &result.TranscriptionDuration,
+		TotalProcessingDuration: &result.TotalProcessingDuration,
+		AudioFileSizeBytes:      &result.AudioFileSizeBytes,
+		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now(),
 	}
 	if err := c.db.CreateTranscript(ctx, transcriptRecord); err != nil {
 		return fmt.Errorf("failed to save transcript record: %w", err)
@@ -244,6 +252,7 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 
 	transcriptEvent := VideoTranscriptCompletedEvent{
 		AnalysisID:   event.AnalysisID,
+		OriginalURL:  videoRecord.OriginalURL,
 		VideoID:      videoRecord.VideoID,
 		TranscriptID: fmt.Sprintf("%d", transcriptRecord.ID),
 		Text:         result.Text,

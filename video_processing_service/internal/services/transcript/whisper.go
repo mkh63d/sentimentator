@@ -43,6 +43,8 @@ func (w *WhisperStrategy) Name() string {
 }
 
 func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
+	totalStart := time.Now()
+
 	slog.Info("Starting audio extraction",
 		slog.String("platform", platformName),
 		slog.String("video_id", videoID))
@@ -55,11 +57,13 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 	audioPath := audioResult.FilePath
 	defer os.Remove(audioPath)
 
+	audioExtractionDuration := time.Since(extractStart).Seconds()
+
 	slog.Info("Audio extracted successfully",
 		slog.String("video_id", videoID),
 		slog.String("file_path", audioPath),
 		slog.Int64("file_size_bytes", audioResult.FileSize),
-		slog.String("elapsed", time.Since(extractStart).String()))
+		slog.Int64("duration_seconds", int64(audioExtractionDuration)))
 
 	slog.Info("Starting Whisper transcription",
 		slog.String("video_id", videoID),
@@ -71,16 +75,25 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 		return nil, fmt.Errorf("failed to transcribe audio: %w", err)
 	}
 
+	transcriptionDuration := time.Since(transcribeStart).Seconds()
+	totalDuration := time.Since(totalStart).Seconds()
+
 	slog.Info("Whisper transcription completed",
 		slog.String("video_id", videoID),
 		slog.Int("text_length", len(transcript.Text)),
 		slog.Int("segments_count", len(transcript.Segments)),
-		slog.String("elapsed", time.Since(transcribeStart).String()))
+		slog.Int64("transcription_duration_seconds", int64(transcriptionDuration)),
+		slog.Int64("total_duration_seconds", int64(totalDuration)))
 
 	return &Result{
-		Text:     transcript.Text,
-		Segments: transcript.Segments,
-		Method:   transcript.Method,
+		Text:                    transcript.Text,
+		Segments:                transcript.Segments,
+		Method:                  transcript.Method,
+		DetectedLanguage:        transcript.DetectedLanguage,
+		AudioExtractionDuration: int64(audioExtractionDuration),
+		TranscriptionDuration:   int64(transcriptionDuration),
+		TotalProcessingDuration: int64(totalDuration),
+		AudioFileSizeBytes:      audioResult.FileSize,
 	}, nil
 }
 
@@ -153,6 +166,7 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 
 	var response struct {
 		Text     string `json:"text"`
+		Language string `json:"language"`
 		Segments []struct {
 			Start float64 `json:"start"`
 			End   float64 `json:"end"`
@@ -178,8 +192,9 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 		slog.Int("segments", len(segments)))
 
 	return &Result{
-		Text:     response.Text,
-		Segments: segments,
-		Method:   models.MethodWhisper,
+		Text:             response.Text,
+		Segments:         segments,
+		Method:           models.MethodWhisper,
+		DetectedLanguage: response.Language,
 	}, nil
 }

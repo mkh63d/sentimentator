@@ -43,6 +43,20 @@ builder.Services
 
 #endregion
 
+#region CORS
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+    {
+        policy.WithOrigins("*")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+#endregion
+
 #region Auth
 
 builder.Services
@@ -93,6 +107,12 @@ var app = builder.Build();
 await using var scope = app.Services.CreateAsyncScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
 await dbContext.Database.EnsureCreatedAsync();
+
+#endregion
+
+#region CORS
+
+app.UseCors("AllowSpecificOrigin");
 
 #endregion
 

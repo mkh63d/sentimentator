@@ -95,6 +95,17 @@ func (r *RabbitMQ) DeclareQueue(name string) (amqp.Queue, error) {
 	)
 }
 
+func (r *RabbitMQ) DeclareQueueWithArgs(name string, args map[string]interface{}) (amqp.Queue, error) {
+	return r.channel.QueueDeclare(
+		name,  // name
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		args,  // arguments
+	)
+}
+
 func (r *RabbitMQ) DeclareExchange(name, kind string) error {
 	return r.channel.ExchangeDeclare(
 		name,  // name

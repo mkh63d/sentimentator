@@ -108,21 +108,42 @@ func NewServer() (*Server, *http.Server) {
 
 // setupRabbitMQTopology declares exchanges, queues, and bindings
 func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
-	// Declare topic exchange
 	if err := rabbitmq.DeclareExchange(messaging.ExchangeTopic, "topic"); err != nil {
 		return fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
+	if err := rabbitmq.DeclareExchange("sentimentator.dlx", "topic"); err != nil {
+		return fmt.Errorf("failed to declare dead letter exchange: %w", err)
+	}
+
 	queues := []string{
-
 		messaging.QueueVideoProcessing,
-
 		messaging.QueueTranscript,
 	}
 
 	for _, queueName := range queues {
-		if _, err := rabbitmq.DeclareQueue(queueName); err != nil {
+		args := map[string]interface{}{
+			"x-dead-letter-exchange":    "sentimentator.dlx",
+			"x-dead-letter-routing-key": queueName + ".failed",
+			"x-message-ttl":             int64(15 * time.Minute / time.Millisecond),
+		}
+		queue, err := rabbitmq.DeclareQueueWithArgs(queueName, args)
+		if err != nil {
 			return fmt.Errorf("failed to declare queue %s: %w", queueName, err)
+		}
+		slog.Info("Declared queue with DLX",
+			slog.String("queue", queueName),
+			slog.Int("messages", queue.Messages))
+	}
+
+	for _, queueName := range queues {
+		dlqName := queueName + ".failed"
+		if _, err := rabbitmq.DeclareQueue(dlqName); err != nil {
+			return fmt.Errorf("failed to declare dead letter queue %s: %w", dlqName, err)
+		}
+
+		if err := rabbitmq.BindQueue(dlqName, queueName+".failed", "sentimentator.dlx"); err != nil {
+			return fmt.Errorf("failed to bind dead letter queue %s: %w", dlqName, err)
 		}
 	}
 

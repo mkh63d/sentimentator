@@ -93,13 +93,34 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		slog.String("message_id", msg.MessageId),
 		slog.String("correlation_id", msg.CorrelationId))
 
-	err := handler(ctx, msg.Body)
+	processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	defer cancel()
+
+	err := handler(processCtx, msg.Body)
 	if err != nil {
 		slog.Error("Failed to process message",
 			slog.String("queue", queueName),
 			slog.String("error", err.Error()))
 
-		if err := msg.Nack(false, true); err != nil {
+		if processCtx.Err() == context.DeadlineExceeded {
+			slog.Error("Message processing timeout exceeded",
+				slog.String("queue", queueName),
+				slog.String("timeout", "15 minutes"))
+		}
+
+		requeue := true
+		if xDeath, ok := msg.Headers["x-death"].([]interface{}); ok && len(xDeath) > 0 {
+			if deathMap, ok := xDeath[0].(amqp.Table); ok {
+				if count, ok := deathMap["count"].(int64); ok && count >= 3 {
+					slog.Warn("Message exceeded retry limit, rejecting permanently",
+						slog.String("queue", queueName),
+						slog.Int64("retry_count", count))
+					requeue = false
+				}
+			}
+		}
+
+		if err := msg.Nack(false, requeue); err != nil {
 			slog.Error("Failed to nack message", slog.String("error", err.Error()))
 		}
 		return
@@ -114,17 +135,27 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 }
 
 func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte) error {
+	startTime := time.Now()
+
 	var event VideoTranscriptRequestedEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	slog.Info("Received transcript request event", slog.String("url", event.URL))
+	slog.Info("Received transcript request event",
+		slog.String("url", event.URL),
+		slog.String("analysis_id", event.AnalysisID))
 
 	metadata, err := c.extractorService.GetMetadata(ctx, event.URL)
 	if err != nil {
 		return fmt.Errorf("failed to get video metadata: %w", err)
 	}
+
+	slog.Info("Retrieved video metadata",
+		slog.String("video_id", metadata.VideoID),
+		slog.String("title", metadata.Title),
+		slog.Int("duration", metadata.Duration),
+		slog.String("elapsed", time.Since(startTime).String()))
 
 	videoRecord, err := c.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
 	if err != nil {
@@ -139,6 +170,9 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {
 			return fmt.Errorf("failed to save video record: %w", err)
 		}
+		slog.Info("Created new video record", slog.String("video_id", metadata.VideoID))
+	} else {
+		slog.Info("Found existing video record", slog.String("video_id", metadata.VideoID))
 	}
 
 	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord.ID, "en")
@@ -166,20 +200,33 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 			slog.Info("Transcript already exists, published ready event",
 				slog.String("video_id", videoRecord.VideoID),
 				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)),
+				slog.String("total_elapsed", time.Since(startTime).String()),
 			)
 			return nil
 		}
 	}
 
+	slog.Info("Starting transcript generation",
+		slog.String("video_id", metadata.VideoID),
+		slog.String("url", event.URL))
+
+	transcriptStartTime := time.Now()
 	result, err := c.transcriptService.GetTranscript(ctx, event.URL, "en")
 	if err != nil {
 		slog.Error("Failed to get transcript",
 			slog.String("video_id", videoRecord.VideoID),
 			slog.String("url", event.URL),
 			slog.String("error", err.Error()),
+			slog.String("elapsed", time.Since(transcriptStartTime).String()),
 		)
 		return fmt.Errorf("failed to get transcript: %w", err)
 	}
+
+	slog.Info("Transcript generated successfully",
+		slog.String("video_id", metadata.VideoID),
+		slog.Int("text_length", len(result.Text)),
+		slog.String("method", string(result.Method)),
+		slog.String("transcript_elapsed", time.Since(transcriptStartTime).String()))
 
 	transcriptRecord := &models.Transcript{
 		VideoID:   videoRecord.ID,
@@ -213,6 +260,11 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		)
 		return fmt.Errorf("failed to publish transcript ready event: %w", err)
 	}
+
+	slog.Info("Transcript processing completed successfully",
+		slog.String("video_id", metadata.VideoID),
+		slog.String("transcript_id", fmt.Sprintf("%d", transcriptRecord.ID)),
+		slog.String("total_elapsed", time.Since(startTime).String()))
 
 	return nil
 }

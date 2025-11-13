@@ -118,7 +118,7 @@ func (h *VideoHandler) ListVideos(c *gin.Context) {
 	c.Set("itemsPerPage", itemsPerPage)
 	c.Set("maxPage", maxPage)
 
-	component := web.VideoListComponent(videos, int(total))
+	component := web.VideoListComponent(videos, int(total), currentPage, itemsPerPage)
 	if err := component.Render(c.Request.Context(), c.Writer); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		slog.Error("failed to render video list component", slog.String("error", err.Error()))

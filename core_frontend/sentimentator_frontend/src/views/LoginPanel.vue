@@ -1,13 +1,13 @@
 <template>
   <div class="bg-linear-to-bl from-primary via-secondary to-fourth">
-    <navbar class="px-2 py-5">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <nav class="px-2 py-5">
+      <div class="max-w-full w-full mx-auto flex justify-between items-center">
         <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
           Sentimentator
         </div>
         <ThemeSwitcher class="mx-5" />
       </div>
-    </navbar>
+    </nav>
     <div class="min-h-screen flex items-center justify-center">
       <div class="w-full max-w-md p-5">
         <div class="bg-background p-10 rounded-xl shadow-lg">
@@ -93,9 +93,11 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
+import { useAuthStore } from '@/stores/authStore';
 
 const emit = defineEmits(['login', 'register']);
 const router = useRouter();
+const authStore = useAuthStore();
 
 const isLogin = ref(true);
 const form = ref<FormData>({
@@ -130,12 +132,19 @@ async function handleSubmit() {
 
   try {
     if (isLogin.value) {
-      // Implement login logic
       console.log('Logging in:', form.value.email);
+      try {
+        await authStore.loginUser(form.value.email, form.value.password);
+      } catch (e) {
+        error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
+      }
       emit('login', { email: form.value.email, password: form.value.password });
     } else {
-      // Implement registration logic
-      console.log('Registering:', form.value.email);
+      try {
+        await authStore.registerUser(form.value.email, form.value.password);
+      } catch (e) {
+        error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
+      }
       emit('register', { email: form.value.email, password: form.value.password });
     }
     router.push({ name: 'list' });

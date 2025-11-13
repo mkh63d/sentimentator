@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch';
 import type { paths } from '@generated/schema';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.example.com';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 let accessToken: string | null = localStorage.getItem('accessToken');
 let refreshToken: string | null = localStorage.getItem('refreshToken');
 

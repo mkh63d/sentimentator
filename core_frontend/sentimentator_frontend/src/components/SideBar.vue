@@ -13,6 +13,20 @@
       <div class="p-4 pt-12">
         <slot></slot>
       </div>
+      <div>
+        <button
+          class="w-full mt-4 py-2 px-4 bg-secondary text-tertiary font-bold rounded hover:bg-secondary/80 transition"
+          @click="
+            () => {
+              authStore.logoutUser();
+              sidebarStore.hide();
+              router.push('/login');
+            }
+          "
+        >
+          Logout
+        </button>
+      </div>
     </div>
   </aside>
 </template>
@@ -20,6 +34,10 @@
 <script setup>
 import { X } from 'lucide-vue-next';
 import { useSidebarStore } from '@/stores/sidebarStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
+const authStore = useAuthStore();
 const sidebarStore = useSidebarStore();
 </script>

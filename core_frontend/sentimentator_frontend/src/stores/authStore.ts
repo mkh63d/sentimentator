@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { login, logout, refreshAccount } from '@/api/account';
+import { login, logout, refreshAccount, register } from '@/api/account';
 import { getTokens, setTokens } from '@/lib/client';
 
 // Pinia for exposing the tokens and authentication state to the app
@@ -52,6 +52,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function registerUser(
+    email: string,
+    password: string,
+    useCookies = false,
+    useSessionCookies = false,
+  ) {
+    try {
+      await register(email, password);
+    } catch (err) {
+      error.value = 'Registration failed: ' + (err instanceof Error ? err.message : '');
+      throw err;
+    }
+    try {
+      await loginUser(email, password, useCookies, useSessionCookies);
+    } catch (err) {
+      error.value = 'Login failed: ' + (err instanceof Error ? err.message : '');
+      throw err;
+    }
+  }
+
   async function refreshAccountTokens() {
     loading.value = true;
     error.value = null;
@@ -95,6 +115,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     error,
     loginUser,
+    registerUser,
     logoutUser,
   };
 });

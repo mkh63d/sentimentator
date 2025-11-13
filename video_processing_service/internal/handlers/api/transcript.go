@@ -9,28 +9,27 @@ import (
 	"time"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/messaging"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/queue"
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type TranscriptHandler struct {
-	db           database.Service
-	videoService *video.Service
-	queueService *queue.Service
+	db        database.Service
+	extractor extractor.Service
+	producer  *messaging.Producer
 }
 
 func NewTranscriptHandler(
 	db database.Service,
-	videoService *video.Service,
-	queueService *queue.Service,
+	extractorService extractor.Service,
+	producer *messaging.Producer,
 ) *TranscriptHandler {
 	return &TranscriptHandler{
-		db:           db,
-		videoService: videoService,
-		queueService: queueService,
+		db:        db,
+		extractor: extractorService,
+		producer:  producer,
 	}
 }
 
@@ -53,7 +52,7 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	metadata, err := h.videoService.GetVideoMetadata(ctx, req.VideoURL)
+	metadata, err := h.extractor.GetMetadata(ctx, req.VideoURL)
 	if err != nil {
 		slog.Error("failed to get video metadata", "error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get video metadata: " + err.Error()})
@@ -68,8 +67,6 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 			OriginalURL: req.VideoURL,
 			Title:       metadata.Title,
 			Duration:    metadata.Duration,
-			AudioURL:    metadata.AudioURL,
-			Status:      "pending",
 		}
 
 		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {
@@ -122,7 +119,6 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 	transcriptRecord := &models.Transcript{
 		VideoID:  videoRecord.ID,
 		Language: req.Language,
-		Method:   models.MethodWhisper, // TODO: think about default method
 		Status:   models.StatusPending,
 	}
 
@@ -136,29 +132,24 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 		"transcript_id", transcriptRecord.ID,
 		"video_id", videoRecord.ID)
 
-	jobID := uuid.New().String()
-	jobPayload := &queue.TranscriptJobPayload{
-		VideoURL:     req.VideoURL,
-		Language:     req.Language,
-		VideoID:      videoRecord.ID,
-		TranscriptID: transcriptRecord.ID,
-		JobID:        jobID,
+	event := messaging.VideoTranscriptRequestedEvent{
+		AnalysisID: fmt.Sprintf("%d", transcriptRecord.ID),
+		URL:        req.VideoURL,
+		Timestamp:  time.Now(),
 	}
 
-	job, err := h.queueService.CreateTranscriptJob(ctx, jobPayload)
-	if err != nil {
-		slog.Error("failed to create job", "error", err.Error())
+	if err := h.producer.PublishVideoReceived(ctx, event); err != nil {
+		slog.Error("failed to publish video received event", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to queue transcript job"})
 		return
 	}
 
-	slog.Info("created transcript job",
-		"job_id", job.ID,
+	slog.Info("published video received event to RabbitMQ",
 		"transcript_id", transcriptRecord.ID,
-		"tracking_id", jobID)
+		"video_id", videoRecord.ID)
 
 	response := models.TranscriptResponse{
-		ID:     jobID,
+		ID:     fmt.Sprintf("%d", transcriptRecord.ID),
 		Status: models.StatusPending,
 	}
 

@@ -76,7 +76,7 @@
           @click="submit"
           :disabled="!links.length"
         >
-          Analyze
+          Analyse
         </button>
         <button
           class="py-2 px-5 bg-tertiary/10 text-tertiary rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-tertiary/20 transition-colors"
@@ -98,9 +98,12 @@ import { useLoadingStore } from '@/stores/loadingStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import { createAnalysis } from '@/api/analyses';
 
 const loading = useLoadingStore();
 const searchStore = useSearchStore();
+
+const emit = defineEmits(['analyze']);
 
 const current = ref('');
 const bulk = ref('');
@@ -132,7 +135,6 @@ const isValidUrl = (value) => {
   }
 };
 
-// TODO: Add fetchAPI requests here
 const addLink = () => {
   const val = current.value.trim();
   if (!val) return;
@@ -142,24 +144,24 @@ const addLink = () => {
   }
 };
 
-const parseBulk = () => {
-  const lines = bulk.value
-    .split(/\r?\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+// const parseBulk = () => {
+//   const lines = bulk.value
+//     .split(/\r?\n/)
+//     .map((s) => s.trim())
+//     .filter(Boolean);
 
-  let added = 0;
-  for (const l of lines) {
-    if (isValidUrl(l) && !links.value.includes(l)) {
-      links.value.push(l);
-      added++;
-    }
-  }
-  if (added) {
-    // keep only lines that were invalid or duplicates
-    bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');
-  }
-};
+//   let added = 0;
+//   for (const l of lines) {
+//     if (isValidUrl(l) && !links.value.includes(l)) {
+//       links.value.push(l);
+//       added++;
+//     }
+//   }
+//   if (added) {
+//     // keep only lines that were invalid or duplicates
+//     bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');
+//   }
+// };
 
 const removeLink = (index) => {
   links.value.splice(index, 1);
@@ -184,11 +186,18 @@ const invalidCount = computed(() => {
 const submit = async () => {
   if (!links.value.length) return;
 
-  searchStore.hide();
-
   // Mock Loading
   loading.show('Analyzing links...');
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    for (const link of links.value) {
+      await createAnalysis(link.value);
+    }
+  } catch (error) {
+    console.error('Error during analysis creation:', error);
+  }
   loading.hide();
+  searchStore.hide();
+  clearAll();
+  emit('analyze');
 };
 </script>

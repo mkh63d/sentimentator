@@ -21,7 +21,7 @@ interface AnalysisDetails {
 
 export const handlers = [
   // Authentication endpoints
-  http.post('/account/login', async () => {
+  http.post('*/account/login', async () => {
     return HttpResponse.json<AccessTokenResponse>({
       accessToken: 'mock-access-token',
       expiresIn: 3600,
@@ -30,12 +30,12 @@ export const handlers = [
     });
   }),
 
-  http.post('/account/register', async () => {
+  http.post('*/account/register', async () => {
     return new HttpResponse(null, { status: 200 });
   }),
 
   // Analysis endpoints
-  http.get('/analyses', () => {
+  http.get('*/analyses', () => {
     return HttpResponse.json([
       {
         id: '123e4567-e89b-12d3-a456-426614174000',
@@ -47,7 +47,7 @@ export const handlers = [
     ]);
   }),
 
-  http.post('/analyses/:url', ({ params }) => {
+  http.post('*/analyses/:url', ({ params }) => {
     return HttpResponse.json({
       id: '123e4567-e89b-12d3-a456-426614174000',
       url: params.url,
@@ -55,12 +55,16 @@ export const handlers = [
   }),
 
   //TODO: Fill with realistic mock data
-  http.get('/analyses/:id', ({ params }) => {
+  http.get('*/analyses/:id', ({ params }) => {
     return HttpResponse.json({
       id: params.id,
       url: 'https://example.com',
       transcription: 'Sample transcription',
       summary: 'Sample summary',
     });
+  }),
+
+  http.delete('*/analyses/:id', ({ params }) => {
+    return new HttpResponse(null, { status: 200 });
   }),
 ];

@@ -276,7 +276,7 @@
 import SentimentChart from '@/components/SentimentChart.vue';
 import { useRouter } from 'vue-router';
 import NavbarComponent from '@/components/NavbarComponent.vue';
-import Sidebar from '@/components/Sidebar.vue';
+import Sidebar from '@/components/SideBar.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useSearchStore } from '@/stores/searchStore';
 

@@ -133,7 +133,6 @@ const isValidUrl = (value) => {
   }
 };
 
-// TODO: Add fetchAPI requests here
 const addLink = () => {
   const val = current.value.trim();
   if (!val) return;

@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 
-//TODO: Add route guards for authenticated routes
-// and redirect to login if not authenticated.
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('@/views/LoginPanel.vue') },
   { path: '/', redirect: { name: 'home' } },
@@ -20,15 +18,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = checkAuthStatus(authStore); // You'll need to implement this function
+
   const publicPages = ['home', 'login'];
   if (!publicPages.includes(to.name as string) && !isAuthenticated) {
     // Trying to access a protected page without authentication
     return next({ name: 'login' });
-  }
-
-  // Optional: prevent authenticated users from visiting login page
-  if (to.name === 'login' && isAuthenticated) {
-    return next({ name: 'home' });
   }
 
   // Allow access
@@ -36,7 +30,7 @@ router.beforeEach((to, from, next) => {
 });
 
 // Helper function to check authentication status
-function checkAuthStatus(authStore: any): boolean {
+function checkAuthStatus(authStore: ReturnType<typeof useAuthStore>): boolean {
   // Implement your authentication check here
   const token = authStore.accessToken;
   return token !== null && token !== undefined && token !== '';

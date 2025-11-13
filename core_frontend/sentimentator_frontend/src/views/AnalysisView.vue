@@ -195,7 +195,7 @@ import { ref, computed, onMounted } from 'vue';
 import SentimentChart from '@/components/SentimentChart.vue';
 import { useRouter, useRoute } from 'vue-router';
 import NavbarComponent from '@/components/NavbarComponent.vue';
-import Sidebar from '@/components/SideBar.vue';
+import SideBar from '@/components/SideBar.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalysisById } from '@/api/analyses';

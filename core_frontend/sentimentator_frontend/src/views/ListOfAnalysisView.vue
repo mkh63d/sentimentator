@@ -163,7 +163,7 @@
         </div>
       </div>
     </div>
-    <SearchModal 
+    <SearchModal
       v-model="searchStore.visible"
       @analyze="fetchAnalyses"
     />
@@ -175,7 +175,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Eye, Trash2 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
-import Sidebar from '@/components/Sidebar.vue';
+import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';

@@ -15,7 +15,6 @@ export function setTokens(tokens: { accessToken: string; refreshToken: string })
   accessToken = tokens.accessToken;
   refreshToken = tokens.refreshToken;
 
-  // persist tokens in localStorage
   localStorage.setItem('accessToken', tokens.accessToken);
   localStorage.setItem('refreshToken', tokens.refreshToken);
 }

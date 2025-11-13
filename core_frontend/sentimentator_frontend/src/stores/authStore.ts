@@ -44,9 +44,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       return result;
     } catch (err) {
-      error.value = 'Login failed';
+      const message = err instanceof Error ? err.message : String(err);
+      error.value = message || 'Login failed';
       throw err;
-      // TODO: proper error management
     } finally {
       loading.value = false;
     }
@@ -88,7 +88,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       return result;
     } catch (err) {
-      error.value = 'Token refresh failed';
+      const message = err instanceof Error ? err.message : String(err);
+      error.value = message || 'Token refresh failed';
       accessToken.value = null;
       refreshToken.value = null;
       throw err;

@@ -163,7 +163,9 @@ export async function resetPassword(email: string, resetCode: string, newPasswor
       newPassword,
     },
   });
-  if (fetchError) {
+  if (fetchError?.status === 400) {
+    throw new Error(fetchError.detail ?? 'Failed to reset password (Http error)');
+  } else if (fetchError) {
     throw new Error(fetchError.detail ?? 'Failed to reset password');
   }
   return data;
@@ -176,8 +178,12 @@ export async function resetPassword(email: string, resetCode: string, newPasswor
  */
 export async function getAccountInfo() {
   const { data, error: fetchError } = await api.GET('/account/manage/info');
-  if (fetchError) {
-    throw new Error(fetchError.detail ?? 'Failed to fetch account info');
+  if (fetchError?.status === 400) {
+    throw new Error(fetchError.detail ?? 'Failed to obtain account info (Http error)');
+  } else if (fetchError?.status === 404) {
+    throw new Error(fetchError.detail ?? 'Account not found');
+  } else if (fetchError) {
+    throw new Error(fetchError.detail ?? 'Failed to obtain account info');
   }
   return data;
 }
@@ -192,7 +198,11 @@ export async function updateAccountInfo(request: InfoRequest) {
   const { data, error: fetchError } = await api.POST('/account/manage/info', {
     body: request,
   });
-  if (fetchError) {
+  if (fetchError?.status === 400) {
+    throw new Error(fetchError.detail ?? 'Failed to update account info (Http error)');
+  } else if (fetchError?.status === 404) {
+    throw new Error(fetchError.detail ?? 'Account not found');
+  } else if (fetchError) {
     throw new Error(fetchError.detail ?? 'Failed to update account info');
   }
   return data;

@@ -15,7 +15,6 @@ export function setTokens(tokens: { accessToken: string; refreshToken: string })
   accessToken = tokens.accessToken;
   refreshToken = tokens.refreshToken;
 
-  // persist tokens in localStorage
   localStorage.setItem('accessToken', tokens.accessToken);
   localStorage.setItem('refreshToken', tokens.refreshToken);
 }
@@ -24,7 +23,6 @@ export function clearTokens() {
   accessToken = null;
   refreshToken = null;
 
-  // remove tokens from localStorage
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
 }

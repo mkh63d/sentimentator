@@ -31,12 +31,11 @@ const emit = defineEmits<{
   (e: 'update:isSidebarOpen', value: boolean): void;
 }>();
 
+const isSidebarOpen = ref(false);
+
 function switchSidebarOpen() {
   emit('update:isSidebarOpen', !isSidebarOpen.value);
   return !isSidebarOpen.value;
 }
-
-const isSidebarOpen = ref(false);
-
 
 </script>

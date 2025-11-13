@@ -140,7 +140,6 @@ const parseBulk = () => {
       added++;
     }
   }
-  // remove processed lines from textarea
   if (added) {
     // keep only lines that were invalid or duplicates
     bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');

@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-container">
+  <div class="relative w-full max-w-full mx-0 my-auto">
     <Doughnut :data="chartData" :options="chartOptions" />
   </div>
 </template>
@@ -67,12 +67,3 @@ const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
   },
 }));
 </script>
-
-<style scoped>
-.chart-container {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  margin: 0 auto;
-}
-</style>

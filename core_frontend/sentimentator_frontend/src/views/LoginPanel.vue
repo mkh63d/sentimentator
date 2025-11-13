@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-linear-to-bl from-primary via-secondary to-fourthary">
+  <div class="bg-linear-to-bl from-primary via-secondary to-fourth">
     <navbar class="px-2 py-5">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
@@ -24,7 +24,7 @@
                 type="email"
                 placeholder="Enter your email"
                 required
-                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -36,7 +36,7 @@
                 type="password"
                 placeholder="Enter your password"
                 required
-                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -50,7 +50,7 @@
                 type="password"
                 placeholder="Confirm your password"
                 required
-                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourthary transition"
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -64,7 +64,7 @@
 
             <button
               type="submit"
-              class="w-full p-3 bg-fourthary text-white rounded-md text-lg font-semibold hover:bg-fourthary transition disabled:opacity-60"
+              class="w-full p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
               :disabled="!isFormValid"
             >
               {{ isLogin ? 'Login' : 'Register' }}

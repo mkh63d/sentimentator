@@ -11,7 +11,7 @@ html {
   --color-accent: var(--theme-accent);
   --color-background: var(--theme-background);
   --color-textBase: var(--theme-textBase);
-  --color-fourthary: var(--theme-fourthary);
+  --color-fourth: var(--theme-fourth);
 
 }
 
@@ -22,7 +22,7 @@ html {
     --color-accent: hsl(350, 100%, 50%);
     --color-textBase: hsl(0, 0%, 9%);
     --color-background: hsl(0, 0%, 100%);
-    --color-fourthary: #011936;
+    --color-fourth: #011936;
 } 
 
 [data-theme="dark"] {
@@ -32,7 +32,7 @@ html {
     --color-accent:  hsl(92, 100%, 50%);
     --color-textBase: hsl(0, 0%, 100%);
     --color-background: hsl(0, 0%, 9%);
-    --color-fourthary: #011936;
+    --color-fourth: #011936;
 }
 
 .scrollbar-hide::-webkit-scrollbar {

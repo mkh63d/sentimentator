@@ -6,15 +6,6 @@ export interface InfoRequest {
   oldPassword?: string | null;
 }
 
-/**
- * Logs in a user with the provided email and password.
- *
- * @param email
- * @param password
- * @param useCookies
- * @param useSessionCookies
- * @returns
- */
 export async function login(
   email: string,
   password: string,

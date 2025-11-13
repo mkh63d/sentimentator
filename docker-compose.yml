@@ -41,9 +41,15 @@ services:
             - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
-        build: ./core_frontend
+        build: ./core_frontend/sentimentator_frontend
         depends_on:
-            - orchestrator
+            orchestrator:
+                condition: service_started
+        ports:
+            - "8000:8000"
+        environment:
+            VITE_BACKEND_API: ${VITE_BACKEND_API}
+            VITE_DEMO_MODE: ${VITE_DEMO_MODE}
 
     rabbitmq:
         image: rabbitmq:4.1.4-management

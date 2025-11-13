@@ -121,7 +121,7 @@
                       analysis.status === 'failed' && 'bg-red-100 text-red-800',
                     ]"
                   >
-                    {{ analysis.status }}
+                    {{ analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1) }}
                   </span>
                 </td>
                 <td class="p-4 border-t border-gray-100">
@@ -150,7 +150,7 @@
                     <Eye class="w-5 h-5 inline" />
                   </button>
                   <button
-                    @click="deleteAnalysis(analysis.id)"
+                    @click="eraseAnalysis(analysis.id)"
                     class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70"
                     title="Delete"
                   >
@@ -181,6 +181,7 @@ import Sidebar from '@/components/Sidebar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
+import { createAnalysis, getAnalyses, deleteAnalysis } from '@/api/analyses';
 
 interface Sentiment {
   positive: number;
@@ -216,9 +217,18 @@ const fetchAnalyses = async () => {
   try {
     loading.value = true;
     error.value = null;
-    const response = await fetch('/api/analyses');
-    if (!response.ok) throw new Error('Failed to fetch analyses');
-    analyses.value = await response.json();
+    const response = await getAnalyses();
+    console.log('Fetched analyses response:', response);
+
+    // TODO: Adjust mapping for description, createdAt, status, sentiment based on real response structure
+    analyses.value = await response.map(a => ({
+      id: a.id,
+      title: a.url,
+      description: '',
+      createdAt: new Date().toISOString(),
+      status: "completed",
+      sentiment: {  positive: 33, negative: 33, neutral: 34},
+    }));
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';
   } finally {
@@ -236,14 +246,18 @@ const createNew = () => {
   searchStore.show();
 };
 
-const handleAnalyze = (links: string[]) => {
+const handleAnalyze = async (links: string[]) => {
   console.log('Analyzing links:', links);
-  //for(link : links) {
-  //
-  //TODO: Add request to backend to create new analysis
-  //}
+  for(const link of links) {
+    try {
+    const response = await createAnalysis(link);
+    console.log('Created analysis response:', response);
+    } catch (err) {
+      console.error('Error creating analysis for link:', link, err);
+    }
+  }
   searchStore.hide();
-  router.push('/list');
+  fetchAnalyses();
 };
 
 const handleAddLink = (link: string) => {
@@ -254,7 +268,7 @@ const handleClearAll = () => {
   console.log('Cleared all links');
 };
 
-const deleteAnalysis = async (id: string) => {
+const eraseAnalysis = async (id: string) => {
   // Use SweetAlert2 for confirmation
   // Make sure to install sweetalert2 and import it
   const result = await Swal.fire({
@@ -267,11 +281,9 @@ const deleteAnalysis = async (id: string) => {
     confirmButtonText: 'Yes, delete it!',
     cancelButtonText: 'Cancel',
   }).then(async (result) => {
-    // Mock handling
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/analyses/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Failed to delete');
+        const response = await deleteAnalysis(id);
         analyses.value = analyses.value.filter((a) => a.id !== id);
         Swal.fire({
           title: 'Deleted!',

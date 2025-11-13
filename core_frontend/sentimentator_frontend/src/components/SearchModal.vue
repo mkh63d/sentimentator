@@ -76,7 +76,7 @@
           @click="submit"
           :disabled="!links.length"
         >
-          Analyze
+          Analyse
         </button>
         <button
           class="py-2 px-5 bg-tertiary/10 text-tertiary rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-tertiary/20 transition-colors"
@@ -98,6 +98,7 @@ import { useLoadingStore } from '@/stores/loadingStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import { createAnalysis } from '@/api/analyses';
 
 const loading = useLoadingStore();
 const searchStore = useSearchStore();
@@ -188,7 +189,13 @@ const submit = async () => {
 
   // Mock Loading
   loading.show('Analyzing links...');
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    for (const link of links.value) {
+      await createAnalysis(link.value);
+    }
+  } catch (error) {
+    console.error('Error during analysis creation:', error);
+  }
   loading.hide();
 };
 </script>

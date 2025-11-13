@@ -23,7 +23,7 @@ export async function login(
 ) {
   clearTokens();
 
-  const { data: AccessTokenResponse } = await api.POST('/account/login', {
+  const { data: AccessTokenResponse, error: fetchError } = await api.POST('/account/login', {
     params: {
       query: {
         useCookies,
@@ -35,6 +35,10 @@ export async function login(
       password,
     },
   });
+
+  if (fetchError) {
+    throw new Error(fetchError.detail ?? 'Failed to register user');
+  }
 
   if (useCookies) {
     return { authenticatedVia: 'cookie' };

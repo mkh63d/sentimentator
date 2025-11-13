@@ -4,27 +4,47 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"strings"
 
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/video"
+	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
 )
 
 type Service struct {
-	videoService *video.Service
-	strategies   []Strategy
+	extractorService extractor.Service
+	strategies       []Strategy
 }
 
-func NewService(videoService *video.Service, whisperAPIKey string) *Service {
+func NewService(extractorService extractor.Service) *Service {
+	useMockWhisper := isMockWhisperEnabled()
+
+	var whisperStrategy Strategy
+	if useMockWhisper {
+		slog.Info("WHISPER_MOCK_MODE enabled - using mock Lorem Ipsum transcripts instead of OpenAI API")
+		whisperStrategy = NewMockWhisperStrategy()
+	} else {
+		slog.Info("Using real Whisper API for transcription")
+		whisperStrategy = NewWhisperStrategy(extractorService)
+	}
+
 	return &Service{
-		videoService: videoService,
+		extractorService: extractorService,
 		strategies: []Strategy{
-			// NewCaptionStrategy(videoService),
-			NewWhisperStrategy(whisperAPIKey),
+			NewCaptionStrategy(extractorService),
+			whisperStrategy,
 		},
 	}
 }
 
+// isMockWhisperEnabled checks if mock mode is enabled via environment variable.
+// Set WHISPER_MOCK_MODE=true to enable mock mode for testing without API calls.
+func isMockWhisperEnabled() bool {
+	mockMode := os.Getenv("WHISPER_MOCK_MODE")
+	return strings.ToLower(strings.TrimSpace(mockMode)) == "true"
+}
+
 func (s *Service) GetTranscript(ctx context.Context, videoURL, lang string) (*Result, error) {
-	metadata, err := s.videoService.GetVideoMetadata(ctx, videoURL)
+	metadata, err := s.extractorService.GetMetadata(ctx, videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video metadata: %w", err)
 	}

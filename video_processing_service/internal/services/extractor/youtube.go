@@ -1,6 +1,7 @@
-package video
+package extractor
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,27 +10,29 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
 )
 
 type YouTubePlatform struct {
-	client *http.Client
+	client  *http.Client
+	tempDir string
 }
 
-func NewYouTubePlatform() *YouTubePlatform {
+func NewYouTubePlatform(tempDir string) Platform {
 	return &YouTubePlatform{
-		client: &http.Client{},
-	}
+		client:  &http.Client{},
+		tempDir: tempDir}
 }
 
-func (y *YouTubePlatform) Name() string {
-	return "youtube"
+func (ytp *YouTubePlatform) Name() string {
+	return "youtube_platform"
 }
 
-func (y *YouTubePlatform) SupportsURL(videoURL string) bool {
+func (ytp *YouTubePlatform) SupportsURL(videoURL string) bool {
 	return strings.Contains(videoURL, "youtube.com") || strings.Contains(videoURL, "youtu.be")
 }
 
@@ -91,7 +94,7 @@ func (y *YouTubePlatform) ExtractVideoID(rawVideoURL string) (string, error) {
 	return "", errors.New("unable to extract YouTube video ID from URL")
 }
 
-func (y *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*models.VideoMetadata, error) {
+func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*VideoMetadata, error) {
 	slog.InfoContext(ctx, "Fetching YouTube video metadata", slog.String("video_id", videoID))
 	videoURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 
@@ -104,7 +107,7 @@ func (y *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*mod
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 
-	resp, err := y.client.Do(req)
+	resp, err := ytp.client.Do(req)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to fetch YouTube page", slog.String("error", err.Error()))
 		return nil, err
@@ -178,138 +181,61 @@ func (y *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*mod
 		slog.String("title", data.VideoDetails.Title),
 		slog.Bool("has_captions", hasCaptions))
 
-	return &models.VideoMetadata{
-		VideoID:     videoID,
-		Platform:    "youtube",
-		Title:       data.VideoDetails.Title,
-		HasCaptions: hasCaptions,
+	return &VideoMetadata{
+		VideoID:                   videoID,
+		Platform:                  ytp.Name(),
+		Title:                     data.VideoDetails.Title,
+		Duration:                  -1, //TODO: scrape for Duration
+		HasCaptions:               hasCaptions,
+		AvailableCaptionLanguages: make([]string, 0),
+		OriginalURL:               videoURL,
 	}, nil
 }
 
-func (y *YouTubePlatform) GetCaptions(ctx context.Context, videoID string, lang string) ([]models.Segment, error) {
-	if videoID == "" {
-		return nil, errors.New("videoID cannot be empty")
-	}
-
-	if lang == "" {
-		lang = "en"
-	}
-
-	captionURL, err := y.getCaptionURL(ctx, videoID, lang)
-	if err != nil {
-		return nil, err
-	}
-
-	return y.fetchCaptions(ctx, captionURL)
+func (ytp *YouTubePlatform) GetCaptions(ctx context.Context, videoID, lang string) ([]Segment, error) {
+	return make([]Segment, 0), nil
 }
 
-func (y *YouTubePlatform) GetAudioURL(
-	ctx context.Context,
-	videoID string,
-) (string, error) {
-	// TODO implement audio extraction for YouTube
-	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID), nil
-}
-
-// TODO test this way of getting captions, because this part was vibecoded
-
-func (y *YouTubePlatform) getCaptionURL(
-	ctx context.Context,
-	videoID, lang string,
-) (string, error) {
+func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*AudioResult, error) {
+	outputPath := filepath.Join(ytp.tempDir, fmt.Sprintf("temp_audio_%d.mp3", os.Getpid()))
 	videoURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", videoURL, nil)
+	args := []string{
+		"-x",
+		"--audio-format", "mp3",
+		"-o", outputPath,
+		"--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		"--referer", "https://www.youtube.com/",
+		"--add-header", "Accept-Language: en-US,en;q=0.9",
+		"--no-check-certificates",
+	}
+
+	args = append(args, videoURL)
+
+	cmd := exec.CommandContext(ctx, "yt-dlp", args...)
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("yt-dlp command failed for %s: %w, stderr: %s",
+			ytp.Name(), err, stderr.String())
+	}
+
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("audio file was not created at %s", outputPath)
+	}
+
+	fileInfo, err := os.Stat(outputPath)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to stat audio file: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
-
-	resp, err := y.client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	re := regexp.MustCompile(`"captionTracks":(\[.*?\])`)
-	matches := re.FindSubmatch(body)
-	if len(matches) < 2 {
-		return "", fmt.Errorf("no captions available")
-	}
-
-	var tracks []struct {
-		BaseURL      string `json:"baseUrl"`
-		LanguageCode string `json:"languageCode"`
-	}
-
-	if err := json.Unmarshal(matches[1], &tracks); err != nil {
-		return "", err
-	}
-
-	for _, track := range tracks {
-		if track.LanguageCode == lang {
-			return track.BaseURL, nil
-		}
-	}
-
-	if len(tracks) > 0 {
-		return tracks[0].BaseURL, nil
-	}
-
-	return "", fmt.Errorf("no captions found")
-}
-
-func (y *YouTubePlatform) fetchCaptions(
-	ctx context.Context,
-	captionURL string,
-) ([]models.Segment, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", captionURL, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := y.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseYouTubeCaptions(body)
-}
-
-func parseYouTubeCaptions(data []byte) ([]models.Segment, error) {
-	// Parse YouTube's timed text format (simplified)
-	var segments []models.Segment
-
-	// This is a simplified parser - you'd need proper XML parsing
-	re := regexp.MustCompile(`<text start="([^"]+)" dur="([^"]+)">([^<]+)</text>`)
-	matches := re.FindAllSubmatch(data, -1)
-
-	for _, match := range matches {
-		if len(match) == 4 {
-			var start, dur float64
-			fmt.Sscanf(string(match[1]), "%f", &start)
-			fmt.Sscanf(string(match[2]), "%f", &dur)
-
-			segments = append(segments, models.Segment{
-				Start: start,
-				End:   start + dur,
-				Text:  string(match[3]),
-			})
-		}
-	}
-
-	return segments, nil
+	return &AudioResult{
+		FilePath: outputPath,
+		Format:   "mp3",
+		Duration: -1,
+		FileSize: fileInfo.Size(),
+		Metadata: nil,
+	}, nil
 }

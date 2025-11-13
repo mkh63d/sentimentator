@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrNoCaptionsAvailable = errors.New("no captions available for this video")
+)
+
 type TranscriptStatus string
 
 const (
@@ -21,8 +25,9 @@ const (
 type TranscriptMethod string
 
 const (
-	MethodCaption TranscriptMethod = "caption"
-	MethodWhisper TranscriptMethod = "whisper_api"
+	MethodCaption     TranscriptMethod = "captions"
+	MethodWhisper     TranscriptMethod = "whisper_api"
+	MockMethodWhisper TranscriptMethod = "mock_whisper_api"
 )
 
 type Transcript struct {

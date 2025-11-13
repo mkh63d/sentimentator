@@ -2,7 +2,7 @@
   <div class="bg-secondary min-h-screen">
     <NavbarComponent :isSidebarOpen="isSidebarOpen" @update:isSidebarOpen="isSidebarOpen = $event" />
     <div class="flex min-h-screen">
-      <Sidebar v-model="isSidebarOpen" @update:modelValue="isSidebarOpen = $event">
+      <Sidebar v-model="isSidebarOpen">
         <ul class="space-y-2">
           <li>
             <button
@@ -18,14 +18,6 @@
               class="text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
-            </button>
-          </li>
-          <li>
-            <button
-              @click="router.push('/search')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
-            >
-              New Analysis
             </button>
           </li>
           <li class="self-bottom">
@@ -172,7 +164,7 @@
       </div>
     </div>
     <SearchModal 
-      v-model="showSearchPanel"
+      v-model="searchStore.visible"
       @analyze="handleAnalyze"
       @add-link="handleAddLink"
       @clear-all="handleClearAll"
@@ -188,6 +180,7 @@ import Swal from 'sweetalert2';
 import Sidebar from '@/components/Sidebar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
+import { useSearchStore } from '@/stores/searchStore';
 
 interface Sentiment {
   positive: number;
@@ -237,17 +230,20 @@ const openAnalysis = (id: string) => {
   router.push({ name: 'analysis', params: { id } });
 };
 
-const showSearchPanel = ref(false);
+const searchStore = useSearchStore();
 
 const createNew = () => {
-  showSearchPanel.value = true;
+  searchStore.show();
 };
 
 const handleAnalyze = (links: string[]) => {
-  // Handle the analysis here
   console.log('Analyzing links:', links);
-  // You might want to create a new analysis entry here
-  showSearchPanel.value = false;
+  //for(link : links) {
+  //
+  //TODO: Add request to backend to create new analysis
+  //}
+  searchStore.hide();
+  router.push('/list');
 };
 
 const handleAddLink = (link: string) => {

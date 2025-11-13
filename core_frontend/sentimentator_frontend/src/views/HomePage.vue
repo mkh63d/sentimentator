@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-background">
     <!-- Hero Section -->
-    <section class="bg-linear-to-br from-primary via-secondary to-fourthary">
+    <section class="bg-linear-to-br from-primary via-secondary to-fourth">
       <nav class="px-4 py-5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
           <div class="text-2xl font-bold text-background">Sentimentator</div>

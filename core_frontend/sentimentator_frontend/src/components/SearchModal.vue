@@ -1,14 +1,16 @@
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center">
+  <div v-if="searchStore.visible" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- Backdrop -->
-    <div class="absolute inset-0 bg-background/30" @click="$emit('update:modelValue', false)"></div>
+    <div class="absolute inset-0 bg-background/30" @click="closeWindow()"></div>
 
     <!-- Modal content -->
-    <div class="relative w-[680px] max-w-[90%] m-4 p-6 border border-primary/20 rounded-lg bg-background shadow-lg">
+    <div
+      class="relative w-[680px] max-w-[90%] m-4 p-6 border border-primary/20 rounded-lg bg-background shadow-lg"
+    >
       <!-- Close button -->
       <button
         class="absolute right-3 top-3 p-1.5 text-tertiary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
-        @click="$emit('update:modelValue', false)"
+        @click="closeWindow()"
         aria-label="Close"
       >
         <X size="20" />
@@ -22,7 +24,7 @@
           class="flex-1 p-2.5 border border-primary/20 rounded-lg bg-secondary/50 text-tertiary placeholder:text-tertiary/50 focus:outline-none focus:border-primary/50"
           v-model="current"
           @keyup.enter="addLink"
-          :class="{ 'border-red-500': current && !isValidUrl(current) }"
+          :class="{ 'border-red-600': !isValidUrl(current) && current }"
           placeholder="Enter a URL (press Enter or Add)"
           aria-label="Add link"
         />
@@ -34,6 +36,9 @@
           Add
         </button>
       </div>
+      <p class="text-red-600 mb-3 text-sm" v-if="!isValidUrl(current) && current">
+        Please enter a valid URL.
+      </p>
 
       <!-- Validation / hint -->
       <p class="text-red-600 mb-3 text-sm" v-if="invalidCount > 0">
@@ -90,41 +95,51 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useLoadingStore } from '@/stores/loadingStore';
+import { useSearchStore } from '@/stores/searchStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
 const loading = useLoadingStore();
-
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-});
-
-const emit = defineEmits(['analyze', 'add-link', 'clear-all', 'update:modelValue']);
+const searchStore = useSearchStore();
 
 const current = ref('');
 const bulk = ref('');
 const links = ref([]);
+const whitelist = ref([
+  'youtube.com',
+  'youtu.be',
+  'tiktok.com',
+  'instagram.com',
+  'googlevideo.com',
+  'ytimg.com',
+  'tiktokv.com',
+]);
+
+const closeWindow = () => {
+  clearAll();
+  searchStore.hide();
+};
 
 const isValidUrl = (value) => {
   try {
     const u = new URL(value.trim());
-    return ['http:', 'https:'].includes(u.protocol);
+    return (
+      ['http:', 'https:'].includes(u.protocol) &&
+      whitelist.value.some((domain) => u.hostname.includes(domain))
+    );
   } catch {
     return false;
   }
 };
 
+// TODO: Add fetchAPI requests here
 const addLink = () => {
   const val = current.value.trim();
   if (!val) return;
   if (isValidUrl(val) && !links.value.includes(val)) {
     links.value.push(val);
-    emit('add-link', val);
+    current.value = '';
   }
-  current.value = '';
 };
 
 const parseBulk = () => {
@@ -154,7 +169,6 @@ const clearAll = () => {
   links.value = [];
   bulk.value = '';
   current.value = '';
-  emit('clear-all', null);
 };
 
 const invalidCount = computed(() => {
@@ -170,8 +184,7 @@ const invalidCount = computed(() => {
 const submit = async () => {
   if (!links.value.length) return;
 
-  emit('analyze', links.value.slice());
-  emit('update:modelValue', false); // Close popup after submission
+  searchStore.hide();
 
   // Mock Loading
   loading.show('Analyzing links...');

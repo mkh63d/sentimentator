@@ -1,12 +1,9 @@
 <template>
   <div class="min-h-screen bg-secondary">
-    <NavbarComponent
-      :isSidebarOpen="isSidebarOpen"
-      @update:isSidebarOpen="isSidebarOpen = $event"
-    />
+    <NavbarComponent />
 
     <div class="flex min-h-screen">
-      <Sidebar v-model="isSidebarOpen" @update:modelValue="isSidebarOpen = $event">
+      <Sidebar v-model="sidebarStore.visible">
         <ul class="space-y-2">
           <li>
             <button
@@ -22,14 +19,6 @@
               class="text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
-            </button>
-          </li>
-          <li>
-            <button
-              @click="router.push('/search')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
-            >
-              New Analysis
             </button>
           </li>
           <li class="self-bottom">
@@ -50,13 +39,13 @@
         </div>
 
         <!-- Overall Sentiment Summary -->
-        <div class="bg-fourthary rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
           <h2 class="text-2xl font-semibold text-secondary mb-4">Overall Sentiment</h2>
           <div
             class="flex flex-col md:flex-row items-center justify-center md:space-x-8 space-y-6 md:space-y-0"
           >
             <div class="text-center">
-              <div class="text-6xl font-bold text-fourthary mb-2">Positive</div>
+              <div class="text-6xl font-bold text-fourth mb-2">Positive</div>
               <div class="text-lg text-secondary">Dominant Sentiment</div>
             </div>
             <div class="w-full md:w-auto">
@@ -80,7 +69,7 @@
         </div>
 
         <!-- Feature-Based Sentiment Analysis -->
-        <div class="bg-fourthary rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
           <h2 class="text-xl font-semibold text-secondary mb-4">Sentiment by Smartphone Feature</h2>
           <div class="space-y-4">
             <!-- Camera Feature -->
@@ -94,9 +83,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 70%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 20%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 10%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[70%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[20%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[10%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 70%</span>
@@ -116,9 +105,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 80%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 15%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 5%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[80%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[15%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[5%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 80%</span>
@@ -138,9 +127,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 75%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 20%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 5%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[75%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[20%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[5%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 75%</span>
@@ -160,9 +149,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 50%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 40%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 10%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[50%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[40%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[10%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 50%</span>
@@ -182,9 +171,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 30%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 20%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 50%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[30%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[20%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[50%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 30%</span>
@@ -204,9 +193,9 @@
                 </span>
               </div>
               <div class="flex space-x-2 mb-2">
-                <div class="flex-1 bg-green-500 h-3 rounded" style="width: 85%"></div>
-                <div class="flex-1 bg-gray-300 h-3 rounded" style="width: 10%"></div>
-                <div class="flex-1 bg-red-500 h-3 rounded" style="width: 5%"></div>
+                <div class="flex-1 bg-green-500 h-3 rounded w-[85%]"></div>
+                <div class="flex-1 bg-gray-300 h-3 rounded w-[10%]"></div>
+                <div class="flex-1 bg-red-500 h-3 rounded w-[5%]"></div>
               </div>
               <div class="flex justify-between text-sm text-tertiary">
                 <span>Positive: 85%</span>
@@ -242,22 +231,16 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
           <h2 class="text-xl font-semibold text-tertiary mb-4">Extracted Keywords</h2>
           <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm"
-              >camera quality</span
-            >
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm">battery life</span>
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm"
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">camera quality</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">battery life</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm"
               >display brightness</span
             >
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm"
-              >fast charging</span
-            >
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm">screen size</span>
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm">expensive</span>
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm"
-              >premium design</span
-            >
-            <span class="px-3 py-1 bg-fourthary text-white rounded-full text-sm"
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">fast charging</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">screen size</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">expensive</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm">premium design</span>
+            <span class="px-3 py-1 bg-fourth text-white rounded-full text-sm"
               >smooth performance</span
             >
           </div>
@@ -273,7 +256,7 @@
           </button>
           <button
             @click="exportResults"
-            class="px-6 py-3 bg-fourthary text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+            class="px-6 py-3 bg-fourth text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
           >
             Export Results
           </button>
@@ -294,9 +277,67 @@ import SentimentChart from '@/components/SentimentChart.vue';
 import { useRouter } from 'vue-router';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import Sidebar from '@/components/Sidebar.vue';
-import { ref } from 'vue';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import { useSearchStore } from '@/stores/searchStore';
 
 const router = useRouter();
+const searchStore = useSearchStore();
+const sidebarStore = useSidebarStore();
 
-const isSidebarOpen = ref(false);
+function exportResults() {
+  // Create PDF content
+  const pdfContent = `
+  # Sentiment Analysis Results
+  ## Smartphone Review Sentiment Breakdown
+
+  ### Overall Sentiment
+  - **Dominant Sentiment:** Positive
+  - Positive: 65%
+  - Neutral: 25%
+  - Negative: 10%
+
+  ### Sentiment by Feature
+
+  #### 📷 Camera - Positive
+  - Positive: 70% | Neutral: 20% | Negative: 10%
+
+  #### 🔋 Battery - Positive
+  - Positive: 80% | Neutral: 15% | Negative: 5%
+
+  #### 📱 Display - Positive
+  - Positive: 75% | Neutral: 20% | Negative: 5%
+
+  #### ⚡ Performance - Neutral
+  - Positive: 50% | Neutral: 40% | Negative: 10%
+
+  #### 💰 Price - Negative
+  - Positive: 30% | Neutral: 20% | Negative: 50%
+
+  #### 🎨 Design - Positive
+  - Positive: 85% | Neutral: 10% | Negative: 5%
+
+  ### Statistics
+  - Features Detected: 6
+  - Sentences Analyzed: 47
+  - Average Confidence: 89%
+
+  ### Extracted Keywords
+  camera quality, battery life, display brightness, fast charging, screen size, expensive, premium design, smooth performance
+    `.trim();
+
+  // Create blob and download
+  const blob = new Blob([pdfContent], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `sentiment-analysis-${new Date().getTime()}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+function analyzeNew() {
+  searchStore.show();
+}
 </script>

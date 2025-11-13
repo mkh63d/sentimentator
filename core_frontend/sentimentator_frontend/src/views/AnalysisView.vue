@@ -43,7 +43,7 @@
         </div>
 
         <!-- Data Display -->
-        <template v-else-if="analysisData">
+        <div v-else-if="analysisData">
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
@@ -175,16 +175,19 @@
               Export Results
             </button>
             <button
-              @click="analyzeNew"
+              @click="searchStore.show()"
               class="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Analyze New Video
             </button>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>
+  <SearchModal 
+      v-model="searchStore.visible"
+    />
 </template>
 
 <script lang="ts" setup>
@@ -196,6 +199,7 @@ import Sidebar from '@/components/Sidebar.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalysisById } from '@/api/analyses';
+import SearchModal from '@/components/SearchModal.vue';
 
 // Types
 interface Feature {
@@ -322,10 +326,6 @@ ${data.keywords.join(', ')}
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
-}
-
-function analyzeNew() {
-  searchStore.show();
 }
 
 // Lifecycle

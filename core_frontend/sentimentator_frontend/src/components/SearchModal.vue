@@ -103,6 +103,8 @@ import { createAnalysis } from '@/api/analyses';
 const loading = useLoadingStore();
 const searchStore = useSearchStore();
 
+const emit = defineEmits(['analyze']);
+
 const current = ref('');
 const bulk = ref('');
 const links = ref([]);
@@ -142,24 +144,24 @@ const addLink = () => {
   }
 };
 
-const parseBulk = () => {
-  const lines = bulk.value
-    .split(/\r?\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+// const parseBulk = () => {
+//   const lines = bulk.value
+//     .split(/\r?\n/)
+//     .map((s) => s.trim())
+//     .filter(Boolean);
 
-  let added = 0;
-  for (const l of lines) {
-    if (isValidUrl(l) && !links.value.includes(l)) {
-      links.value.push(l);
-      added++;
-    }
-  }
-  if (added) {
-    // keep only lines that were invalid or duplicates
-    bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');
-  }
-};
+//   let added = 0;
+//   for (const l of lines) {
+//     if (isValidUrl(l) && !links.value.includes(l)) {
+//       links.value.push(l);
+//       added++;
+//     }
+//   }
+//   if (added) {
+//     // keep only lines that were invalid or duplicates
+//     bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');
+//   }
+// };
 
 const removeLink = (index) => {
   links.value.splice(index, 1);
@@ -184,8 +186,6 @@ const invalidCount = computed(() => {
 const submit = async () => {
   if (!links.value.length) return;
 
-  searchStore.hide();
-
   // Mock Loading
   loading.show('Analyzing links...');
   try {
@@ -196,5 +196,8 @@ const submit = async () => {
     console.error('Error during analysis creation:', error);
   }
   loading.hide();
+  searchStore.hide();
+  clearAll();
+  emit('analyze');
 };
 </script>

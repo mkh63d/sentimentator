@@ -165,9 +165,7 @@
     </div>
     <SearchModal 
       v-model="searchStore.visible"
-      @analyze="handleAnalyze"
-      @add-link="handleAddLink"
-      @clear-all="handleClearAll"
+      @analyze="fetchAnalyses"
     />
   </div>
 </template>
@@ -221,6 +219,7 @@ const fetchAnalyses = async () => {
     console.log('Fetched analyses response:', response);
 
     // TODO: Adjust mapping for description, createdAt, status, sentiment based on real response structure
+    // Waiting for backend API to provide these fields
     analyses.value = await response.map(a => ({
       id: a.id,
       title: a.url,
@@ -244,28 +243,6 @@ const searchStore = useSearchStore();
 
 const createNew = () => {
   searchStore.show();
-};
-
-const handleAnalyze = async (links: string[]) => {
-  console.log('Analyzing links:', links);
-  for(const link of links) {
-    try {
-    const response = await createAnalysis(link);
-    console.log('Created analysis response:', response);
-    } catch (err) {
-      console.error('Error creating analysis for link:', link, err);
-    }
-  }
-  searchStore.hide();
-  fetchAnalyses();
-};
-
-const handleAddLink = (link: string) => {
-  console.log('Added link:', link);
-};
-
-const handleClearAll = () => {
-  console.log('Cleared all links');
 };
 
 const eraseAnalysis = async (id: string) => {

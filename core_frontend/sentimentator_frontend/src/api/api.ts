@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8081/api';
 
 export enum Endpoints {
   USERS = '/users',

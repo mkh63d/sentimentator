@@ -37,7 +37,7 @@ export async function login(
   });
 
   if (fetchError) {
-    throw new Error(fetchError.detail ?? 'Failed to register user');
+    throw new Error(fetchError ?? 'Failed to register user');
   }
 
   if (useCookies) {
@@ -78,7 +78,9 @@ export async function register(email: string, password: string) {
     },
   });
 
-  if (fetchError) {
+  if (fetchError?.status === 400) {
+    throw new Error(fetchError.detail ?? 'Failed to register user (Http error)');
+  } else if (fetchError) {
     throw new Error(fetchError.detail ?? 'Failed to register user');
   }
 

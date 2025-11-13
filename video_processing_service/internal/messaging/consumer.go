@@ -93,42 +93,28 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		slog.String("message_id", msg.MessageId),
 		slog.String("correlation_id", msg.CorrelationId))
 
-	// For video processing, we'll handle async and ack early because it can take a long time to process some videos
-	if queueName == QueueVideoProcessing {
-		processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
-		go func() {
-			defer cancel()
-			err := handler(processCtx, msg.Body)
-			if err != nil {
-				slog.Error("Failed to process message asynchronously",
-					slog.String("queue", queueName),
-					slog.String("error", err.Error()))
-				if processCtx.Err() == context.DeadlineExceeded {
-					slog.Error("Message processing timeout exceeded",
-						slog.String("queue", queueName),
-						slog.String("timeout", "15 minutes"))
-				}
-			} else {
-				slog.Debug("Message processed successfully (async)", slog.String("queue", queueName))
+	retryCount := int64(0)
+	if xDeath, ok := msg.Headers["x-death"].([]interface{}); ok && len(xDeath) > 0 {
+		if deathMap, ok := xDeath[0].(amqp.Table); ok {
+			if count, ok := deathMap["count"].(int64); ok {
+				retryCount = count
 			}
-		}()
-
-		// Acknowledge immediately to allow processing next message
-		if err := msg.Ack(false); err != nil {
-			slog.Error("Failed to ack message", slog.String("error", err.Error()))
 		}
-		slog.Debug("Message acknowledged, processing continues in background", slog.String("queue", queueName))
-		return
 	}
 
-	// Synchronous processing for other queues
+	slog.Debug("Message retry info",
+		slog.String("queue", queueName),
+		slog.Int64("retry_count", retryCount))
+
 	processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 	err := handler(processCtx, msg.Body)
+
 	if err != nil {
 		slog.Error("Failed to process message",
 			slog.String("queue", queueName),
-			slog.String("error", err.Error()))
+			slog.String("error", err.Error()),
+			slog.Int64("retry_count", retryCount))
 
 		if processCtx.Err() == context.DeadlineExceeded {
 			slog.Error("Message processing timeout exceeded",
@@ -136,25 +122,25 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 				slog.String("timeout", "15 minutes"))
 		}
 
-		requeue := true
-		if xDeath, ok := msg.Headers["x-death"].([]interface{}); ok && len(xDeath) > 0 {
-			if deathMap, ok := xDeath[0].(amqp.Table); ok {
-				if count, ok := deathMap["count"].(int64); ok && count >= 3 {
-					slog.Warn("Message exceeded retry limit, rejecting permanently",
-						slog.String("queue", queueName),
-						slog.Int64("retry_count", count))
-					requeue = false
-				}
+		if retryCount >= 2 {
+			slog.Warn("Message exceeded retry limit, discarding permanently",
+				slog.String("queue", queueName),
+				slog.Int64("retry_count", retryCount))
+			// Reject without requeue - message is discarded permanently
+			if err := msg.Reject(false); err != nil {
+				slog.Error("Failed to reject message", slog.String("error", err.Error()))
 			}
+			return
 		}
 
-		if err := msg.Nack(false, requeue); err != nil {
+		// Requeue to DLX for retry
+		if err := msg.Nack(false, false); err != nil {
 			slog.Error("Failed to nack message", slog.String("error", err.Error()))
 		}
 		return
 	}
 
-	// Acknowledge the message
+	// Acknowledge the message on success
 	if err := msg.Ack(false); err != nil {
 		slog.Error("Failed to ack message", slog.String("error", err.Error()))
 	}

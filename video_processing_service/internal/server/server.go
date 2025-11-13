@@ -125,7 +125,6 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 		args := map[string]interface{}{
 			"x-dead-letter-exchange":    "sentimentator.dlx",
 			"x-dead-letter-routing-key": queueName + ".failed",
-			"x-message-ttl":             int64(15 * time.Minute / time.Millisecond),
 		}
 		queue, err := rabbitmq.DeclareQueueWithArgs(queueName, args)
 		if err != nil {
@@ -134,17 +133,6 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 		slog.Info("Declared queue with DLX",
 			slog.String("queue", queueName),
 			slog.Int("messages", queue.Messages))
-	}
-
-	for _, queueName := range queues {
-		dlqName := queueName + ".failed"
-		if _, err := rabbitmq.DeclareQueue(dlqName); err != nil {
-			return fmt.Errorf("failed to declare dead letter queue %s: %w", dlqName, err)
-		}
-
-		if err := rabbitmq.BindQueue(dlqName, queueName+".failed", "sentimentator.dlx"); err != nil {
-			return fmt.Errorf("failed to bind dead letter queue %s: %w", dlqName, err)
-		}
 	}
 
 	bindings := map[string]string{

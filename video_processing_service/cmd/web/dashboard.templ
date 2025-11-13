@@ -5,7 +5,7 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
 )
 
-templ VideoListComponent(videos []models.Video, total int) {
+templ VideoListComponent(videos []models.Video, total int, currentPage int, itemsPerPage int) {
 	<div class="space-y-4">
 		<!-- Header -->
 		<div class="flex items-center justify-between">
@@ -41,7 +41,7 @@ templ VideoListComponent(videos []models.Video, total int) {
 				}
 			</div>
 			<!-- Pagination Controls -->
-			@PaginationControls(total)
+			@PaginationControls(total, currentPage, itemsPerPage)
 		}
 	</div>
 }
@@ -302,6 +302,12 @@ templ VideoListError(message string) {
 }
 
 templ PaginationControls(total int, currentPage int, itemsPerPage int) {
+	{{
+		maxPage := (total + itemsPerPage - 1) / itemsPerPage
+		if maxPage < 1 {
+			maxPage = 1
+		}
+	}}
 	<div class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
 		<div class="text-sm text-gray-600">
 			{{
@@ -337,7 +343,7 @@ templ PaginationControls(total int, currentPage int, itemsPerPage int) {
 				</svg>
 			</button>
 			<span class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
-				Page <span id="current-page">1</span>
+				Page <span id="current-page">{ fmt.Sprintf("%d", currentPage) }</span> of { fmt.Sprintf("%d", maxPage) }
 			</span>
 			<button
 				hx-get="/web/videos/list?page=next"

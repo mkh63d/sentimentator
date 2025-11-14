@@ -87,20 +87,20 @@
         </button>
       </div>
 
-      <LoadingOverlay />
+      <LoadingOverlay v-model:visible="isLoading" v-model:message="loadingMessage" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useLoadingStore } from '@/stores/loadingStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import { createAnalysis } from '@/api/analyses';
 
-const loading = useLoadingStore();
+const isLoading = ref(false);
+const loadingMessage = ref('');
 const searchStore = useSearchStore();
 
 const emit = defineEmits(['analyze']);
@@ -187,15 +187,18 @@ const submit = async () => {
   if (!links.value.length) return;
 
   // Mock Loading
-  loading.show('Analyzing links...');
+  loadingMessage.value = 'Creating analyses...';
+  isLoading.value = true;
   try {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
     for (const link of links.value) {
       await createAnalysis(link.value);
     }
   } catch (error) {
     console.error('Error during analysis creation:', error);
   }
-  loading.hide();
+  isLoading.value = false;
+  loadingMessage.value = '';
   searchStore.hide();
   clearAll();
   emit('analyze');

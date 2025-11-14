@@ -1,12 +1,33 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { flushPromises, mount } from '@vue/test-utils';
 import LoginPanel from '@/views/LoginPanel.vue';
+import { createPinia, setActivePinia } from 'pinia';
+import { createRouter, createWebHistory } from 'vue-router';
+
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: () => ({
+    loginUser: vi.fn(() => Promise.resolve()),
+    registerUser: vi.fn(() => Promise.resolve()),
+  }),
+}));
 
 describe('LoginPanel', () => {
   let wrapper;
 
+  const router = createRouter({
+    history: createWebHistory(),
+    routes: [{ path: '/', name: 'list', component: {} }],
+  });
+
+  router.push = vi.fn();
+
   beforeEach(() => {
-    wrapper = mount(LoginPanel);
+    setActivePinia(createPinia());
+    wrapper = mount(LoginPanel, {
+      global: {
+        plugins: [router, createPinia()],
+      },
+    });
   });
 
   it('should_render_properly', () => {
@@ -63,7 +84,7 @@ describe('LoginPanel', () => {
     expect(header).toBe('Login');
 
     // Switch to register mode
-    await wrapper.find('a').trigger('click');
+    await wrapper.get('[data-testid="mode-toggle"]').trigger('click');
 
     expect(wrapper.find('h1').text()).toBe('Register');
   });
@@ -73,15 +94,13 @@ describe('LoginPanel', () => {
     expect(button.text()).toBe('Login');
 
     // Switch to register mode
-    await wrapper.find('a').trigger('click');
+    await wrapper.get('[data-testid="mode-toggle"]').trigger('click');
 
     expect(wrapper.find('button[type="submit"]').text()).toBe('Register');
   });
 
   it('should_toggle_mode_when_toggle_link_is_clicked', async () => {
-    const toggleLink = wrapper
-      .findAll('a')
-      .filter((node) => node.text().includes('Register') || node.text().includes('Login'))[0];
+    const toggleLink = wrapper.get('[data-testid="mode-toggle"]');
     expect(wrapper.vm.isLogin).toBe(true);
 
     await toggleLink.trigger('click');
@@ -91,7 +110,7 @@ describe('LoginPanel', () => {
 
   it('should_display_error_message_when_different_passwords_are_entered_during_registration', async () => {
     // Switch to register mode
-    await wrapper.find('a').trigger('click');
+    await wrapper.get('[data-testid="mode-toggle"]').trigger('click');
 
     await wrapper.find('input[type="email"]').setValue('testuser@example.com');
     await wrapper.find('input[type="password"]').setValue('password1');
@@ -103,12 +122,13 @@ describe('LoginPanel', () => {
 
   it('should_emit_register_event_when_registration_form_is_submitted', async () => {
     // Switch to register mode
-    await wrapper.find('a').trigger('click');
+    await wrapper.get('[data-testid="mode-toggle"]').trigger('click');
 
     await wrapper.find('input[type="email"]').setValue('testuser@example.com');
     await wrapper.find('input[type="password"]').setValue('password1');
     await wrapper.find('input[id="confirmPassword"]').setValue('password1');
     await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
 
     expect(wrapper.emitted()).toHaveProperty('register');
   });

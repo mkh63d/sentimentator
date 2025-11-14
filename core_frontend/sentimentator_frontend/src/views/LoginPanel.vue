@@ -76,6 +76,7 @@
               {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
               <a
                 @click="toggleMode"
+                data-testid="mode-toggle"
                 class="text-accent font-semibold cursor-pointer hover:underline ml-1"
               >
                 {{ isLogin ? 'Register' : 'Login' }}

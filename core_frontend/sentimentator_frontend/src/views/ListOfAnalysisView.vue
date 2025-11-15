@@ -1,6 +1,9 @@
 <template>
   <div class="bg-secondary min-h-screen">
-    <NavbarComponent :isSidebarOpen="isSidebarOpen" @update:isSidebarOpen="isSidebarOpen = $event" />
+    <NavbarComponent
+      :isSidebarOpen="isSidebarOpen"
+      @update:isSidebarOpen="isSidebarOpen = $event"
+    />
     <div class="flex min-h-screen">
       <Sidebar v-model="isSidebarOpen">
         <ul class="space-y-2">
@@ -34,12 +37,22 @@
       <div class="px-8 py-8 max-w-[1400px] mx-auto flex-1">
         <div class="flex justify-between items-center mb-8">
           <h1 class="m-0 text-3xl font-extrabold text-tertiary">Analysis Library</h1>
-          <button
-            @click="createNew"
-            class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
-          >
-            + New Analysis
-          </button>
+          <div class="flex gap-3">
+            <button
+              @click="fetchAnalyses"
+              class="bg-primary text-background border-none px-4 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition flex items-center gap-2"
+              title="Refresh analyses"
+            >
+              <RotateCcw class="w-5 h-5" />
+              Refresh
+            </button>
+            <button
+              @click="createNew"
+              class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
+            >
+              + New Analysis
+            </button>
+          </div>
         </div>
 
         <div class="flex gap-4 mb-8">
@@ -68,7 +81,9 @@
         </div>
 
         <div v-else-if="error" class="text-center py-12">
-          <p>Error fetching library: <br/><code>{{ error }}</code></p>
+          <p>
+            Error fetching library: <br /><code>{{ error }}</code>
+          </p>
           <button
             @click="fetchAnalyses"
             class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
@@ -163,17 +178,14 @@
         </div>
       </div>
     </div>
-    <SearchModal
-      v-model="searchStore.visible"
-      @analyze="fetchAnalyses"
-    />
+    <SearchModal v-model="searchStore.visible" @analyze="fetchAnalyses" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Eye, Trash2 } from 'lucide-vue-next';
+import { Eye, Trash2, RotateCcw } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
@@ -220,13 +232,13 @@ const fetchAnalyses = async () => {
 
     // TODO: Adjust mapping for description, createdAt, status, sentiment based on real response structure
     // Waiting for backend API to provide these fields
-    analyses.value = await response.map(a => ({
+    analyses.value = await response.map((a) => ({
       id: a.id,
       title: a.url,
       description: '',
       createdAt: new Date().toISOString(),
-      status: "completed",
-      sentiment: {  positive: 33, negative: 33, neutral: 34},
+      status: 'completed',
+      sentiment: { positive: 33, negative: 33, neutral: 34 },
     }));
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';

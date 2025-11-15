@@ -35,6 +35,7 @@ func NewServer() (*Server, *http.Server) {
 	portEnv, exists := os.LookupEnv("PORT")
 	if !exists {
 		portEnv = "8080"
+		slog.Warn("PORT not set, using default", slog.String("port", portEnv))
 	}
 	port, err := strconv.Atoi(portEnv)
 	if err != nil {
@@ -54,9 +55,8 @@ func NewServer() (*Server, *http.Server) {
 
 	rabbitmq, err := messaging.NewRabbitMQ(messaging.Config{
 		URL:           rabbitmqURL,
-		MaxRetries:    2,
 		RetryDelay:    5 * time.Second,
-		PrefetchCount: 5,
+		PrefetchCount: 10,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to RabbitMQ: %v", err))
@@ -66,7 +66,6 @@ func NewServer() (*Server, *http.Server) {
 		panic(fmt.Sprintf("failed to setup RabbitMQ topology: %v", err))
 	}
 
-	// Initialize services
 	extractorService := extractor.NewService("")
 	transcriptService := transcript.NewService(extractorService)
 

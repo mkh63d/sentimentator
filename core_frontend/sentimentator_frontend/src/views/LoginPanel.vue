@@ -10,7 +10,7 @@
     </nav>
     <div class="min-h-screen flex items-center justify-center">
       <div class="w-full max-w-md p-5">
-        <div class="bg-background p-10 rounded-xl shadow-lg">
+        <div v-if="mode === 'login'" class="bg-background p-10 rounded-xl shadow-lg">
           <h1 class="text-center mb-8 text-tertiary text-3xl font-bold">
             {{ isLogin ? 'Login' : 'Register' }}
           </h1>
@@ -28,7 +28,7 @@
               />
             </div>
 
-            <div class="mb-5">
+            <div class="mb-2">
               <label for="password" class="block mb-1 text-tertiary font-medium">Password</label>
               <input
                 id="password"
@@ -38,6 +38,18 @@
                 required
                 class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
+            </div>
+
+            <div v-if="isLogin" class="mb-2">
+              <a
+                @click="
+                  () => {
+                    mode = 'forgot';
+                  }
+                "
+                class="text-sm text-accent font-medium hover:underline cursor-pointer"
+                >Forgot Password?</a
+              >
             </div>
 
             <div v-if="!isLogin" class="mb-5">
@@ -64,7 +76,7 @@
 
             <button
               type="submit"
-              class="w-full p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
+              class="w-full cursor-pointer p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
               :disabled="!isFormValid"
             >
               {{ isLogin ? 'Login' : 'Register' }}
@@ -84,6 +96,52 @@
             </p>
           </div>
         </div>
+
+        <div
+          v-else-if="mode === 'forgot'"
+          class="bg-background p-10 rounded-xl shadow-lg flex flex-col items-center"
+        >
+          <h1 class="text-center mb-4 text-tertiary text-3xl font-bold">Forgot Password</h1>
+          <p class="block mb-5 text-center text-tertiary font-medium">
+            Please enter your email address to receive password reset instructions.
+          </p>
+          <div class="mb-5 w-full">
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              placeholder="Enter your email"
+              required
+              class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+            />
+          </div>
+          <div
+            v-if="isForgotSent"
+            class="text-primary mb-4 p-2 bg-primary/10 rounded text-center text-sm"
+          >
+            If an account with that email exists, a password reset link has been sent.
+          </div>
+          <button
+            @click="forgotPassword()"
+            :disabled="!form.email.trim() || isForgotSent"
+            class="w-full cursor-pointer px-2 py-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60 disabled:cursor-default"
+          >
+            Reset Password
+          </button>
+          <div class="text-center mt-6">
+            <a
+              @click="
+                () => {
+                  mode = 'login';
+                  isForgotSent = false;
+                }
+              "
+              class="text-primary font-semibold cursor-pointer hover:underline"
+            >
+              Back to Login
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -95,12 +153,15 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
 import { useAuthStore } from '@/stores/authStore';
+import { forgotPassword as apiForgotPassword } from '@/api/account';
 
 const emit = defineEmits(['login', 'register']);
 const router = useRouter();
 const authStore = useAuthStore();
 
 const isLogin = ref(true);
+const isForgotSent = ref(false);
+const mode = ref<'login' | 'forgot' | '2fa'>('login');
 const form = ref<FormData>({
   email: '',
   password: '',
@@ -158,5 +219,15 @@ async function handleSubmit() {
       error.value = 'An error occurred';
     }
   }
+}
+
+function forgotPassword() {
+  try {
+    apiForgotPassword(form.value.email);
+  } catch (err) {
+    alert('An error occurred while trying to reset the password.');
+    console.error(err);
+  }
+  isForgotSent.value = true;
 }
 </script>

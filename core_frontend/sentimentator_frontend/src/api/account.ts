@@ -145,6 +145,30 @@ export async function resendConfirmationEmail(email: string) {
 }
 
 /**
+ * Sends a password reset email to the user.
+ *
+ * @param email
+ * @returns
+ */
+export async function forgotPassword(email: string) {
+  try {
+    const { error: fetchError } = await api.POST('/account/forgotPassword', {
+      body: {
+        email,
+      },
+    });
+    if (fetchError?.status === 400) {
+      throw new Error(fetchError.title ?? 'Failed to send password reset email (Bad Request)');
+    } else if (fetchError) {
+      throw new Error(fetchError.title ?? 'Failed to send password reset email');
+    }
+  } catch (err) {
+    console.error('Error in forgotPassword API call:', err);
+    throw err;
+  }
+}
+
+/**
  * Resets the user's password.
  *
  * @param email

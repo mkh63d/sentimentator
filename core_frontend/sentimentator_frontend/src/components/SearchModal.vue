@@ -29,19 +29,19 @@
           aria-label="Add link"
         />
         <button
-          class="py-2 px-4 border-0 bg-primary text-background rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+          class="px-4 py-2 transition-colors border-0 rounded-lg cursor-pointer bg-primary text-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
           @click="addLink"
           :disabled="!current"
         >
           Add
         </button>
       </div>
-      <p class="text-red-600 mb-3 text-sm" v-if="!isValidUrl(current) && current">
+      <p class="mb-3 text-sm text-red-600" v-if="!isValidUrl(current) && current">
         Please enter a valid URL.
       </p>
 
       <!-- Validation / hint -->
-      <p class="text-red-600 mb-3 text-sm" v-if="invalidCount > 0">
+      <p class="mb-3 text-sm text-red-600" v-if="invalidCount > 0">
         {{ invalidCount }} invalid link(s) ignored.
       </p>
 
@@ -53,7 +53,7 @@
           :key="link"
         >
           <a
-            class="text-textBase break-all no-underline hover:text-primary/80"
+            class="no-underline break-all text-textBase hover:text-primary/80"
             :href="link"
             target="_blank"
             rel="noopener noreferrer"
@@ -72,14 +72,14 @@
       <!-- Actions -->
       <div class="flex gap-3">
         <button
-          class="py-2 px-5 bg-primary text-background rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+          class="px-5 py-2 transition-colors rounded-lg cursor-pointer bg-primary text-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
           @click="submit"
           :disabled="!links.length"
         >
           Analyse
         </button>
         <button
-          class="py-2 px-5 bg-tertiary/10 text-tertiary rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-tertiary/20 transition-colors"
+          class="px-5 py-2 transition-colors rounded-lg cursor-pointer bg-tertiary/10 text-tertiary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-tertiary/20"
           @click="clearAll"
           :disabled="!links.length"
         >
@@ -192,7 +192,7 @@ const submit = async () => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
     for (const link of links.value) {
-      await createAnalysis(link.value);
+      await createAnalysis(link);
     }
   } catch (error) {
     console.error('Error during analysis creation:', error);

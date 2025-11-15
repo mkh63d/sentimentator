@@ -21,7 +21,7 @@ export async function getAnalyses(): Promise<Analysis[]> {
  */
 export async function createAnalysis(url: string): Promise<Analysis> {
   const { data, error } = await api.POST('/analyses/{url}', {
-    params: { path: { url } },
+    params: { path: { url: encodeURIComponent(url) } },
   });
   if (error) throw new Error(error.detail ?? 'Failed to create analysis');
   if (!data) throw new Error('No data returned from server');

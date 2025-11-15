@@ -1,25 +1,35 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
+// TODO: I habe no idea why those tests don't pass but I will just leave them here for now
+
 describe('ThemeSwitcher.vue', () => {
+  const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+  const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
   beforeEach(() => {
     // Ensure a clean DOM and localStorage for each test
     document.documentElement.removeAttribute('data-theme');
     localStorage.clear();
+    getItemSpy.mockClear();
+    setItemSpy.mockClear();
   });
 
   afterEach(() => {
     document.documentElement.removeAttribute('data-theme');
     localStorage.clear();
+    getItemSpy.mockClear();
+    setItemSpy.mockClear();
   });
 
   it('applies theme from localStorage on mount', async () => {
-    localStorage.setItem('theme', 'dark');
+    getItemSpy.mockReturnValue('dark');
 
     const { default: ThemeSwitcher } = await import('@/components/ThemeSwitcher.vue');
     const wrapper = mount(ThemeSwitcher, { props: { changeOnTheme: true } });
 
+    expect(getItemSpy).toHaveBeenCalledWith('theme');
     // component onMounted calls applyTheme
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
 

@@ -3,7 +3,7 @@
     <NavbarComponent />
 
     <div class="flex min-h-screen">
-      <Sidebar v-model="sidebarStore.visible">
+      <SideBar v-model="sidebarStore.visible">
         <ul class="space-y-2">
           <li>
             <button
@@ -30,7 +30,7 @@
             </button>
           </li>
         </ul>
-      </Sidebar>
+      </SideBar>
       <div class="max-w-7xl mx-auto px-6 py-8">
         <!-- Loading State -->
         <div v-if="loading" class="flex justify-center items-center min-h-screen">
@@ -47,18 +47,18 @@
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
-            <p class="text-textBase">{{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}</p>
+            <p class="text-tertiary/90 text-xl mt-1">{{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}</p>
           </div>
 
           <!-- Overall Sentiment Summary -->
           <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-secondary mb-4">Overall Sentiment</h2>
+            <h2 class="text-2xl font-semibold text-[#bdccdb] mb-4">Overall Sentiment</h2>
             <div
               class="flex flex-col md:flex-row items-center justify-center md:space-x-8 space-y-6 md:space-y-0"
             >
               <div class="text-center">
-                <div class="text-6xl font-bold text-fourth mb-2">{{ dominantSentiment }}</div>
-                <div class="text-lg text-secondary">Dominant Sentiment</div>
+                <div class="text-6xl font-bold text-primary mb-2">{{ dominantSentiment }}</div>
+                <div class="text-lg text-[#bdccdb]">Dominant Sentiment</div>
               </div>
               <div class="w-full md:w-auto">
                 <SentimentChart 
@@ -70,15 +70,15 @@
               <div class="flex md:flex-col space-x-4 md:space-x-0 md:space-y-4">
                 <div class="text-center p-4 bg-green-100 dark:bg-green-900 rounded-lg">
                   <div class="text-2xl font-bold text-green-600 mb-1">{{ analysisData.overallSentiment.positive }}%</div>
-                  <div class="text-sm text-textBase">Positive</div>
+                  <div class="text-sm text-green-600">Positive</div>
                 </div>
                 <div class="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <div class="text-2xl font-bold text-gray-600 mb-1">{{ analysisData.overallSentiment.neutral }}%</div>
-                  <div class="text-sm text-textBase">Neutral</div>
+                  <div class="text-2xl font-bold text-gray-400 mb-1">{{ analysisData.overallSentiment.neutral }}%</div>
+                  <div class="text-sm text-gray-400">Neutral</div>
                 </div>
                 <div class="text-center p-4 bg-red-100 dark:bg-red-900 rounded-lg">
                   <div class="text-2xl font-bold text-red-600 mb-1">{{ analysisData.overallSentiment.negative }}%</div>
-                  <div class="text-sm text-textBase">Negative</div>
+                  <div class="text-sm text-red-600">Negative</div>
                 </div>
               </div>
             </div>
@@ -86,7 +86,7 @@
 
           <!-- Feature-Based Sentiment Analysis -->
           <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-secondary mb-4">Sentiment by Feature</h2>
+            <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Sentiment by Feature</h2>
             <div class="space-y-4">
               <div 
                 v-for="feature in analysisData.features" 
@@ -94,7 +94,7 @@
                 class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
               >
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="text-lg font-semibold text-secondary">{{ feature.icon }} {{ feature.name }}</h3>
+                  <h3 class="text-lg font-semibold text-[#bdccdb]">{{ feature.icon }} {{ feature.name }}</h3>
                   <span
                     :class="getSentimentBadgeClass(feature.sentiment)"
                     class="px-3 py-1 rounded-full text-sm font-semibold"
@@ -128,27 +128,27 @@
           <!-- Feature Summary Statistics -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 class="text-lg font-semibold text-secondary mb-3">Features Detected</h3>
+              <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Features Detected</h3>
               <div class="text-4xl font-bold text-primary mb-2">{{ analysisData.features.length }}</div>
-              <p class="text-sm text-tertiary">Features identified</p>
+              <p class="text-sm text-[#bdccdb]/80">Features identified</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 class="text-lg font-semibold text-secondary mb-3">Sentences Analyzed</h3>
-              <div class="text-4xl font-bold text-secondary mb-2">{{ analysisData.statistics.sentencesAnalyzed }}</div>
-              <p class="text-sm text-tertiary">Total sentences processed</p>
+              <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Sentences Analyzed</h3>
+              <div class="text-4xl font-bold text-[#bdccdb] mb-2">{{ analysisData.statistics.sentencesAnalyzed }}</div>
+              <p class="text-sm text-[#bdccdb]/80">Total sentences processed</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 class="text-lg font-semibold text-secondary mb-3">Confidence</h3>
+              <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Confidence</h3>
               <div class="text-4xl font-bold text-primary mb-2">{{ analysisData.statistics.confidence }}%</div>
-              <p class="text-sm text-tertiary">Average model confidence</p>
+              <p class="text-sm text-[#bdccdb]/80">Average model confidence</p>
             </div>
           </div>
 
           <!-- Extracted Keywords -->
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-tertiary mb-4">Extracted Keywords</h2>
+            <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Extracted Keywords</h2>
             <div class="flex flex-wrap gap-2">
               <span 
                 v-for="keyword in analysisData.keywords" 
@@ -164,7 +164,7 @@
           <div class="flex justify-center space-x-4">
             <button
               @click="() => router.push('/list')"
-              class="px-6 py-3 bg-tertiary text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="px-6 py-3 bg-tertiary text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Back to List
             </button>
@@ -176,7 +176,7 @@
             </button>
             <button
               @click="searchStore.show()"
-              class="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="px-6 py-3 bg-accent text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Analyze New Video
             </button>

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import ThemeSwitcher from '../ThemeSwitcher.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
 describe('ThemeSwitcher.vue', () => {
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('ThemeSwitcher.vue', () => {
   it('applies theme from localStorage on mount', async () => {
     localStorage.setItem('theme', 'dark');
 
-    const { default: ThemeSwitcher } = await import('../ThemeSwitcher.vue');
+    const { default: ThemeSwitcher } = await import('@/components/ThemeSwitcher.vue');
     const wrapper = mount(ThemeSwitcher, { props: { changeOnTheme: true } });
 
     // component onMounted calls applyTheme

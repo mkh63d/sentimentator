@@ -30,7 +30,7 @@ describe('SearchModal.vue', () => {
     createAnalysisMock.mockClear();
     // import component lazily to ensure mocks are applied
     // use dynamic ESM import instead of require so TypeScript/ESM environments work
-    SearchModal = (await import('../SearchModal.vue')).default;
+    SearchModal = (await import('@/components/SearchModal.vue')).default;
   });
 
   afterEach(() => {

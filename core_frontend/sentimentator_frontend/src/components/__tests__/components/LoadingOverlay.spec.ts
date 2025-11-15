@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
-import LoadingOverlay from '../LoadingOverlay.vue';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
 describe('LoadingOverlay.vue', () => {
   it('renders when `visible` is true and shows the message', () => {

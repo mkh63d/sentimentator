@@ -1,6 +1,6 @@
 import { setActivePinia, createPinia } from 'pinia';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useSearchStore } from '../../../stores/searchStore';
+import { useSearchStore } from '@/stores/searchStore';
 
 describe('searchStore (component tests)', () => {
   beforeEach(() => {

@@ -32,6 +32,8 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'SideBar' });
+
 import { X } from 'lucide-vue-next';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';

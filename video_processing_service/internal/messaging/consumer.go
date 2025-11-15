@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/database"
@@ -23,9 +26,21 @@ type Consumer struct {
 	extractorService  extractor.Service
 	transcriptService *transcript.Service
 	producer          *Producer
+	workerPool        chan struct{} // Semaphore Pattern https://blog.stackademic.com/how-to-implement-a-semaphore-concurrency-pattern-in-golang-3a51e5e517a8
 }
 
 func NewConsumer(rabbitmq *RabbitMQ, db database.Service, transcriptService *transcript.Service, extractorService extractor.Service, producer *Producer) *Consumer {
+	maxConcurrentWorkersEnv, exists := os.LookupEnv("MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS")
+	if !exists {
+		maxConcurrentWorkersEnv = "5"
+		slog.Warn("MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS not set, using default", slog.String("max_workers", maxConcurrentWorkersEnv))
+	}
+	maxConcurrentWorkers, err := strconv.Atoi(maxConcurrentWorkersEnv)
+	if err != nil || maxConcurrentWorkers <= 0 {
+		maxConcurrentWorkers = 5
+		slog.Warn("Invalid MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS value, using default", slog.Int("max_workers", maxConcurrentWorkers))
+	}
+
 	return &Consumer{
 		rabbitmq:          rabbitmq,
 		handlers:          make(map[string]MessageHandler),
@@ -33,6 +48,7 @@ func NewConsumer(rabbitmq *RabbitMQ, db database.Service, transcriptService *tra
 		extractorService:  extractorService,
 		transcriptService: transcriptService,
 		producer:          producer,
+		workerPool:        make(chan struct{}, maxConcurrentWorkers),
 	}
 }
 
@@ -106,6 +122,68 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		slog.String("queue", queueName),
 		slog.Int64("retry_count", retryCount))
 
+	// async processing with worker pool
+	if queueName == QueueVideoProcessing {
+		select {
+		case c.workerPool <- struct{}{}:
+			// this is for getting a worker slot for processing the message
+		case <-ctx.Done():
+			slog.Warn("Context cancelled while waiting for worker slot, requeuing message",
+				slog.String("queue", queueName))
+			if err := msg.Nack(false, true); err != nil {
+				slog.Error("Failed to nack message", slog.String("error", err.Error()))
+			}
+			return
+		}
+
+		// Acknowledge immediately to allow processing next message
+		if err := msg.Ack(false); err != nil {
+			slog.Error("Failed to ack message", slog.String("error", err.Error()))
+			<-c.workerPool
+			return
+		}
+
+		go func() {
+			defer func() { <-c.workerPool }()
+
+			processCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+			defer cancel()
+
+			err := handler(processCtx, msg.Body)
+			if err != nil {
+				slog.Error("Failed to process message asynchronously",
+					slog.String("queue", queueName),
+					slog.String("error", err.Error()),
+					slog.Int64("retry_count", retryCount))
+
+				if processCtx.Err() == context.DeadlineExceeded {
+					slog.Error("Message processing timeout exceeded",
+						slog.String("queue", queueName),
+						slog.String("timeout", "15 minutes"))
+				}
+
+				if retryCount < 2 {
+					slog.Info("Re-publishing message for retry",
+						slog.String("queue", queueName),
+						slog.Int64("retry_count", retryCount))
+
+					if err := c.republishForRetry(context.Background(), msg, queueName, retryCount+1); err != nil {
+						slog.Error("Failed to republish message for retry",
+							slog.String("error", err.Error()))
+					}
+				} else {
+					slog.Warn("Message exceeded retry limit, discarding permanently",
+						slog.String("queue", queueName),
+						slog.Int64("retry_count", retryCount))
+				}
+			} else {
+				slog.Debug("Message processed successfully (async)", slog.String("queue", queueName))
+			}
+		}()
+		return
+	}
+
+	// sync processing for other queues
 	processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 	err := handler(processCtx, msg.Body)
@@ -146,6 +224,42 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 	}
 
 	slog.Debug("Message processed successfully", slog.String("queue", queueName))
+}
+
+// republishForRetry publishes a failed message back to the queue with retry metadata
+func (c *Consumer) republishForRetry(ctx context.Context, originalMsg amqp.Delivery, queueName string, retryCount int64) error {
+	headers := make(map[string]any)
+	if originalMsg.Headers != nil {
+		maps.Copy(headers, originalMsg.Headers)
+	}
+
+	xDeath := []any{
+		amqp.Table{
+			"count":    retryCount,
+			"reason":   "rejected",
+			"queue":    queueName,
+			"time":     time.Now(),
+			"exchange": "",
+		},
+	}
+	headers["x-death"] = xDeath
+
+	return c.rabbitmq.channel.PublishWithContext(
+		ctx,
+		"",
+		queueName,
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode:  amqp.Persistent,
+			ContentType:   originalMsg.ContentType,
+			Body:          originalMsg.Body,
+			Timestamp:     time.Now(),
+			MessageId:     originalMsg.MessageId,
+			CorrelationId: originalMsg.CorrelationId,
+			Headers:       headers,
+		},
+	)
 }
 
 func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte) error {

@@ -135,7 +135,7 @@ async function handleSubmit() {
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
-        await authStore.loginUser(form.value.email, form.value.password);
+        await authStore.loginUser(form.value.email, form.value.password, false, false);
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
       }

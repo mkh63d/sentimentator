@@ -1,56 +1,63 @@
 <template>
   <div class="min-h-screen bg-background">
+    <nav class="px-4 py-5 fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-xs">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="text-2xl font-bold text-background">Sentimentator</div>
+        <ul class="hidden md:flex gap-8">
+          <li class="order-2 md:order-1">
+            <router-link
+              :to="{ hash: '#features' }"
+              class="text-background font-medium hover:text-indigo-100 transition"
+              >Features</router-link
+            >
+          </li>
+          <li class="order-2 md:order-2">
+            <router-link
+              :to="{ hash: '#methods' }"
+              class="text-background font-medium hover:text-indigo-100 transition"
+              >Methods</router-link
+            >
+          </li>
+          <li class="order-2 md:order-3">
+            <router-link
+              :to="{ hash: '#about' }"
+              class="text-background font-medium hover:text-indigo-100 transition"
+              >About</router-link
+            >
+          </li>
+          <li class="order-2 md:order-4">
+            <router-link
+              :to="{ hash: '#team' }"
+              class="text-background font-medium hover:text-indigo-100 transition"
+              >Team</router-link
+            >
+          </li>
+        </ul>
+        <ul class="hidden md:flex gap-8">
+          <li>
+            <button
+              class="px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
+              @click="hasTokens ? goToDashboard() : goToLogin()"
+            >
+              Try for Free
+            </button>
+          </li>
+          <li>
+            <button
+              class="px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
+              @click="goToLogin"
+            >
+              Login
+            </button>
+          </li>
+          <li>
+            <ThemeSwitcher class="mx-5 ml-0" />
+          </li>
+        </ul>
+      </div>
+    </nav>
     <!-- Hero Section -->
-    <section class="bg-linear-to-br from-primary via-secondary to-fourth">
-      <nav class="px-4 py-5">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-          <div class="text-2xl font-bold text-background">Sentimentator</div>
-          <ul class="hidden md:flex gap-8">
-            <li>
-              <a href="#features" class="text-background font-medium hover:text-indigo-100 transition"
-                >Features</a
-              >
-            </li>
-            <li>
-              <a href="#methods" class="text-background font-medium hover:text-indigo-100 transition"
-                >Methods</a
-              >
-            </li>
-            <li>
-              <a href="#about" class="text-background font-medium hover:text-indigo-100 transition"
-                >About</a
-              >
-            </li>
-            <li>
-              <a href="#team" class="text-background font-medium hover:text-indigo-100 transition"
-                >Team</a
-              >
-            </li>
-          </ul>
-          <ul class="hidden md:flex gap-8">
-            <li>
-              <button
-                class="px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
-                @click="goToLogin"
-              >
-                Try for Free
-              </button>
-            </li>
-            <li>
-              <button
-                class="px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
-                @click="goToLogin"
-              >
-                Login
-              </button>
-            </li>
-            <li>
-              <ThemeSwitcher class="mx-5 ml-0" />
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+    <section class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth -mt-14 pt-14">
       <div class="max-w-7xl mx-auto px-4 py-20 md:py-32 text-center text-background">
         <h1 class="text-5xl md:text-6xl font-extrabold mb-5">Analyze Video Reviews in Seconds</h1>
         <p class="text-xl mb-10 opacity-90">
@@ -59,7 +66,7 @@
         <div class="flex flex-col sm:flex-row gap-5 justify-center">
           <button
             class="px-8 py-4 bg-background text-primary rounded-lg text-lg font-semibold hover:bg-secondary transition"
-            @click="goToLogin"
+            @click="hasTokens ? goToDashboard() : goToLogin()"
           >
             Start Now!
           </button>
@@ -320,13 +327,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
 
 const scrollContainer = ref(null);
+
+const authStore = useAuthStore();
 
 const doAutoScroll = ref(true);
 const scrollAmount = 200;
@@ -353,11 +363,17 @@ onMounted(() => {
   }, 40); // smaller = faster (try 10–50)
 });
 
+const hasTokens = computed(() => !!authStore.accessToken);
+
 onBeforeUnmount(() => {
   clearInterval(autoScroll);
 });
 
 const goToLogin = () => {
   router.push({ name: 'login' });
+};
+
+const goToDashboard = () => {
+  router.push({ name: 'list' });
 };
 </script>

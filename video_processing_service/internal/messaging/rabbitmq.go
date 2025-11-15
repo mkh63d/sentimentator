@@ -17,8 +17,10 @@ type RabbitMQ struct {
 }
 
 type Config struct {
-	URL           string
-	MaxRetries    int
+	URL string
+	// indicates how many times to retry connecting before giving up
+	MaxRetries int
+	// delay between retries when connecting to RabbitMQ
 	RetryDelay    time.Duration
 	PrefetchCount int
 	PrefetchSize  int

@@ -197,7 +197,7 @@ func (ytp *YouTubePlatform) GetCaptions(ctx context.Context, videoID, lang strin
 }
 
 func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*AudioResult, error) {
-	outputPath := filepath.Join(ytp.tempDir, fmt.Sprintf("temp_audio_%d.mp3", os.Getpid()))
+	outputPath := filepath.Join(ytp.tempDir, fmt.Sprintf("temp_audio_%s.mp3", videoID))
 	videoURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 
 	args := []string{

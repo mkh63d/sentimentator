@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type YouTubePlatform struct {
@@ -197,7 +198,8 @@ func (ytp *YouTubePlatform) GetCaptions(ctx context.Context, videoID, lang strin
 }
 
 func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*AudioResult, error) {
-	outputPath := filepath.Join(ytp.tempDir, fmt.Sprintf("temp_audio_%s.mp3", videoID))
+	outputPath := filepath.Join(ytp.tempDir, fmt.Sprintf("temp_youtube_audio_%s_%d.mp3", videoID, time.Now().UnixNano()))
+
 	videoURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 
 	args := []string{

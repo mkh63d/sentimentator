@@ -17,8 +17,10 @@ type RabbitMQ struct {
 }
 
 type Config struct {
-	URL           string
-	MaxRetries    int
+	URL string
+	// indicates how many times to retry connecting before giving up
+	MaxRetries int
+	// delay between retries when connecting to RabbitMQ
 	RetryDelay    time.Duration
 	PrefetchCount int
 	PrefetchSize  int
@@ -92,6 +94,17 @@ func (r *RabbitMQ) DeclareQueue(name string) (amqp.Queue, error) {
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
+	)
+}
+
+func (r *RabbitMQ) DeclareQueueWithArgs(name string, args map[string]interface{}) (amqp.Queue, error) {
+	return r.channel.QueueDeclare(
+		name,  // name
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		args,  // arguments
 	)
 }
 

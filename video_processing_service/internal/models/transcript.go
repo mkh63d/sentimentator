@@ -31,18 +31,25 @@ const (
 )
 
 type Transcript struct {
-	ID          uint             `gorm:"primaryKey" json:"id"`
-	VideoID     uint             `gorm:"not null;index:idx_transcripts_video_id" json:"video_id"`
-	Language    string           `gorm:"size:10;default:'en'" json:"language"`
-	Method      TranscriptMethod `gorm:"type:varchar(50);not null" json:"method"`
-	Status      TranscriptStatus `gorm:"type:varchar(50);default:'pending';index:idx_transcripts_status" json:"status"`
-	Text        string           `gorm:"type:text" json:"text,omitempty"`
-	Segments    SegmentArray     `gorm:"type:jsonb" json:"segments,omitempty"`
-	Error       string           `gorm:"type:text" json:"error,omitempty"`
-	CreatedAt   time.Time        `json:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at"`
-	CompletedAt *time.Time       `json:"completed_at,omitempty"`
-	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"-"`
+	ID       uint             `gorm:"primaryKey" json:"id"`
+	VideoID  uint             `gorm:"not null;index:idx_transcripts_video_id" json:"video_id"`
+	Language string           `gorm:"size:15;default:'undefined'" json:"language"`
+	Method   TranscriptMethod `gorm:"type:varchar(50);not null" json:"method"`
+	Status   TranscriptStatus `gorm:"type:varchar(50);default:'pending';index:idx_transcripts_status" json:"status"`
+	Text     string           `gorm:"type:text" json:"text,omitempty"`
+	Segments SegmentArray     `gorm:"type:jsonb" json:"segments,omitempty"`
+	Error    string           `gorm:"type:text" json:"error,omitempty"`
+
+	// TODO: look into opentelemetry for tracing such metrics
+	AudioExtractionDuration *int64 `json:"audio_extraction_duration,omitempty"`
+	TranscriptionDuration   *int64 `json:"transcription_duration,omitempty"`
+	TotalProcessingDuration *int64 `json:"total_processing_duration,omitempty"`
+	AudioFileSizeBytes      *int64 `json:"audio_file_size_bytes,omitempty"`
+
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	CompletedAt *time.Time     `json:"completed_at,omitempty"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (Transcript) TableName() string {

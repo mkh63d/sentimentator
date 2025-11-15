@@ -146,7 +146,7 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		go func() {
 			defer func() { <-c.workerPool }()
 
-			processCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+			processCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 			defer cancel()
 
 			err := handler(processCtx, msg.Body)

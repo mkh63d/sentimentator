@@ -15,8 +15,18 @@ public class ResendSender(ILogger<ResendSender> logger) : IEmailSender
             logger.LogError("Resend API key not found in environment variable {EnvVar}", resendApiKeyEnvVar);
             return;
         }
+
+        IResend resend;
+        try
+        {
+            resend = ResendClient.Create(resendApiKey);
+        }
+        catch
+        {
+            logger.LogError("Resend API key is invalid");
+            return;
+        }
         
-        var resend = ResendClient.Create(resendApiKey);
         var resp = await resend.EmailSendAsync( new EmailMessage()
         {
             From = "sentimentator@bdymek.com",

@@ -64,6 +64,6 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
         using var scope = _serviceScopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<AnalysisService>();
 
-        await service.Update(data.VideoId, data.Transcript, JsonSerializer.Serialize(data.Data));
+        await service.Update(data.AnalysisId, data.Transcript, JsonSerializer.Serialize(data.Sentiment));
     }
 }

@@ -37,6 +37,7 @@ services:
     environment:
       ORCHESTRATOR_POSTGRES_CONN_STRING: 'Server=postgres;Port=5432;Database=orchestrator;User Id=postgres;Password=postgres;'
       ORCHESTRATOR_RABBITMQ_URI: 'amqp://guest:guest@rabbitmq:5672/'
+      ORCHESTRATOR_RESEND_API_KEY: ''
     depends_on:
       rabbitmq:
         condition: service_healthy

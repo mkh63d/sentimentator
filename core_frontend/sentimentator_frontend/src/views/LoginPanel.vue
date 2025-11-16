@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-linear-to-bl from-primary via-secondary to-fourth">
-    <nav class="px-2 py-5">
+  <div class="bg-linear-to-bl from-primary via-secondary to-fourth overflow-visible min-h-screen">
+    <nav class="px-2 pt-5 pb-0">
       <div class="max-w-full w-full mx-auto flex justify-between items-center">
         <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
           Sentimentator
@@ -8,10 +8,10 @@
         <ThemeSwitcher class="mx-5" />
       </div>
     </nav>
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="w-full max-w-md p-5">
-        <div v-if="mode === 'login'" class="bg-background p-10 rounded-xl shadow-lg">
-          <h1 class="text-center mb-8 text-tertiary text-3xl font-bold">
+    <div class="flex items-center justify-center">
+      <div class="w-full max-w-md px-5 pt-7">
+        <div v-if="mode === 'login'" class="bg-background p-9 rounded-xl shadow-lg">
+          <h1 class="text-center mb-5 text-tertiary text-3xl font-bold">
             {{ isLogin ? 'Login' : 'Register' }}
           </h1>
 

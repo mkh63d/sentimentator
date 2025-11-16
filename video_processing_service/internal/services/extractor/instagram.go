@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type InstagramPlatform struct {
@@ -129,7 +130,7 @@ func (ip *InstagramPlatform) GetCaptions(ctx context.Context, videoID, lang stri
 }
 
 func (ip *InstagramPlatform) ExtractAudio(ctx context.Context, videoID string) (*AudioResult, error) {
-	outputPath := filepath.Join(ip.tempDir, fmt.Sprintf("temp_instagram_audio_%d.mp3", os.Getpid()))
+	outputPath := filepath.Join(ip.tempDir, fmt.Sprintf("temp_instagram_audio_%s_%d.mp3", videoID, time.Now().UnixNano()))
 	videoURL := fmt.Sprintf("https://www.instagram.com/reels/%s", videoID)
 
 	args := []string{

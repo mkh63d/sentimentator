@@ -3,6 +3,7 @@ package transcript
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/services/extractor"
@@ -26,7 +27,8 @@ func (c *CaptionStrategy) GetTranscript(
 	ctx context.Context,
 	videoURL, platformName, videoID, lang string,
 ) (*Result, error) {
-	// Use extractor service to retrieve captions directly
+	startTime := time.Now()
+
 	segments, err := c.extractor.GetCaptions(ctx, videoURL, lang)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not provide captions") {
@@ -51,10 +53,17 @@ func (c *CaptionStrategy) GetTranscript(
 		mSegments[i] = models.Segment{Start: seg.Start, End: seg.End, Text: seg.Text}
 	}
 
+	captionRetrievalDuration := time.Since(startTime).Seconds()
+
 	return &Result{
-		Text:     strings.TrimSpace(textBuilder.String()),
-		Segments: mSegments,
-		Method:   models.TranscriptMethod(c.Name()),
+		Text:                    strings.TrimSpace(textBuilder.String()),
+		Segments:                mSegments,
+		Method:                  models.TranscriptMethod(c.Name()),
+		DetectedLanguage:        lang,
+		AudioExtractionDuration: -1,
+		TranscriptionDuration:   int64(captionRetrievalDuration),
+		TotalProcessingDuration: int64(captionRetrievalDuration),
+		AudioFileSizeBytes:      -1,
 	}, nil
 
 }

@@ -31,16 +31,18 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
         _connection.DisposeAsync().AsTask().Wait();
     }
 
-    public async Task Receive(string queue)
+    public async Task Receive(string queue, string routingKey)
     {
-        await _channel.QueueDeclareAsync(queue, false, false, false);
-
+        await _channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+        await _channel.QueueDeclareAsync(queue, durable: true, autoDelete: false);
+        await _channel.QueueBindAsync(queue, ExchangeName, routingKey);
+        
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.ReceivedAsync += async (model, ea) =>
+        consumer.ReceivedAsync += async (_, ea) =>
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            _logger.LogInformation("Received message from queue {Queue} at {Time} with message \"{Message}\"", queue,
+            _logger.LogInformation("Received message from queue {Queue} with routing key {RoutingKey} at {Time} with message \"{Message}\"", queue, routingKey,
                 DateTime.UtcNow.ToLongTimeString(), message);
 
             await HandleMessage(message);

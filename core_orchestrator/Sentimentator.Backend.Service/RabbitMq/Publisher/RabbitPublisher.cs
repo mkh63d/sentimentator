@@ -11,7 +11,7 @@ public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
         await using var connection = await Factory.CreateConnectionAsync();
         await using var channel = await connection.CreateChannelAsync();
 
-        await channel.ExchangeDeclareAsync(ExchangeName, "topic", durable: true, autoDelete: false);
+        await channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
 
         var body = Encoding.UTF8.GetBytes(message);
 

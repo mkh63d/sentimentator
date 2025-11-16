@@ -6,6 +6,6 @@ public class HostedRabbitConsumer(IRabbitConsumer rabbitConsumer) : BackgroundSe
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await rabbitConsumer.Receive("video.analysis.complete");
+        await rabbitConsumer.Receive("video.analysis.completed");
     }
 }

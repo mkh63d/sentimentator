@@ -4,6 +4,8 @@ namespace Sentimentator.Backend.Service.RabbitMq;
 
 public class RabbitBase
 {
+    internal const string ExchangeName = "sentimentator.topic";
+    
     private const string RabbitMqUriEnvVar = "ORCHESTRATOR_RABBITMQ_URI";
     private const string RabbitMqDefaultUri = "amqp://guest:guest@localhost:5672/";
 

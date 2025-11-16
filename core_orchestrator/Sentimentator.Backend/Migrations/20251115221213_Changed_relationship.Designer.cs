@@ -12,7 +12,7 @@ using Sentimentator.Backend;
 namespace Sentimentator.Backend.Migrations
 {
     [DbContext(typeof(SentimentatorContext))]
-    [Migration("20251028211511_Changed_relationship")]
+    [Migration("20251115221213_Changed_relationship")]
     partial class Changed_relationship
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Sentimentator.Backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);

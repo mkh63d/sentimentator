@@ -16,7 +16,10 @@
             ></path>
           </svg>
         </div>
-        <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
+        <div
+          class="cursor-pointer px-5 text-2xl font-bold text-background"
+          @click="() => router.push('/home')"
+        >
           Sentimentator
         </div>
       </div>

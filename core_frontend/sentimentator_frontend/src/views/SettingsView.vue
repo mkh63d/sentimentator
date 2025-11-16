@@ -7,7 +7,7 @@
           <li>
             <button
               @click="router.push('/home')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Home
             </button>
@@ -15,7 +15,7 @@
           <li>
             <button
               @click="router.push('/list')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
             </button>
@@ -23,7 +23,7 @@
           <li class="self-bottom">
             <button
               @click="router.push('/settings')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Settings
             </button>
@@ -50,7 +50,7 @@
                 />
                 <button
                   :disabled="!email"
-                  class="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition disabled:opacity-50 disabled:cursor-default"
+                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition disabled:opacity-50"
                 >
                   Update Email
                 </button>
@@ -70,7 +70,7 @@
                   placeholder="Enter new password"
                 />
                 <button
-                  class="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-default transition"
+                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-default transition"
                   :disabled="!currentPassword || !newPassword || currentPassword === newPassword"
                 >
                   Update Password
@@ -84,7 +84,9 @@
             <div class="space-y-4">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-700">Enable Notifications</span>
-                <button class="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
+                <button
+                  class="cursor-pointer bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full"
+                >
                   <span
                     class="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition"
                   ></span>

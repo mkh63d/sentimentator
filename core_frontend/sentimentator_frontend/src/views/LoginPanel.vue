@@ -2,7 +2,10 @@
   <div class="bg-linear-to-bl from-primary via-secondary to-fourth overflow-visible min-h-screen">
     <nav class="px-2 pt-5 pb-0">
       <div class="max-w-full w-full mx-auto flex justify-between items-center">
-        <div class="px-5 text-2xl font-bold text-background" @click="() => router.push('/home')">
+        <div
+          class="px-5 text-2xl cursor-pointer font-bold text-background"
+          @click="() => router.push('/home')"
+        >
           Sentimentator
         </div>
         <ThemeSwitcher class="mx-5" />

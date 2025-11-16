@@ -8,7 +8,7 @@
           <li>
             <button
               @click="router.push('/home')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Home
             </button>
@@ -16,7 +16,7 @@
           <li>
             <button
               @click="router.push('/list')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
             </button>
@@ -24,7 +24,7 @@
           <li class="self-bottom">
             <button
               @click="router.push('/settings')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Settings
             </button>
@@ -47,9 +47,9 @@
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
-            <p class="text-tertiary/90 text-xl mt-1">
+            <a :href="analysisData.title" class="text-tertiary/90 hover:font-semibold text-xl mt-1">
               {{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}
-            </p>
+            </a>
           </div>
 
           <!-- Overall Sentiment Summary -->
@@ -82,7 +82,7 @@
                   </div>
                   <div class="text-sm text-gray-400">Neutral</div>
                 </div>
-                <div class="text-center p-4 bg-red-100 dark:bg-red-900 rounded-lg">
+                <div class="text-center p-4 bg-red-100 dark:bg-red-950 rounded-lg">
                   <div class="text-2xl font-bold text-red-600 mb-1">
                     {{ analysisData.overallSentiment.negative }}%
                   </div>
@@ -124,7 +124,7 @@
                     :style="{ width: `${feature.negative}%` }"
                   ></div>
                 </div>
-                <div class="flex justify-between text-sm text-tertiary">
+                <div class="flex justify-between text-sm text-[#bdccdb] opacity-85">
                   <span>Positive: {{ feature.positive }}%</span>
                   <span>Neutral: {{ feature.neutral }}%</span>
                   <span>Negative: {{ feature.negative }}%</span>
@@ -178,19 +178,19 @@
           <div class="flex justify-center space-x-4">
             <button
               @click="() => router.push('/list')"
-              class="px-6 py-3 bg-tertiary text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="cursor-pointer px-6 py-3 bg-tertiary text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Back to List
             </button>
             <button
               @click="exportResults"
-              class="px-6 py-3 bg-fourth text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="cursor-pointer px-6 py-3 bg-fourth text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Export Results
             </button>
             <button
               @click="searchStore.show()"
-              class="px-6 py-3 bg-accent text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="cursor-pointer px-6 py-3 bg-accent text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
             >
               Analyze New Video
             </button>

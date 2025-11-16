@@ -2,7 +2,12 @@
   <div class="min-h-screen bg-background">
     <nav class="px-4 py-5 fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-xs">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div class="text-2xl font-bold text-background">Sentimentator</div>
+        <div
+          class="text-2xl font-bold cursor-pointer text-background"
+          @click="() => router.push('/home')"
+        >
+          Sentimentator
+        </div>
         <ul class="hidden md:flex gap-8">
           <li class="order-2 md:order-1">
             <router-link
@@ -36,7 +41,7 @@
         <ul class="hidden md:flex gap-8">
           <li>
             <button
-              class="px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
+              class="cursor-pointer px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
               @click="hasTokens ? goToDashboard() : goToLogin()"
             >
               Try for Free
@@ -44,7 +49,7 @@
           </li>
           <li>
             <button
-              class="px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
+              class="cursor-pointer px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
               @click="goToLogin"
             >
               Login
@@ -65,13 +70,13 @@
         </p>
         <div class="flex flex-col sm:flex-row gap-5 justify-center">
           <button
-            class="px-8 py-4 bg-background text-primary rounded-lg text-lg font-semibold hover:bg-secondary transition"
+            class="cursor-pointer px-8 py-4 bg-background text-primary rounded-lg text-lg font-semibold hover:bg-secondary transition"
             @click="hasTokens ? goToDashboard() : goToLogin()"
           >
             Start Now!
           </button>
           <button
-            class="px-8 py-4 bg-transparent text-background border-2 border-background rounded-lg text-lg font-semibold hover:bg-background hover:text-primary transition"
+            class="cursor-pointer px-8 py-4 bg-transparent text-background border-2 border-background rounded-lg text-lg font-semibold hover:bg-background hover:text-primary transition"
             @click="goToLogin"
           >
             Sign In

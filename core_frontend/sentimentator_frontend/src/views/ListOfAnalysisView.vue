@@ -10,7 +10,7 @@
           <li>
             <button
               @click="router.push('/home')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Home
             </button>
@@ -18,7 +18,7 @@
           <li>
             <button
               @click="router.push('/list')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
             </button>
@@ -26,7 +26,7 @@
           <li class="self-bottom">
             <button
               @click="router.push('/settings')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Settings
             </button>
@@ -191,7 +191,7 @@ import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
-import { createAnalysis, getAnalyses, deleteAnalysis } from '@/api/analyses';
+import { getAnalyses, deleteAnalysis } from '@/api/analyses';
 
 interface Sentiment {
   positive: number;

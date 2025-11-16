@@ -5,7 +5,7 @@
   >
     <div v-if="sidebarStore.visible" class="relative h-full">
       <button
-        class="absolute mt-1 mr-3 scale-200 top-2 right-2 text-background hover:text-secondary transition"
+        class="cursor-pointer absolute mt-1 mr-3 scale-200 top-2 right-2 text-background hover:text-secondary transition"
         @click="sidebarStore.hide()"
       >
         <X size="16" />
@@ -15,7 +15,7 @@
       </div>
       <div>
         <button
-          class="w-full mt-4 py-2 px-4 bg-secondary text-tertiary font-bold rounded hover:bg-secondary/80 transition"
+          class="cursor-pointer w-full mt-4 py-2 px-4 bg-secondary text-tertiary font-bold rounded hover:bg-secondary/80 transition"
           @click="
             () => {
               authStore.logoutUser();

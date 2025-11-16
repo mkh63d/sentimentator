@@ -17,10 +17,15 @@ vi.mock('@/api/account', () => ({
 
 const getTokensMock = vi.fn();
 const setTokensMock = vi.fn();
-vi.mock('@/lib/client', () => ({
+vi.mock('@/lib/tokenStorage', () => ({
   getTokens: () => getTokensMock(),
   setTokens: (...args: unknown[]) =>
     (setTokensMock as unknown as (...a: unknown[]) => unknown)(...args),
+  clearTokens: () => {
+    // mimic real tokenStorage.clearTokens behavior for tests
+    globalThis.localStorage.removeItem('accessToken');
+    globalThis.localStorage.removeItem('refreshToken');
+  },
 }));
 
 describe('authStore', () => {

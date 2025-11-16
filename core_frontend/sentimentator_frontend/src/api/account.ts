@@ -1,4 +1,5 @@
-import { api, setTokens, clearTokens } from '@/lib/client';
+import { api } from '@/lib/client';
+import { setTokens, clearTokens } from '@/lib/tokenStorage';
 
 export interface InfoRequest {
   newEmail?: string | null;
@@ -85,15 +86,11 @@ export async function register(email: string, password: string) {
  * @returns The new access token
  */
 export async function refreshAccount(refreshToken: string) {
-  const { data: accessTokenResponse, error: fetchError } = await api.POST('/account/refresh', {
+  const { data: accessTokenResponse } = await api.POST('/account/refresh', {
     body: {
       refreshToken,
     },
   });
-
-  if (fetchError) {
-    throw new Error(fetchError ?? 'Failed to refresh access token');
-  }
 
   return accessTokenResponse;
 }

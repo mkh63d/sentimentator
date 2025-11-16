@@ -1,35 +1,83 @@
-import createClient from 'openapi-fetch';
+import createClient, { type Middleware } from 'openapi-fetch';
 import type { paths } from '@generated/schema';
+import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
 
 const BASE_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8081/api';
-let accessToken: string | null = localStorage.getItem('accessToken');
-let refreshToken: string | null = localStorage.getItem('refreshToken');
+
+// Single-flight refresh lock
+let refreshing: Promise<boolean> | null = null;
+
+async function doRefresh(refreshToken: string): Promise<boolean> {
+  if (!refreshToken) return false;
+  if (refreshing) return refreshing;
+
+  refreshing = (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/account/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!res.ok) {
+        clearTokens();
+        return false;
+      }
+
+      const data = await res.json();
+      if (!data?.accessToken || !data?.refreshToken) {
+        clearTokens();
+        return false;
+      }
+
+      setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return true;
+    } catch {
+      clearTokens();
+      return false;
+    } finally {
+      refreshing = null;
+    }
+  })();
+
+  return refreshing;
+}
+
+const authMiddleware: Middleware = {
+  async onRequest({ request }) {
+    const { accessToken } = getTokens();
+    if (accessToken) {
+      request.headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+    return request;
+  },
+  async onResponse({ request, response }) {
+    if (response.status === 401) {
+      const { refreshToken } = getTokens();
+      if (!refreshToken) return response;
+
+      const refreshed = await doRefresh(refreshToken);
+      if (!refreshed) return response;
+
+      // retry the original request with updated token
+      const { accessToken } = getTokens();
+      if (accessToken) request.headers.set('Authorization', `Bearer ${accessToken}`);
+      // re-send the request using Fetch API
+      const retried = await fetch(request);
+      return retried;
+    }
+    return response;
+  },
+  async onError({ error }) {
+    // wrap or rethrow; keep original behaviour by rethrowing
+    throw error;
+  },
+};
 
 export const api = createClient<paths>({
   baseUrl: BASE_URL,
   credentials: 'include',
-  headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
 });
 
-export function setTokens(tokens: { accessToken: string; refreshToken: string }) {
-  accessToken = tokens.accessToken;
-  refreshToken = tokens.refreshToken;
-
-  localStorage.setItem('accessToken', tokens.accessToken);
-  localStorage.setItem('refreshToken', tokens.refreshToken);
-}
-
-export function clearTokens() {
-  accessToken = null;
-  refreshToken = null;
-
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-}
-
-export function getTokens() {
-  return {
-    accessToken,
-    refreshToken,
-  };
-}
+api.use(authMiddleware);

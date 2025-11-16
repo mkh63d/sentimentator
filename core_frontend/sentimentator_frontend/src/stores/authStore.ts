@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { login, logout, refreshAccount, register } from '@/api/account';
-import { getTokens, setTokens } from '@/lib/client';
+import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
 
 // Pinia for exposing the tokens and authentication state to the app
 export const useAuthStore = defineStore('auth', () => {
@@ -103,8 +103,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     accessToken.value = null;
     refreshToken.value = null;
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    clearTokens();
   }
 
   return {

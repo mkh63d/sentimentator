@@ -6,8 +6,6 @@ namespace Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
 {
-    private const string ExchangeName = "sentimentator.topic";
-
     public async Task Send(string routingKey, string message)
     {
         await using var connection = await Factory.CreateConnectionAsync();

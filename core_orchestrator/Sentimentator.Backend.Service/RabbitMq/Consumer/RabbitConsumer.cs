@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Sentimentator.Backend.Service.RabbitMq.Consumer.Model;
+using static System.Text.Json.JsonSerializer;
 
 namespace Sentimentator.Backend.Service.RabbitMq.Consumer;
 
@@ -45,25 +46,43 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
             _logger.LogInformation("Received message from queue {Queue} with routing key {RoutingKey} at {Time} with message \"{Message}\"", queue, routingKey,
                 DateTime.UtcNow.ToLongTimeString(), message);
 
-            await HandleMessage(message);
-            await _channel.BasicAckAsync(ea.DeliveryTag, false);
+            var result = await HandleMessage(message);
+            if (result)
+            {
+                _logger.LogInformation("Message processed successfully, acknowledging...");
+                await _channel.BasicAckAsync(ea.DeliveryTag, false);
+            }
+            else
+            {
+                _logger.LogInformation("Message processing failed, not acknowledging.");
+                await _channel.BasicNackAsync(ea.DeliveryTag, false, false);
+            }
         };
 
         await _channel.BasicConsumeAsync(queue, false, consumer);
     }
 
-    private async Task HandleMessage(string message)
+    private async Task<bool> HandleMessage(string message)
     {
-        var data = JsonSerializer.Deserialize<AnalysisComplete>(message);
+        AnalysisComplete? data;
+        try
+        {
+            data = Deserialize<AnalysisComplete>(message);
+        }
+        catch (JsonException e)
+        {
+            _logger.LogError("Exception occurred while deserializing message; LineNumber: {Line}; Path: {Path}", e.LineNumber, e.Path);
+            return false; 
+        }
         if (data is null)
         {
-            _logger.LogError("Failed to deserialize message: {Message}", message);
-            return;
+            _logger.LogError("Failed to deserialize message");
+            return false;
         }
-
+        
         using var scope = _serviceScopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<AnalysisService>();
-
-        await service.Update(data.AnalysisId, data.Transcript, JsonSerializer.Serialize(data.Sentiment));
+        
+        return await service.Update(data.AnalysisId, data.Transcript, Serialize(data.Sentiment));
     }
 }

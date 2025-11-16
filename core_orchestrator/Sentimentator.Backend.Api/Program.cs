@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging
 
 builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Logging.AddConsole();
 
 #endregion

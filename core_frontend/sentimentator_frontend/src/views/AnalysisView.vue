@@ -47,7 +47,9 @@
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
-            <p class="text-tertiary/90 text-xl mt-1">{{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}</p>
+            <p class="text-tertiary/90 text-xl mt-1">
+              {{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}
+            </p>
           </div>
 
           <!-- Overall Sentiment Summary -->
@@ -61,23 +63,29 @@
                 <div class="text-lg text-[#bdccdb]">Dominant Sentiment</div>
               </div>
               <div class="w-full md:w-auto">
-                <SentimentChart 
-                  :positive="analysisData.overallSentiment.positive" 
-                  :neutral="analysisData.overallSentiment.neutral" 
-                  :negative="analysisData.overallSentiment.negative" 
+                <SentimentChart
+                  :positive="analysisData.overallSentiment.positive"
+                  :neutral="analysisData.overallSentiment.neutral"
+                  :negative="analysisData.overallSentiment.negative"
                 />
               </div>
               <div class="flex md:flex-col space-x-4 md:space-x-0 md:space-y-4">
                 <div class="text-center p-4 bg-green-100 dark:bg-green-900 rounded-lg">
-                  <div class="text-2xl font-bold text-green-600 mb-1">{{ analysisData.overallSentiment.positive }}%</div>
+                  <div class="text-2xl font-bold text-green-600 mb-1">
+                    {{ analysisData.overallSentiment.positive }}%
+                  </div>
                   <div class="text-sm text-green-600">Positive</div>
                 </div>
                 <div class="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <div class="text-2xl font-bold text-gray-400 mb-1">{{ analysisData.overallSentiment.neutral }}%</div>
+                  <div class="text-2xl font-bold text-gray-400 mb-1">
+                    {{ analysisData.overallSentiment.neutral }}%
+                  </div>
                   <div class="text-sm text-gray-400">Neutral</div>
                 </div>
                 <div class="text-center p-4 bg-red-100 dark:bg-red-900 rounded-lg">
-                  <div class="text-2xl font-bold text-red-600 mb-1">{{ analysisData.overallSentiment.negative }}%</div>
+                  <div class="text-2xl font-bold text-red-600 mb-1">
+                    {{ analysisData.overallSentiment.negative }}%
+                  </div>
                   <div class="text-sm text-red-600">Negative</div>
                 </div>
               </div>
@@ -88,13 +96,13 @@
           <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Sentiment by Feature</h2>
             <div class="space-y-4">
-              <div 
-                v-for="feature in analysisData.features" 
+              <div
+                v-for="feature in analysisData.features"
                 :key="feature.name"
                 class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
               >
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="text-lg font-semibold text-[#bdccdb]">{{ feature.icon }} {{ feature.name }}</h3>
+                  <h3 class="text-lg font-semibold text-[#bdccdb]">{{ feature.name }}</h3>
                   <span
                     :class="getSentimentBadgeClass(feature.sentiment)"
                     class="px-3 py-1 rounded-full text-sm font-semibold"
@@ -103,16 +111,16 @@
                   </span>
                 </div>
                 <div class="flex space-x-2 mb-2">
-                  <div 
-                    class="bg-green-500 h-3 rounded" 
+                  <div
+                    class="bg-green-500 h-3 rounded"
                     :style="{ width: `${feature.positive}%` }"
                   ></div>
-                  <div 
-                    class="bg-gray-300 h-3 rounded" 
+                  <div
+                    class="bg-gray-300 h-3 rounded"
                     :style="{ width: `${feature.neutral}%` }"
                   ></div>
-                  <div 
-                    class="bg-red-500 h-3 rounded" 
+                  <div
+                    class="bg-red-500 h-3 rounded"
                     :style="{ width: `${feature.negative}%` }"
                   ></div>
                 </div>
@@ -129,19 +137,25 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Features Detected</h3>
-              <div class="text-4xl font-bold text-primary mb-2">{{ analysisData.features.length }}</div>
+              <div class="text-4xl font-bold text-primary mb-2">
+                {{ analysisData.features.length }}
+              </div>
               <p class="text-sm text-[#bdccdb]/80">Features identified</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Sentences Analyzed</h3>
-              <div class="text-4xl font-bold text-[#bdccdb] mb-2">{{ analysisData.statistics.sentencesAnalyzed }}</div>
+              <div class="text-4xl font-bold text-[#bdccdb] mb-2">
+                {{ analysisData.statistics.sentencesAnalyzed }}
+              </div>
               <p class="text-sm text-[#bdccdb]/80">Total sentences processed</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Confidence</h3>
-              <div class="text-4xl font-bold text-primary mb-2">{{ analysisData.statistics.confidence }}%</div>
+              <div class="text-4xl font-bold text-primary mb-2">
+                {{ analysisData.statistics.confidence }}%
+              </div>
               <p class="text-sm text-[#bdccdb]/80">Average model confidence</p>
             </div>
           </div>
@@ -150,8 +164,8 @@
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Extracted Keywords</h2>
             <div class="flex flex-wrap gap-2">
-              <span 
-                v-for="keyword in analysisData.keywords" 
+              <span
+                v-for="keyword in analysisData.keywords"
                 :key="keyword"
                 class="px-3 py-1 bg-fourth text-white rounded-full text-sm"
               >
@@ -185,9 +199,7 @@
       </div>
     </div>
   </div>
-  <SearchModal 
-      v-model="searchStore.visible"
-    />
+  <SearchModal v-model="searchStore.visible" />
 </template>
 
 <script lang="ts" setup>
@@ -204,7 +216,6 @@ import SearchModal from '@/components/SearchModal.vue';
 // Types
 interface Feature {
   name: string;
-  icon: string;
   sentiment: 'Positive' | 'Neutral' | 'Negative';
   positive: number;
   neutral: number;
@@ -260,26 +271,98 @@ function getSentimentBadgeClass(sentiment: string): string {
   }
 }
 
+/**
+ * Generates sentiment values that sum to 100 based on the primary sentiment. Fully randomized.
+ * @deprecated Use actual sentiment analysis data instead.
+ * @param sentiment
+ */
+function generateSentimentValues(sentiment: string): {
+  positive: number;
+  neutral: number;
+  negative: number;
+} {
+  let primary: number;
+  let secondary: number;
+  let tertiary: number;
+
+  if (sentiment === 'positive') {
+    primary = Math.floor(Math.random() * 81) + 15; // 15-95 (leaving room for min 5 for others)
+    const remaining = 100 - primary;
+    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
+    tertiary = 100 - primary - secondary;
+    return { positive: primary, neutral: secondary, negative: tertiary };
+  } else if (sentiment === 'negative') {
+    primary = Math.floor(Math.random() * 81) + 15; // 15-95
+    const remaining = 100 - primary;
+    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
+    tertiary = 100 - primary - secondary;
+    return { positive: tertiary, neutral: secondary, negative: primary };
+  } else {
+    // neutral
+    primary = Math.floor(Math.random() * 81) + 15; // 15-95
+    const remaining = 100 - primary;
+    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
+    tertiary = 100 - primary - secondary;
+    return { positive: secondary, neutral: primary, negative: tertiary };
+  }
+}
+
+function calculateOverall(features: Feature[]): {
+  positive: number;
+  neutral: number;
+  negative: number;
+} {
+  // Calculate overall sentiment based on feature sentiments
+  const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
+  features.forEach((feature) => {
+    const sentiment = feature.sentiment.toLowerCase();
+    if (sentiment === 'positive') sentimentCounts.positive++;
+    else if (sentiment === 'negative') sentimentCounts.negative++;
+    else sentimentCounts.neutral++;
+  });
+
+  const totalFeatures = features.length || 1; // Avoid division by zero
+  const overallSentiment = {
+    positive: Math.round((sentimentCounts.positive / totalFeatures) * 100),
+    neutral: Math.round((sentimentCounts.neutral / totalFeatures) * 100),
+    negative: Math.round((sentimentCounts.negative / totalFeatures) * 100),
+  };
+
+  return overallSentiment;
+}
+
+//TODO: Replace with actual API call for individual sentiment scores fetching
 async function fetchAnalysisData(id: string) {
+  loading.value = true;
+  error.value = null;
+
   try {
-    loading.value = true;
-    error.value = null;
-    
-    // Replace with your actual API endpoint
     const response = await getAnalysisById(id);
-    
+    const parsedSummary = response.summary as any;
+    console.log('Parsed Summary:', parsedSummary);
+    const features = Object.entries(parsedSummary)
+      .filter(([key]) => key !== 'statistics')
+      .map(([key, value]: [string, any]) => {
+        const sentiment = typeof value === 'string' ? value.toLowerCase() : 'neutral';
+        const sentimentValues = generateSentimentValues(sentiment);
+        return {
+          name: key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+          sentiment: value.charAt(0).toUpperCase() + value.slice(1),
+          ...sentimentValues,
+        };
+      });
+
+    //TODO: add statistics fetching
     analysisData.value = {
       id: response.id || 'mock-id',
       title: response.url,
       overallSentiment: {
-        positive: 65,
-        neutral: 30,
-        negative: 5,
+        ...calculateOverall(features),
       },
       transcription: response.transcription || '',
-      features: response.summary?.features || [],
-      statistics: response.summary?.statistics || { sentencesAnalyzed: 0, confidence: 0 },
-      keywords: response.summary?.keywords || [],
+      features: features,
+      statistics: parsedSummary.statistics || { sentencesAnalyzed: 156, confidence: 90 },
+      keywords: Object.keys(parsedSummary).filter((key) => key !== 'statistics'),
     };
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';
@@ -305,8 +388,12 @@ ${data.title ? `## ${data.title}` : ''}
 
 ### Sentiment by Feature
 
-${data.features.map(f => `#### ${f.icon} ${f.name} - ${f.sentiment}
-- Positive: ${f.positive}% | Neutral: ${f.neutral}% | Negative: ${f.negative}%`).join('\n\n')}
+${data.features
+  .map(
+    (f) => `#### ${f.name} - ${f.sentiment}
+- Positive: ${f.positive}% | Neutral: ${f.neutral}% | Negative: ${f.negative}%`,
+  )
+  .join('\n\n')}
 
 ### Statistics
 - Features Detected: ${data.features.length}

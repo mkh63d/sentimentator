@@ -7,6 +7,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "es6",
+    "lib": ["ES2017", "DOM"],
     "moduleResolution": "Node",
     "strict": true,
     "jsx": "preserve",

@@ -40,9 +40,16 @@ export const handlers = [
       {
         id: '123e4567-e89b-12d3-a456-426614174000',
         url: 'https://example.com',
-        //TODO: Fill with realistic mock data
-        transcription: 'Sample transcription',
-        summary: 'Sample summary',
+        transcription:
+          'Just picked up the new ZetaPhone X2, and after a week, I’m pretty impressed. The battery easily lasts me a full day with streaming and social apps. Performance is smooth overall, though I did notice slight stutters when switching between heavy games. The camera takes sharp photos in daylight, but nighttime shots are just okay. The build quality feels premium, but the phone is a bit heavier than I expected.',
+        summary: {
+          battery: 'positive',
+          performance: 'neutral',
+          camera: 'positive',
+          camera_by_night: 'neutral',
+          build_quality: 'positive',
+          weight: 'negative',
+        },
       },
     ]);
   }),
@@ -54,13 +61,20 @@ export const handlers = [
     });
   }),
 
-  //TODO: Fill with realistic mock data
   http.get('*/analyses/:id', ({ params }) => {
     return HttpResponse.json({
       id: params.id,
       url: 'https://example.com',
-      transcription: 'Sample transcription',
-      summary: 'Sample summary',
+      transcription:
+        'Just picked up the new ZetaPhone X2, and after a week, I’m pretty impressed. The battery easily lasts me a full day with streaming and social apps. Performance is smooth overall, though I did notice slight stutters when switching between heavy games. The camera takes sharp photos in daylight, but nighttime shots are just okay. The build quality feels premium, but the phone is a bit heavier than I expected.',
+      summary: {
+        battery: 'positive',
+        performance: 'neutral',
+        camera: 'positive',
+        camera_by_night: 'neutral',
+        build_quality: 'positive',
+        weight: 'negative',
+      },
     });
   }),
 

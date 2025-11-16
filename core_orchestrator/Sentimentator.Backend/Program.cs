@@ -10,7 +10,7 @@ context.Analyses.Add(new Analysis
     Id = Guid.NewGuid(),
     Summary = "test summary",
     Transcription = "test transcription",
-    Url = "test url"
+    Url = new Uri("https://www.example.com/video1")
 });
 
 context.SaveChanges();

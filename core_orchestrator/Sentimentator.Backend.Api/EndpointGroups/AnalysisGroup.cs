@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
 using System.Web;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
@@ -37,19 +36,33 @@ public static class AnalysisGroup
         group.MapGet("/{url}",
                 async (string url, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
                 {
-                    url = HttpUtility.UrlDecode(url);
+                    var uri = HttpUtility.UrlDecode(url).ToUri();
+                    switch (uri.result)
+                    {
+                        case UrlResult.InvalidFormat:
+                            return Results.BadRequest("Invalid URL format");
+                        case UrlResult.UnsupportedDomain:
+                            return Results.BadRequest("Unsupported URL domain");
+                        case UrlResult.Valid:
+                        default:
+                            break;
+                    }
+                    
                     var user = await userManager.GetUserAsync(principal);
-                    var analysis = await service.Get(url);
+                    var analysis = await service.Get(uri.uri!);
                     if (analysis is null) return Results.NotFound();
                     return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
                 })
             .Produces<Analysis>()
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/", async (UserManager<User> userManager, ClaimsPrincipal principal) =>
+        group.MapGet("/", async (AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
             {
                 var user = await userManager.GetUserAsync(principal);
-                return Results.Ok(user!.Analyses.ToList());
+                await service.Get();
+                var analyses = user!.Analyses.Select(x => x).ToList();
+                return Results.Ok(analyses);
             })
             .Produces<List<Analysis>>();
         return group;
@@ -60,14 +73,25 @@ public static class AnalysisGroup
         group.MapPost("/{url}",
                 async (string url, AnalysisService service, ClaimsPrincipal principal, RabbitPublisher publisher) =>
                 {
-                    url = HttpUtility.UrlDecode(url);
-                    var result = await service.Add(principal, url);
+                    var uri = HttpUtility.UrlDecode(url).ToUri();
+                    switch (uri.result)
+                    {
+                        case UrlResult.InvalidFormat:
+                            return Results.BadRequest("Invalid URL format");
+                        case UrlResult.UnsupportedDomain:
+                            return Results.BadRequest("Unsupported URL domain");
+                        case UrlResult.Valid:
+                        default:
+                            break;
+                    }
+                    
+                    var result = await service.Add(principal, uri.uri!);
                     if (result is null) return Results.InternalServerError();
 
                     var downloadRequest = new TranscriptRequest
                     {
                         AnalysisId = result.Id,
-                        Url = new Uri(result.Url),
+                        Url = result.Url,
                         Timestamp = DateTime.UtcNow
                     };
                     await publisher.Send("video.transcript.requested", JsonSerializer.Serialize(downloadRequest));
@@ -75,6 +99,7 @@ public static class AnalysisGroup
                     return Results.Accepted($"/analyses/{result.Id}", result);
                 })
             .Produces<Analysis>(StatusCodes.Status202Accepted)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
         return group;
@@ -101,16 +126,28 @@ public static class AnalysisGroup
                 async (string url, AnalysisDetails content, AnalysisService service, UserManager<User> userManager,
                     ClaimsPrincipal principal) =>
                 {
-                    url = HttpUtility.UrlDecode(url);
+                    var uri = HttpUtility.UrlDecode(url).ToUri();
+                    switch (uri.result)
+                    {
+                        case UrlResult.InvalidFormat:
+                            return Results.BadRequest("Invalid URL format");
+                        case UrlResult.UnsupportedDomain:
+                            return Results.BadRequest("Unsupported URL domain");
+                        case UrlResult.Valid:
+                        default:
+                            break;
+                    }
+                    
                     var user = await userManager.GetUserAsync(principal);
                     var result = false;
-                    var analysis = await service.Get(url);
+                    var analysis = await service.Get(uri.uri!);
                     if (analysis is null) return Results.NotFound();
                     if (user!.Analyses.Contains(analysis))
-                        result = await service.Update(url, content.Transcription, content.Summary);
+                        result = await service.Update(uri.uri!, content.Transcription, content.Summary);
                     return result ? Results.Ok() : Results.NotFound();
                 })
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
         return group;
@@ -133,7 +170,4 @@ public static class AnalysisGroup
 
         return group;
     }
-
-    [UsedImplicitly]
-    private record AnalysisDetails(string Transcription, string Summary);
 }

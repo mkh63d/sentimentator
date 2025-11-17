@@ -1,7 +1,7 @@
 <template>
   <div v-if="searchStore.visible" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- Backdrop -->
-    <div class="absolute inset-0 bg-background/30" @click="closeWindow()"></div>
+    <div class="absolute inset-0 bg-black/30" @click="closeWindow()"></div>
 
     <!-- Modal content -->
     <div

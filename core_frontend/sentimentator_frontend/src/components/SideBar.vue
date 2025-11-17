@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="h-auto mb-2 transition-all duration-300 ease-in-out border-r-fourth bg-primary shadow-xl shadow-gray-500 z-50 p-4 shrink-0"
+    class="h-auto mb-2 transition-all duration-300 ease-in-out border-r-fourth bg-primary shadow-xl dark:shadow-black/40 shadow-gray-500 z-50 p-4 shrink-0"
     :class="sidebarStore.visible ? 'w-64' : 'w-0 overflow-hidden p-0'"
   >
     <div v-if="sidebarStore.visible" class="relative h-full">

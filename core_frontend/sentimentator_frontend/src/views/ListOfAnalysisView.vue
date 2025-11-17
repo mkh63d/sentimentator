@@ -50,7 +50,7 @@
               @click="createNew"
               class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
             >
-              + New Analysis
+              <Plus class="w-5 h-5 inline-block ml-auto mr-3 mb-0.5" /> New Analysis
             </button>
           </div>
         </div>
@@ -117,8 +117,8 @@
               <tr
                 v-for="analysis in filteredAnalyses"
                 :key="analysis.id"
-                @click="openAnalysis(analysis.id)"
-                class="cursor-pointer transition hover:bg-gray-100"
+                @click="analysis.status !== 'processing' && analysis.status !== 'failed' && openAnalysis(analysis.id)"
+                :class="{ 'cursor-pointer transition hover:bg-gray-100': analysis.description }"
               >
                 <td class="p-4 border-t border-gray-100 flex flex-col">
                   <strong>{{ analysis.title }}</strong>
@@ -192,6 +192,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import { createAnalysis, getAnalyses, deleteAnalysis } from '@/api/analyses';
+import { Plus } from 'lucide-vue-next';
 
 interface Sentiment {
   positive: number;
@@ -237,7 +238,7 @@ const fetchAnalyses = async () => {
       title: a.url,
       description: '',
       createdAt: new Date().toISOString(),
-      status: 'completed',
+      status: 'processing',
       sentiment: { positive: 33, negative: 33, neutral: 34 },
     }));
   } catch (err) {

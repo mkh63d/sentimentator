@@ -98,6 +98,7 @@ import { useSearchStore } from '@/stores/searchStore';
 import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import { createAnalysis } from '@/api/analyses';
+import { fireTimedAlert } from '@/lib/sweetAlerts';
 
 const isLoading = ref(false);
 const loadingMessage = ref('');
@@ -137,6 +138,11 @@ const isValidUrl = (value) => {
 
 const addLink = () => {
   const val = current.value.trim();
+  if (links.value.length >= 1) {
+    fireTimedAlert('Link limit reached', 'Adding more is a premium feature', 2000, false);
+    return;
+  }
+
   if (!val) return;
   if (isValidUrl(val) && !links.value.includes(val)) {
     links.value.push(val);

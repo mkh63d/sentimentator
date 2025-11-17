@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Sentimentator.Backend.Model;
 
-namespace Sentimentator.Backend.Service;
+namespace Sentimentator.Backend.Service.Analysis;
 
 public class AnalysisService(
     SentimentatorContext context,
     UserManager<User> userManager,
     ILogger<AnalysisService> logger)
 {
-    private async Task<Analysis?> Add(Uri uri)
+    private async Task<Model.Analysis?> Add(Uri uri)
     {
         try
         {
-            var analysis = new Analysis { Id = Guid.NewGuid(), Url = uri };
+            var analysis = new Model.Analysis { Id = Guid.NewGuid(), Url = uri };
             context.Analyses.Add(analysis);
             await context.SaveChangesAsync();
             logger.LogInformation("Added analysis {AnalysisId} for URL {Url}", analysis.Id, uri.ToString());
@@ -28,7 +28,7 @@ public class AnalysisService(
         }
     }
 
-    public async Task<Analysis?> Add(ClaimsPrincipal principal, Uri uri)
+    public async Task<Model.Analysis?> Add(ClaimsPrincipal principal, Uri uri)
     {
         try
         {
@@ -48,7 +48,7 @@ public class AnalysisService(
         }
     }
 
-    public async Task<Analysis?> Get(Guid id)
+    public async Task<Model.Analysis?> Get(Guid id)
     {
         var a = await context.Analyses.FirstOrDefaultAsync(x => x.Id == id);
         if (a is null) logger.LogWarning("Analysis with ID {AnalysisId} not found", id);
@@ -56,7 +56,7 @@ public class AnalysisService(
         return a;
     }
 
-    public async Task<Analysis?> Get(Uri uri)
+    public async Task<Model.Analysis?> Get(Uri uri)
     {
         var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url.Equals(uri));
         if (a is null) logger.LogWarning("Analysis with URL {Url} not found", uri.ToString());
@@ -64,7 +64,7 @@ public class AnalysisService(
         return a;
     }
 
-    public async Task<List<Analysis>> Get()
+    public async Task<List<Model.Analysis>> Get()
     {
         return await context.Analyses.ToListAsync();
     }
@@ -121,7 +121,7 @@ public class AnalysisService(
     {
         try
         {
-            var analysis = new Analysis { Id = id, Url = new Uri("about:blank") };
+            var analysis = new Model.Analysis { Id = id, Url = new Uri("about:blank") };
             context.Analyses.Attach(analysis);
             context.Analyses.Remove(analysis);
             await context.SaveChangesAsync();

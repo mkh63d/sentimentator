@@ -8,7 +8,7 @@
           <li>
             <button
               @click="router.push({ name: 'home' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Home
             </button>
@@ -16,7 +16,7 @@
           <li>
             <button
               @click="router.push({ name: 'list' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Analysis Library
             </button>
@@ -24,21 +24,21 @@
           <li class="self-bottom">
             <button
               @click="router.push({ name: 'settings' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Settings
             </button>
           </li>
         </ul>
       </SideBar>
-      <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="px-6 py-8 mx-auto max-w-7xl">
         <!-- Loading State -->
-        <div v-if="loading" class="flex justify-center items-center min-h-screen">
+        <div v-if="loading" class="flex items-center justify-center min-h-screen">
           <div class="text-2xl text-tertiary">Loading analysis...</div>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="bg-red-100 dark:bg-red-900 p-6 rounded-lg">
+        <div v-else-if="error" class="p-6 bg-red-100 rounded-lg dark:bg-red-900">
           <p class="text-red-800 dark:text-red-200">{{ error }}</p>
         </div>
 
@@ -47,19 +47,19 @@
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
-            <a :href="analysisData.title" class="text-tertiary/90 hover:font-semibold text-xl mt-1">
+            <a :href="analysisData.title" class="mt-1 text-xl text-tertiary/90 hover:font-semibold">
               {{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}
             </a>
           </div>
 
           <!-- Overall Sentiment Summary -->
-          <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
+          <div class="p-6 mb-6 shadow-lg bg-fourth rounded-xl">
             <h2 class="text-2xl font-semibold text-[#bdccdb] mb-4">Overall Sentiment</h2>
             <div
-              class="flex flex-col md:flex-row items-center justify-center md:space-x-8 space-y-6 md:space-y-0"
+              class="flex flex-col items-center justify-center space-y-6 md:flex-row md:space-x-8 md:space-y-0"
             >
               <div class="text-center">
-                <div class="text-6xl font-bold text-primary mb-2">{{ dominantSentiment }}</div>
+                <div class="mb-2 text-6xl font-bold text-primary">{{ dominantSentiment }}</div>
                 <div class="text-lg text-[#bdccdb]">Dominant Sentiment</div>
               </div>
               <div class="w-full md:w-auto">
@@ -69,21 +69,21 @@
                   :negative="analysisData.overallSentiment.negative"
                 />
               </div>
-              <div class="flex md:flex-col space-x-4 md:space-x-0 md:space-y-4">
-                <div class="text-center p-4 bg-green-100 dark:bg-green-900 rounded-lg">
-                  <div class="text-2xl font-bold text-green-600 mb-1">
+              <div class="flex space-x-4 md:flex-col md:space-x-0 md:space-y-4">
+                <div class="p-4 text-center bg-green-100 rounded-lg dark:bg-green-900">
+                  <div class="mb-1 text-2xl font-bold text-green-600">
                     {{ analysisData.overallSentiment.positive }}%
                   </div>
                   <div class="text-sm text-green-600">Positive</div>
                 </div>
-                <div class="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <div class="text-2xl font-bold text-gray-400 mb-1">
+                <div class="p-4 text-center bg-gray-100 rounded-lg dark:bg-gray-700">
+                  <div class="mb-1 text-2xl font-bold text-gray-400">
                     {{ analysisData.overallSentiment.neutral }}%
                   </div>
                   <div class="text-sm text-gray-400">Neutral</div>
                 </div>
-                <div class="text-center p-4 bg-red-100 dark:bg-red-950 rounded-lg">
-                  <div class="text-2xl font-bold text-red-600 mb-1">
+                <div class="p-4 text-center bg-red-100 rounded-lg dark:bg-red-950">
+                  <div class="mb-1 text-2xl font-bold text-red-600">
                     {{ analysisData.overallSentiment.negative }}%
                   </div>
                   <div class="text-sm text-red-600">Negative</div>
@@ -93,34 +93,34 @@
           </div>
 
           <!-- Feature-Based Sentiment Analysis -->
-          <div class="bg-fourth rounded-xl shadow-lg p-6 mb-6">
+          <div class="p-6 mb-6 shadow-lg bg-fourth rounded-xl">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Sentiment by Feature</h2>
             <div class="space-y-4">
               <div
                 v-for="feature in analysisData.features"
                 :key="feature.name"
-                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                class="p-4 border border-gray-200 rounded-lg dark:border-gray-700"
               >
-                <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center justify-between mb-3">
                   <h3 class="text-lg font-semibold text-[#bdccdb]">{{ feature.name }}</h3>
                   <span
                     :class="getSentimentBadgeClass(feature.sentiment)"
-                    class="px-3 py-1 rounded-full text-sm font-semibold"
+                    class="px-3 py-1 text-sm font-semibold rounded-full"
                   >
                     {{ feature.sentiment }}
                   </span>
                 </div>
-                <div class="flex space-x-2 mb-2">
+                <div class="flex mb-2 space-x-2">
                   <div
-                    class="bg-green-500 h-3 rounded"
+                    class="h-3 bg-green-500 rounded"
                     :style="{ width: `${feature.positive}%` }"
                   ></div>
                   <div
-                    class="bg-gray-300 h-3 rounded"
+                    class="h-3 bg-gray-300 rounded"
                     :style="{ width: `${feature.neutral}%` }"
                   ></div>
                   <div
-                    class="bg-red-500 h-3 rounded"
+                    class="h-3 bg-red-500 rounded"
                     :style="{ width: `${feature.negative}%` }"
                   ></div>
                 </div>
@@ -134,26 +134,26 @@
           </div>
 
           <!-- Feature Summary Statistics -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
+            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Features Detected</h3>
-              <div class="text-4xl font-bold text-primary mb-2">
+              <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.features.length }}
               </div>
               <p class="text-sm text-[#bdccdb]/80">Features identified</p>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Sentences Analyzed</h3>
               <div class="text-4xl font-bold text-[#bdccdb] mb-2">
-                {{ analysisData.statistics.sentencesAnalyzed }}
+                {{ analysisData.statistics.sentencesAnalyzed ?? '—' }}
               </div>
               <p class="text-sm text-[#bdccdb]/80">Total sentences processed</p>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Confidence</h3>
-              <div class="text-4xl font-bold text-primary mb-2">
+              <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.statistics.confidence }}%
               </div>
               <p class="text-sm text-[#bdccdb]/80">Average model confidence</p>
@@ -161,13 +161,13 @@
           </div>
 
           <!-- Extracted Keywords -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+          <div class="p-6 mb-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Extracted Keywords</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="keyword in analysisData.keywords"
                 :key="keyword"
-                class="px-3 py-1 bg-fourth text-white rounded-full text-sm"
+                class="px-3 py-1 text-sm text-white rounded-full bg-fourth"
               >
                 {{ keyword }}
               </span>
@@ -178,19 +178,19 @@
           <div class="flex justify-center space-x-4">
             <button
               @click="() => router.push({ name: 'list' })"
-              class="cursor-pointer px-6 py-3 bg-tertiary text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="px-6 py-3 font-semibold transition rounded-lg cursor-pointer bg-tertiary text-background hover:bg-opacity-90"
             >
               Back to List
             </button>
             <button
               @click="exportResults"
-              class="cursor-pointer px-6 py-3 bg-fourth text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="px-6 py-3 font-semibold text-white transition rounded-lg cursor-pointer bg-fourth hover:bg-opacity-90"
             >
               Export Results
             </button>
             <button
               @click="searchStore.show()"
-              class="cursor-pointer px-6 py-3 bg-accent text-background rounded-lg font-semibold hover:bg-opacity-90 transition"
+              class="px-6 py-3 font-semibold transition rounded-lg cursor-pointer bg-accent text-background hover:bg-opacity-90"
             >
               Analyze New Video
             </button>
@@ -220,6 +220,7 @@ interface Feature {
   positive: number;
   neutral: number;
   negative: number;
+  score: number;
 }
 
 interface AnalysisData {
@@ -233,7 +234,7 @@ interface AnalysisData {
   transcription: string;
   features: Feature[];
   statistics: {
-    sentencesAnalyzed: number;
+    sentencesAnalyzed: number | null;
     confidence: number;
   };
   keywords: string[];
@@ -271,98 +272,86 @@ function getSentimentBadgeClass(sentiment: string): string {
   }
 }
 
-/**
- * Generates sentiment values that sum to 100 based on the primary sentiment. Fully randomized.
- * @deprecated Use actual sentiment analysis data instead.
- * @param sentiment
- */
-function generateSentimentValues(sentiment: string): {
-  positive: number;
-  neutral: number;
-  negative: number;
-} {
-  let primary: number;
-  let secondary: number;
-  let tertiary: number;
+function scoreToSentiment(score: number): Feature['sentiment'] {
+  if (score >= 0.6) return 'Positive';
+  if (score <= 0.4) return 'Negative';
+  return 'Neutral';
+}
 
-  if (sentiment === 'positive') {
-    primary = Math.floor(Math.random() * 81) + 15; // 15-95 (leaving room for min 5 for others)
-    const remaining = 100 - primary;
-    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
-    tertiary = 100 - primary - secondary;
-    return { positive: primary, neutral: secondary, negative: tertiary };
-  } else if (sentiment === 'negative') {
-    primary = Math.floor(Math.random() * 81) + 15; // 15-95
-    const remaining = 100 - primary;
-    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
-    tertiary = 100 - primary - secondary;
-    return { positive: tertiary, neutral: secondary, negative: primary };
-  } else {
-    // neutral
-    primary = Math.floor(Math.random() * 81) + 15; // 15-95
-    const remaining = 100 - primary;
-    secondary = Math.floor(Math.random() * (remaining - 10 + 1)) + 5; // At least 5
-    tertiary = 100 - primary - secondary;
-    return { positive: secondary, neutral: primary, negative: tertiary };
+function toPercent(score: number): number {
+  return Math.round(Math.min(Math.max(score, 0), 1) * 100);
+}
+
+function formatFeatureName(name: string): string {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeSummary(rawSummary: unknown): Record<string, unknown> {
+  if (!rawSummary) return {};
+  if (typeof rawSummary === 'string') {
+    try {
+      return JSON.parse(rawSummary);
+    } catch (parseError) {
+      console.warn('Unable to parse summary JSON', parseError);
+      return {};
+    }
   }
+  if (typeof rawSummary === 'object') {
+    return rawSummary as Record<string, unknown>;
+  }
+  return {};
 }
 
-function calculateOverall(features: Feature[]): {
-  positive: number;
-  neutral: number;
-  negative: number;
-} {
-  // Calculate overall sentiment based on feature sentiments
-  const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
-  features.forEach((feature) => {
-    const sentiment = feature.sentiment.toLowerCase();
-    if (sentiment === 'positive') sentimentCounts.positive++;
-    else if (sentiment === 'negative') sentimentCounts.negative++;
-    else sentimentCounts.neutral++;
-  });
-
-  const totalFeatures = features.length || 1; // Avoid division by zero
-  const overallSentiment = {
-    positive: Math.round((sentimentCounts.positive / totalFeatures) * 100),
-    neutral: Math.round((sentimentCounts.neutral / totalFeatures) * 100),
-    negative: Math.round((sentimentCounts.negative / totalFeatures) * 100),
-  };
-
-  return overallSentiment;
-}
-
-//TODO: Replace with actual API call for individual sentiment scores fetching
 async function fetchAnalysisData(id: string) {
   loading.value = true;
   error.value = null;
 
   try {
     const response = await getAnalysisById(id);
-    const parsedSummary = response.summary as any;
-    console.log('Parsed Summary:', parsedSummary);
-    const features = Object.entries(parsedSummary)
-      .filter(([key]) => key !== 'statistics')
-      .map(([key, value]: [string, any]) => {
-        const sentiment = typeof value === 'string' ? value.toLowerCase() : 'neutral';
-        const sentimentValues = generateSentimentValues(sentiment);
-        return {
-          name: key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-          sentiment: value.charAt(0).toUpperCase() + value.slice(1),
-          ...sentimentValues,
-        };
-      });
+    const rawSummary = (response as any)?.summary ?? response;
+    const parsedSummary = normalizeSummary(rawSummary) as {
+      overall?: number;
+      features?: Record<string, number>;
+      confidence?: number;
+      statistics?: { sentencesAnalyzed?: number };
+      sentencesAnalyzed?: number;
+    };
 
-    //TODO: add statistics fetching
+    const summaryFeatures = parsedSummary.features ?? {};
+    const featureEntries = Object.entries(summaryFeatures) as [string, number][];
+    const features: Feature[] = featureEntries.map(([name, value]) => {
+      const score = typeof value === 'number' ? value : Number(value) || 0;
+      const positive = toPercent(score);
+      const negative = Math.max(0, 100 - positive);
+      return {
+        name: formatFeatureName(name),
+        sentiment: scoreToSentiment(score),
+        positive,
+        neutral: 0,
+        negative,
+        score,
+      };
+    });
+
+    const overallPositive = toPercent(parsedSummary.overall ?? 0);
+    const overallSentiment = {
+      positive: overallPositive,
+      neutral: 0,
+      negative: Math.max(0, 100 - overallPositive),
+    };
+
     analysisData.value = {
       id: response.id || 'mock-id',
       title: response.url,
-      overallSentiment: {
-        ...calculateOverall(features),
-      },
+      overallSentiment,
       transcription: response.transcription || '',
-      features: features,
-      statistics: parsedSummary.statistics || { sentencesAnalyzed: 156, confidence: 90 },
-      keywords: Object.keys(parsedSummary).filter((key) => key !== 'statistics'),
+      features,
+      statistics: {
+        sentencesAnalyzed:
+          parsedSummary?.statistics?.sentencesAnalyzed ?? parsedSummary?.sentencesAnalyzed ?? null,
+        confidence: toPercent(parsedSummary.confidence ?? 0),
+      },
+      keywords: features.map((feature) => feature.name),
     };
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';
@@ -397,7 +386,7 @@ ${data.features
 
 ### Statistics
 - Features Detected: ${data.features.length}
-- Sentences Analyzed: ${data.statistics.sentencesAnalyzed}
+- Sentences Analyzed: ${data.statistics.sentencesAnalyzed ?? 'N/A'}
 - Average Confidence: ${data.statistics.confidence}%
 
 ### Extracted Keywords

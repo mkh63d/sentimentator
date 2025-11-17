@@ -254,6 +254,21 @@ interface AnalysisData {
   keywords: string[];
 }
 
+type RawFeatureSummary = {
+  positive_score?: unknown;
+  neutral_score?: unknown;
+  negative_score?: unknown;
+  overall?: unknown;
+};
+
+type ParsedSummary = {
+  overall?: number;
+  features?: Record<string, number | RawFeatureSummary>;
+  confidence?: number;
+  statistics?: { sentencesAnalyzed?: number };
+  sentencesAnalyzed?: number;
+};
+
 const router = useRouter();
 const route = useRoute();
 const searchStore = useSearchStore();
@@ -276,7 +291,8 @@ const dominantSentiment = computed(() => {
 
 // Methods
 function getSentimentBadgeClass(sentiment: string): string {
-  switch (sentiment) {
+  const label = normalizeSentimentLabel(sentiment);
+  switch (label) {
     case 'Positive':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     case 'Negative':
@@ -314,6 +330,19 @@ function formatFeatureName(name: string): string {
   return name.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function normalizeSentimentLabel(value: unknown, fallbackScore?: number): Feature['sentiment'] {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'positive') return 'Positive';
+    if (normalized === 'negative') return 'Negative';
+    if (normalized === 'neutral') return 'Neutral';
+  }
+  if (typeof fallbackScore === 'number') {
+    return scoreToSentiment(fallbackScore);
+  }
+  return 'Neutral';
+}
+
 function normalizeSummary(rawSummary: unknown): Record<string, unknown> {
   if (!rawSummary) return {};
   if (typeof rawSummary === 'string') {
@@ -337,13 +366,7 @@ async function fetchAnalysisData(id: string) {
   try {
     const response = await getAnalysisById(id);
     const rawSummary = (response as any)?.summary ?? response;
-    const parsedSummary = normalizeSummary(rawSummary) as {
-      overall?: number;
-      features?: Record<string, number>;
-      confidence?: number;
-      statistics?: { sentencesAnalyzed?: number };
-      sentencesAnalyzed?: number;
-    };
+    const parsedSummary = normalizeSummary(rawSummary) as ParsedSummary;
 
     const responseData = (response ?? {}) as Record<string, unknown>;
     const resolvedId = typeof responseData.id === 'string' ? responseData.id : id;
@@ -355,27 +378,70 @@ async function fetchAnalysisData(id: string) {
           : `Sentiment Analysis ${id}`;
 
     const summaryFeatures = parsedSummary.features ?? {};
-    const featureEntries = Object.entries(summaryFeatures) as [string, number][];
-    const features: Feature[] = featureEntries.map(([name, value]) => {
-      const score = coerceNumber(value);
-      const positive = toPercent(score);
-      const negative = Math.max(0, 100 - positive);
+    const featureEntries = Object.entries(summaryFeatures) as [
+      string,
+      RawFeatureSummary | number,
+    ][];
+    const aggregates = { positive: 0, neutral: 0, negative: 0 };
+
+    const features: Feature[] = featureEntries.map(([name, rawValue]) => {
+      if (rawValue && typeof rawValue === 'object') {
+        const featureSummary = rawValue as RawFeatureSummary;
+        const positiveScore = Math.max(0, coerceNumber(featureSummary.positive_score));
+        const neutralScore = Math.max(0, coerceNumber(featureSummary.neutral_score));
+        const negativeScore = Math.max(0, coerceNumber(featureSummary.negative_score));
+        const totalScore = positiveScore + neutralScore + negativeScore;
+        const base = totalScore > 0 ? totalScore : 1;
+
+        aggregates.positive += positiveScore;
+        aggregates.neutral += neutralScore;
+        aggregates.negative += negativeScore;
+
+        const sentiment = normalizeSentimentLabel(
+          featureSummary.overall,
+          totalScore > 0 ? positiveScore / totalScore : undefined,
+        );
+
+        return {
+          name: formatFeatureName(name),
+          sentiment,
+          positive: toPercent(positiveScore / base),
+          neutral: toPercent(neutralScore / base),
+          negative: toPercent(negativeScore / base),
+          score: totalScore > 0 ? positiveScore / totalScore : 0,
+        };
+      }
+
+      const score = Math.min(Math.max(coerceNumber(rawValue), 0), 1);
+      const negativeShare = Math.max(0, 1 - score);
+
+      aggregates.positive += score;
+      aggregates.negative += negativeShare;
+
       return {
         name: formatFeatureName(name),
         sentiment: scoreToSentiment(score),
-        positive,
+        positive: toPercent(score),
         neutral: 0,
-        negative,
+        negative: toPercent(negativeShare),
         score,
       };
     });
 
-    const overallPositive = toPercent(coerceNumber(parsedSummary.overall));
-    const overallSentiment = {
-      positive: overallPositive,
-      neutral: 0,
-      negative: Math.max(0, 100 - overallPositive),
-    };
+    const aggregateTotal = aggregates.positive + aggregates.neutral + aggregates.negative;
+    const fallbackPositive = toPercent(coerceNumber(parsedSummary.overall));
+    const overallSentiment =
+      aggregateTotal > 0
+        ? {
+            positive: toPercent(aggregates.positive / aggregateTotal),
+            neutral: toPercent(aggregates.neutral / aggregateTotal),
+            negative: toPercent(aggregates.negative / aggregateTotal),
+          }
+        : {
+            positive: fallbackPositive,
+            neutral: 0,
+            negative: Math.max(0, 100 - fallbackPositive),
+          };
 
     const rawSentences =
       parsedSummary?.statistics?.sentencesAnalyzed ?? parsedSummary?.sentencesAnalyzed ?? null;

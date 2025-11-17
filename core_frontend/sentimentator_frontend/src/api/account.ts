@@ -15,7 +15,7 @@ export async function login(
 ) {
   clearTokens();
 
-  const { data: AccessTokenResponse, error: fetchError } = await api.POST('/account/login', {
+  const { data: AccessTokenResponse } = await api.POST('/account/login', {
     params: {
       query: {
         useCookies,
@@ -28,8 +28,8 @@ export async function login(
     },
   });
 
-  if (fetchError) {
-    throw new Error(fetchError ?? 'Failed to register user');
+  if (!AccessTokenResponse && !useCookies) {
+    throw new Error('Wrong email or password');
   }
 
   if (useCookies) {
@@ -38,7 +38,7 @@ export async function login(
 
   const tokenResponse = AccessTokenResponse;
   if (!tokenResponse || !tokenResponse.accessToken || !tokenResponse.refreshToken) {
-    throw new Error('No token data returned from API');
+    throw new Error('Connection error');
   }
 
   setTokens(tokenResponse);
@@ -71,7 +71,10 @@ export async function register(email: string, password: string) {
   });
 
   if (fetchError?.status === 400) {
-    throw new Error(fetchError.title ?? 'Failed to register user (Http error)');
+    const errorsObj = fetchError.errors ?? {};
+    const firstKey = Object.keys(errorsObj)[0];
+    const errorMessage = firstKey ? errorsObj[firstKey][0] : 'Failed to register user (Http error)';
+    throw new Error(errorMessage);
   } else if (fetchError) {
     throw new Error(fetchError.title ?? 'Failed to register user');
   }
@@ -155,7 +158,12 @@ export async function forgotPassword(email: string) {
       },
     });
     if (fetchError?.status === 400) {
-      throw new Error(fetchError.title ?? 'Failed to send password reset email (Bad Request)');
+      const errorsObj = fetchError.errors ?? {};
+      const firstKey = Object.keys(errorsObj)[0];
+      const errorMessage = firstKey
+        ? errorsObj[firstKey][0]
+        : 'Failed to register user (Http error)';
+      throw new Error(errorMessage);
     } else if (fetchError) {
       throw new Error(fetchError.title ?? 'Failed to send password reset email');
     }

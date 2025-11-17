@@ -16,12 +16,9 @@
             ></path>
           </svg>
         </div>
-        <div
-          class="cursor-pointer px-5 text-2xl font-bold text-background"
-          @click="() => router.push('/home')"
-        >
+        <router-link to="/home" class="px-5 text-2xl font-bold text-background">
           Sentimentator
-        </div>
+        </router-link>
       </div>
       <ThemeSwitcher class="mx-5" :changeOnTheme="true" />
     </div>
@@ -29,10 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import ThemeSwitcher from './ThemeSwitcher.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 
-const router = useRouter();
 const sidebarStore = useSidebarStore();
 </script>

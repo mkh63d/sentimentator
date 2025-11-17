@@ -4,7 +4,7 @@
       <div class="max-w-full w-full mx-auto flex justify-between items-center">
         <div
           class="px-5 text-2xl cursor-pointer font-bold text-background"
-          @click="() => router.push('/home')"
+          @click="() => router.push({ name: 'home' })"
         >
           Sentimentator
         </div>
@@ -212,7 +212,7 @@ async function handleSubmit() {
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    router.push({ name: 'list' });
+    await router.push({ name: 'list' });
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message;

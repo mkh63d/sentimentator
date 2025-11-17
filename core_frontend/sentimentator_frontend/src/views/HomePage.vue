@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div
           class="text-2xl font-bold cursor-pointer text-background"
-          @click="() => router.push('/home')"
+          @click="() => router.push({ name: 'home' })"
         >
           Sentimentator
         </div>

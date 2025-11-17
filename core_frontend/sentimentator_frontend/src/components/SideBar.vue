@@ -20,7 +20,7 @@
             () => {
               authStore.logoutUser();
               sidebarStore.hide();
-              router.push('/login');
+              router.push({ name: 'login' });
             }
           "
         >

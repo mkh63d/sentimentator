@@ -9,7 +9,7 @@
         <ul class="space-y-2">
           <li>
             <button
-              @click="router.push('/home')"
+              @click="router.push({ name: 'home' })"
               class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Home
@@ -17,7 +17,7 @@
           </li>
           <li>
             <button
-              @click="router.push('/list')"
+              @click="router.push({ name: 'list' })"
               class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
@@ -25,7 +25,7 @@
           </li>
           <li class="self-bottom">
             <button
-              @click="router.push('/settings')"
+              @click="router.push({ name: 'settings' })"
               class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Settings

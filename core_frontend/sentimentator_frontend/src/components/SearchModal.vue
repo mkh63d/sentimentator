@@ -1,7 +1,7 @@
 <template>
   <div v-if="searchStore.visible" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- Backdrop -->
-    <div class="absolute inset-0 bg-background/30" @click="closeWindow()"></div>
+    <div class="absolute inset-0 bg-black/30" @click="closeWindow()"></div>
 
     <!-- Modal content -->
     <div
@@ -9,7 +9,7 @@
     >
       <!-- Close button -->
       <button
-        class="absolute right-3 top-3 p-1.5 text-tertiary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+        class="cursor-pointer absolute right-3 top-3 p-1.5 text-tertiary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
         @click="closeWindow()"
         aria-label="Close"
       >
@@ -60,7 +60,7 @@
             >{{ link }}</a
           >
           <button
-            class="ml-auto text-tertiary hover:text-primary p-1.5 rounded-full hover:bg-primary/10 transition-colors"
+            class="cursor-pointer ml-auto text-tertiary hover:text-primary p-1.5 rounded-full hover:bg-primary/10 transition-colors"
             @click="removeLink(i)"
             aria-label="Remove link"
           >
@@ -143,25 +143,6 @@ const addLink = () => {
     current.value = '';
   }
 };
-
-// const parseBulk = () => {
-//   const lines = bulk.value
-//     .split(/\r?\n/)
-//     .map((s) => s.trim())
-//     .filter(Boolean);
-
-//   let added = 0;
-//   for (const l of lines) {
-//     if (isValidUrl(l) && !links.value.includes(l)) {
-//       links.value.push(l);
-//       added++;
-//     }
-//   }
-//   if (added) {
-//     // keep only lines that were invalid or duplicates
-//     bulk.value = lines.filter((l) => !isValidUrl(l) || links.value.indexOf(l) === -1).join('\n');
-//   }
-// };
 
 const removeLink = (index) => {
   links.value.splice(index, 1);

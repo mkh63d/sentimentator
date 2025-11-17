@@ -1,7 +1,7 @@
 <template>
   <button
     @click="toggleTheme"
-    class="group scale-400 relative flex items-center justify-center h-10 rounded-full transition-colors duration-300 mr-8"
+    class="group scale-400 cursor-pointer relative flex items-center justify-center h-10 rounded-full transition-colors duration-300 mr-8"
   >
     <!-- SVG container -->
     <svg

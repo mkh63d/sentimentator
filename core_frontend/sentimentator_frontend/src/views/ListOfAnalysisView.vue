@@ -10,7 +10,7 @@
           <li>
             <button
               @click="router.push('/home')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Home
             </button>
@@ -18,7 +18,7 @@
           <li>
             <button
               @click="router.push('/list')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Analysis Library
             </button>
@@ -26,7 +26,7 @@
           <li class="self-bottom">
             <button
               @click="router.push('/settings')"
-              class="text-background font-medium hover:text-indigo-100 transition text-left"
+              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
             >
               Settings
             </button>
@@ -48,9 +48,10 @@
             </button>
             <button
               @click="createNew"
-              class="bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
+              class="flex justify-center items-center bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
             >
-              <Plus class="w-5 h-5 inline-block ml-auto mr-3 mb-0.5" /> New Analysis
+            <Plus class="pr-2" />
+            <p>New Analysis</p>
             </button>
           </div>
         </div>
@@ -64,7 +65,7 @@
           />
           <select
             v-model="filterStatus"
-            class="px-3 py-3 border border-background rounded-lg text-base"
+            class="cursor-pointer px-3 py-3 border border-background rounded-lg text-base"
           >
             <option value="">All Statuses</option>
             <option value="completed">Completed</option>
@@ -102,9 +103,9 @@
           </button>
         </div>
 
-        <div v-else class="bg-white rounded-lg overflow-hidden shadow-md">
+        <div v-else class="bg-background/80 rounded-lg overflow-hidden shadow-md">
           <table class="w-full border-collapse">
-            <thead class="bg-gray-100">
+            <thead class="bg-background/90 border-b border-gray-100">
               <tr>
                 <th class="text-left p-4 font-semibold text-tertiary">Title</th>
                 <th class="text-left p-4 font-semibold text-tertiary">Created</th>
@@ -118,16 +119,16 @@
                 v-for="analysis in filteredAnalyses"
                 :key="analysis.id"
                 @click="analysis.status !== 'processing' && analysis.status !== 'failed' && openAnalysis(analysis.id)"
-                :class="{ 'cursor-pointer transition hover:bg-gray-100': analysis.description }"
+                :class="{ 'cursor-pointer transition': analysis.description }"
               >
-                <td class="p-4 border-t border-gray-100 flex flex-col">
+                <td class="p-4 flex flex-col text-tertiary">
                   <strong>{{ analysis.title }}</strong>
                   <span v-if="analysis.description" class="text-sm text-gray-500 mt-1">
                     {{ analysis.description }}
                   </span>
                 </td>
-                <td class="p-4 border-t border-gray-100">{{ formatDate(analysis.createdAt) }}</td>
-                <td class="p-4 border-t border-gray-100">
+                <td class="p-4 text-tertiary">{{ formatDate(analysis.createdAt) }}</td>
+                <td class="p-4">
                   <span
                     :class="[
                       'px-3 py-1 rounded-full text-sm font-semibold',
@@ -156,20 +157,20 @@
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="p-4 border-t border-gray-100 flex gap-2 items-center" @click.stop>
+                <td class="p-4 flex gap-2 items-center" @click.stop>
                   <button
                     @click="openAnalysis(analysis.id)"
                     class="bg-transparent border-none cursor-pointer text-xl p-1"
                     title="View"
                   >
-                    <Eye class="w-5 h-5 inline" />
+                    <Eye class="w-5 h-5 inline" color="var(--color-tertiary)"/>
                   </button>
                   <button
                     @click="eraseAnalysis(analysis.id)"
                     class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70"
                     title="Delete"
                   >
-                    <Trash2 class="w-5 h-5 inline" />
+                    <Trash2 class="w-5 h-5 inline" color="var(--color-tertiary)" />
                   </button>
                 </td>
               </tr>
@@ -185,14 +186,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Eye, Trash2, RotateCcw } from 'lucide-vue-next';
+import { Plus, Eye, Trash2, RotateCcw } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
-import { createAnalysis, getAnalyses, deleteAnalysis } from '@/api/analyses';
-import { Plus } from 'lucide-vue-next';
+import { getAnalyses, deleteAnalysis } from '@/api/analyses';
 
 interface Sentiment {
   positive: number;

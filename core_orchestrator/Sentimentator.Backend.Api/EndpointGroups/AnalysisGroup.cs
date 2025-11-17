@@ -117,7 +117,7 @@ public static class AnalysisGroup
                     var analysis = await service.Get(id);
                     if (analysis is null) return Results.NotFound();
                     if (user!.Analyses.Contains(analysis))
-                        result = await service.Update(id, content.Transcription, content.Summary);
+                        result = await service.Update(id, content.Transcription, content.Summary, DateTime.UtcNow);
                     return result ? Results.Ok() : Results.NotFound();
                 })
             .Produces(StatusCodes.Status200OK)
@@ -144,7 +144,7 @@ public static class AnalysisGroup
                     var analysis = await service.Get(uri.uri!);
                     if (analysis is null) return Results.NotFound();
                     if (user!.Analyses.Contains(analysis))
-                        result = await service.Update(uri.uri!, content.Transcription, content.Summary);
+                        result = await service.Update(uri.uri!, content.Transcription, content.Summary, DateTime.UtcNow);
                     return result ? Results.Ok() : Results.NotFound();
                 })
             .Produces(StatusCodes.Status200OK)

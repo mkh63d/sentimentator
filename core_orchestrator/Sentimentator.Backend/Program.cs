@@ -8,8 +8,7 @@ context.Database.EnsureCreated();
 context.Analyses.Add(new Analysis
 {
     Id = Guid.NewGuid(),
-    Summary = "test summary",
-    Transcription = "test transcription",
+    CreatedAt = DateTime.UtcNow,
     Url = new Uri("https://www.example.com/video1")
 });
 

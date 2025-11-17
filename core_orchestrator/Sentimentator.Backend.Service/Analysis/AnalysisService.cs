@@ -15,7 +15,7 @@ public class AnalysisService(
     {
         try
         {
-            var analysis = new Model.Analysis { Id = Guid.NewGuid(), Url = uri };
+            var analysis = new Model.Analysis { Id = Guid.NewGuid(), Url = uri, CreatedAt = DateTime.UtcNow };
             context.Analyses.Add(analysis);
             await context.SaveChangesAsync();
             logger.LogInformation("Added analysis {AnalysisId} for URL {Url}", analysis.Id, uri.ToString());
@@ -69,7 +69,7 @@ public class AnalysisService(
         return await context.Analyses.ToListAsync();
     }
 
-    public async Task<bool> Update(Guid id, string transcription, string summary)
+    public async Task<bool> Update(Guid id, string transcription, string summary, DateTime updatedAt)
     {
         try
         {
@@ -82,6 +82,7 @@ public class AnalysisService(
 
             a.Transcription = transcription;
             a.Summary = summary;
+            a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
             logger.LogInformation("Updated analysis {AnalysisId}", id);
             return true;
@@ -93,7 +94,7 @@ public class AnalysisService(
         }
     }
 
-    public async Task<bool> Update(Uri uri, string transcription, string summary)
+    public async Task<bool> Update(Uri uri, string transcription, string summary, DateTime updatedAt)
     {
         try
         {
@@ -106,6 +107,7 @@ public class AnalysisService(
 
             a.Transcription = transcription;
             a.Summary = summary;
+            a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
             logger.LogInformation("Updated analysis {AnalysisId} for URL {Url}", a.Id, uri.ToString());
             return true;

@@ -287,6 +287,20 @@ function toPercent(score: number): number {
   return Math.round(Math.min(Math.max(score, 0), 1) * 100);
 }
 
+function coerceNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function optionalNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function formatFeatureName(name: string): string {
   return name.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -322,10 +336,19 @@ async function fetchAnalysisData(id: string) {
       sentencesAnalyzed?: number;
     };
 
+    const responseData = (response ?? {}) as Record<string, unknown>;
+    const resolvedId = typeof responseData.id === 'string' ? responseData.id : id;
+    const resolvedTitle =
+      typeof responseData.title === 'string'
+        ? responseData.title
+        : typeof responseData.url === 'string'
+          ? responseData.url
+          : `Sentiment Analysis ${id}`;
+
     const summaryFeatures = parsedSummary.features ?? {};
     const featureEntries = Object.entries(summaryFeatures) as [string, number][];
     const features: Feature[] = featureEntries.map(([name, value]) => {
-      const score = typeof value === 'number' ? value : Number(value) || 0;
+      const score = coerceNumber(value);
       const positive = toPercent(score);
       const negative = Math.max(0, 100 - positive);
       return {
@@ -338,23 +361,26 @@ async function fetchAnalysisData(id: string) {
       };
     });
 
-    const overallPositive = toPercent(parsedSummary.overall ?? 0);
+    const overallPositive = toPercent(coerceNumber(parsedSummary.overall));
     const overallSentiment = {
       positive: overallPositive,
       neutral: 0,
       negative: Math.max(0, 100 - overallPositive),
     };
 
+    const rawSentences =
+      parsedSummary?.statistics?.sentencesAnalyzed ?? parsedSummary?.sentencesAnalyzed ?? null;
+    const normalizedSentences = optionalNumber(rawSentences);
+
     analysisData.value = {
-      id: response.id || 'mock-id',
-      title: response.url,
+      id: resolvedId,
+      title: resolvedTitle,
       overallSentiment,
       transcription: response.transcription || '',
       features,
       statistics: {
-        sentencesAnalyzed:
-          parsedSummary?.statistics?.sentencesAnalyzed ?? parsedSummary?.sentencesAnalyzed ?? null,
-        confidence: toPercent(parsedSummary.confidence ?? 0),
+        sentencesAnalyzed: normalizedSentences,
+        confidence: toPercent(coerceNumber(parsedSummary.confidence)),
       },
       keywords: features.map((feature) => feature.name),
     };
@@ -370,39 +396,36 @@ function exportResults() {
   if (!analysisData.value) return;
 
   const data = analysisData.value;
-  const pdfContent = `
-# Sentiment Analysis Results
-${data.title ? `## ${data.title}` : ''}
+  const markdownSections = [
+    '# Sentiment Analysis Results',
+    data.title ? `## ${data.title}` : undefined,
+    '### Overall Sentiment',
+    `- **Dominant Sentiment:** ${dominantSentiment.value}`,
+    `- Positive: ${data.overallSentiment.positive}%`,
+    `- Neutral: ${data.overallSentiment.neutral}%`,
+    `- Negative: ${data.overallSentiment.negative}%`,
+    '### Sentiment by Feature',
+    data.features
+      .map(
+        (f) =>
+          `#### ${f.name} - ${f.sentiment}\n- Positive: ${f.positive}%\n- Neutral: ${f.neutral}%\n- Negative: ${f.negative}%`,
+      )
+      .join('\n\n'),
+    '### Statistics',
+    `- Features Detected: ${data.features.length}`,
+    `- Sentences Analyzed: ${data.statistics.sentencesAnalyzed ?? 'N/A'}`,
+    `- Average Confidence: ${data.statistics.confidence}%`,
+    '### Extracted Keywords',
+    data.keywords.length ? data.keywords.join(', ') : 'None provided',
+  ].filter(Boolean);
 
-### Overall Sentiment
-- **Dominant Sentiment:** ${dominantSentiment.value}
-- Positive: ${data.overallSentiment.positive}%
-- Neutral: ${data.overallSentiment.neutral}%
-- Negative: ${data.overallSentiment.negative}%
+  const markdownContent = markdownSections.join('\n\n');
 
-### Sentiment by Feature
-
-${data.features
-  .map(
-    (f) => `#### ${f.name} - ${f.sentiment}
-- Positive: ${f.positive}% | Neutral: ${f.neutral}% | Negative: ${f.negative}%`,
-  )
-  .join('\n\n')}
-
-### Statistics
-- Features Detected: ${data.features.length}
-- Sentences Analyzed: ${data.statistics.sentencesAnalyzed ?? 'N/A'}
-- Average Confidence: ${data.statistics.confidence}%
-
-### Extracted Keywords
-${data.keywords.join(', ')}
-  `.trim();
-
-  const blob = new Blob([pdfContent], { type: 'text/plain' });
+  const blob = new Blob([markdownContent], { type: 'text/markdown' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `sentiment-analysis-${data.id}-${new Date().getTime()}.txt`;
+  link.download = `sentiment-analysis-${data.id}-${new Date().getTime()}.md`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

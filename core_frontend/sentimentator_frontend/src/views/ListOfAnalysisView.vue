@@ -118,7 +118,7 @@
               <tr
                 v-for="analysis in filteredAnalyses"
                 :key="analysis.id"
-                @click="analysis.status !== 'processing' && analysis.status !== 'failed' && openAnalysis(analysis.id)"
+                @click="analysis.transcription && openAnalysis(analysis.id)"
                 :class="{ 'cursor-pointer transition': analysis.description }"
               >
                 <td class="p-4 flex flex-col text-tertiary">
@@ -207,6 +207,7 @@ interface Analysis {
   createdAt: string;
   status: 'completed' | 'processing' | 'failed';
   sentiment?: Sentiment;
+  transcription?: string;
 }
 
 const router = useRouter();
@@ -240,6 +241,7 @@ const fetchAnalyses = async () => {
       createdAt: new Date().toISOString(),
       status: 'processing',
       sentiment: { positive: 33, negative: 33, neutral: 34 },
+      transcription: a.transcription,
     }));
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';

@@ -36,7 +36,7 @@ public class RabbitConsumer : RabbitBase, IRabbitConsumer, IDisposable
     public async Task Receive(string queue, string routingKey)
     {
         await _channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
-        await _channel.QueueDeclareAsync(queue, durable: true, autoDelete: false);
+        await _channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false);
         await _channel.QueueBindAsync(queue, ExchangeName, routingKey);
         
         var consumer = new AsyncEventingBasicConsumer(_channel);

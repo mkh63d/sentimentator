@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Sentimentator.Backend.Service.Email;
 using Sentimentator.Backend.Service.RabbitMq.Consumer;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
 
@@ -14,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging
 
 builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Logging.AddConsole();
 
 #endregion
@@ -35,7 +38,7 @@ builder.Services
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
 
-        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedEmail = true;
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<SentimentatorContext>()
@@ -95,6 +98,7 @@ builder.Services.AddOpenApi(options =>
 
 #region Services
 
+builder.Services.AddTransient<IEmailSender, ResendSender>();
 builder.Services.AddScoped<RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();

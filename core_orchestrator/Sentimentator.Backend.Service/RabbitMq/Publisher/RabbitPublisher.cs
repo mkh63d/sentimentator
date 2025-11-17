@@ -6,12 +6,13 @@ namespace Sentimentator.Backend.Service.RabbitMq.Publisher;
 
 public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
 {
-    public async Task Send(string routingKey, string message)
+    public async Task Send(string queue, string routingKey, string message)
     {
         await using var connection = await Factory.CreateConnectionAsync();
         await using var channel = await connection.CreateChannelAsync();
 
-        await channel.ExchangeDeclareAsync(ExchangeName, "topic", durable: true, autoDelete: false);
+        await channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+        await channel.QueueDeclareAsync(queue, durable: true, autoDelete: false);
 
         var body = Encoding.UTF8.GetBytes(message);
 

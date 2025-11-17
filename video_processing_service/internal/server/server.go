@@ -116,7 +116,7 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 	}
 
 	queues := []string{
-		messaging.QueueVideoProcessing,
+		// messaging.QueueVideoProcessing,
 		messaging.QueueTranscript,
 	}
 

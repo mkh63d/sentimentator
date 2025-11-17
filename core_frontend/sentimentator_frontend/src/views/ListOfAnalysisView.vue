@@ -159,7 +159,7 @@
                 </td>
                 <td class="p-4 flex gap-2 items-center" @click.stop>
                   <button
-                    @click="openAnalysis(analysis.id)"
+                    @click="analysis.transcription && openAnalysis(analysis.id)"
                     class="bg-transparent border-none cursor-pointer text-xl p-1"
                     title="View"
                   >

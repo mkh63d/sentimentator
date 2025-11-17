@@ -47,7 +47,12 @@
           <!-- Page Header -->
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
-            <a :href="analysisData.title" class="mt-1 text-xl text-tertiary/90 hover:font-semibold">
+            <a
+              :href="analysisData.title"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-1 text-xl text-tertiary/90 hover:font-semibold"
+            >
               {{ analysisData.title || 'Smartphone review sentiment breakdown by features' }}
             </a>
           </div>

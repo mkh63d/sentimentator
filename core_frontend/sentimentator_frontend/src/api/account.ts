@@ -1,6 +1,8 @@
 import { api } from '@/lib/client';
 import { setTokens, clearTokens } from '@/lib/tokenStorage';
 
+const registerEnabled = import.meta.env.VITE_REGISTER_ENABLED === 'true';
+
 export interface InfoRequest {
   newEmail?: string | null;
   newPassword?: string | null;
@@ -63,6 +65,10 @@ export async function logout() {
  * @param password - The user's password
  */
 export async function register(email: string, password: string) {
+  if (!registerEnabled) {
+    throw new Error('Registration is disabled');
+  }
+
   const { data, error: fetchError } = await api.POST('/account/register', {
     body: {
       email,

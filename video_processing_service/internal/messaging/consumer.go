@@ -303,7 +303,7 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		slog.Info("Found existing video record", slog.String("video_id", metadata.VideoID))
 	}
 
-	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord.ID, "en")
+	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord)
 	if err != nil {
 		return fmt.Errorf("failed to check for existing transcript: %w", err)
 	}
@@ -324,13 +324,19 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 			if err != nil {
 				return fmt.Errorf("failed to publish transcript ready event: %w", err)
 			}
-
 			slog.Info("Transcript already exists, published ready event",
 				slog.String("video_id", videoRecord.VideoID),
 				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)),
 				slog.String("total_elapsed", time.Since(startTime).String()),
 			)
 			return nil
+		} else {
+			slog.Warn("Transcript exists but is not completed, skipping duplicate processing",
+				slog.String("video_id", videoRecord.VideoID),
+				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)),
+				slog.String("status", string(existingTranscript.Status)),
+			)
+			return fmt.Errorf("transcript already exists with status: %s", existingTranscript.Status)
 		}
 	}
 

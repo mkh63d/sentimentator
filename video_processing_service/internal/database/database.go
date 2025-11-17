@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -33,8 +32,8 @@ type Service interface {
 	// Transcript operations
 	CreateTranscript(ctx context.Context, transcript *models.Transcript) error
 	GetTranscriptByID(ctx context.Context, id uint) (*models.Transcript, error)
-	GetTranscriptByVideoID(ctx context.Context, videoID uint, language string) (*models.Transcript, error)
-	HasTranscript(ctx context.Context, videoID uint, language string) (bool, *models.Transcript, error)
+	GetTranscriptByVideoID(ctx context.Context, videoID uint) (*models.Transcript, error)
+	HasTranscript(ctx context.Context, video *models.Video) (bool, *models.Transcript, error)
 	UpdateTranscriptStatus(ctx context.Context, id uint, status models.TranscriptStatus) error
 
 	// Video list operations
@@ -231,37 +230,45 @@ func (s *service) GetTranscriptByID(ctx context.Context, id uint) (*models.Trans
 	return &transcript, nil
 }
 
-func (s *service) GetTranscriptByVideoID(ctx context.Context, videoID uint, language string) (*models.Transcript, error) {
+func (s *service) GetTranscriptByVideoID(ctx context.Context, videoID uint) (*models.Transcript, error) {
 	var transcript models.Transcript
 	err := s.db.WithContext(ctx).
-		Where("video_id = ? AND language = ? AND status IN ?",
-			videoID,
-			language,
-			[]models.TranscriptStatus{
-				models.StatusCompleted,
-				models.StatusProcessing,
-				models.StatusPending,
-			}).
+		Where("video_id = ?", videoID).
+		Where("status IN ?", []string{
+			string(models.StatusCompleted),
+			string(models.StatusProcessing),
+			string(models.StatusPending),
+		}).
 		Order("created_at DESC").
 		First(&transcript).Error
 
 	if err != nil {
+		slog.Debug("Transcript query failed",
+			slog.Uint64("video_id", uint64(videoID)),
+			slog.String("error", err.Error()))
 		return nil, err
 	}
+
+	slog.Debug("Transcript query succeeded",
+		slog.Uint64("video_id", uint64(videoID)),
+		slog.Uint64("transcript_id", uint64(transcript.ID)),
+		slog.String("status", string(transcript.Status)))
 
 	return &transcript, nil
 }
 
-// HasTranscript checks if a video already has a transcript for the given language
-func (s *service) HasTranscript(ctx context.Context, videoID uint, language string) (bool, *models.Transcript, error) {
-	transcript, err := s.GetTranscriptByVideoID(ctx, videoID, language)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil, nil
+// HasTranscript checks if a video already has a transcript
+func (s *service) HasTranscript(ctx context.Context, video *models.Video) (bool, *models.Transcript, error) {
+	if len(video.Transcripts) == 0 {
+		return false, nil, nil
+	} else {
+		for i, t := range video.Transcripts {
+			if t.Status == models.StatusCompleted {
+				return true, &video.Transcripts[i], nil
+			}
 		}
-		return false, nil, err
+		return false, nil, nil
 	}
-	return true, transcript, nil
 }
 
 func (s *service) UpdateTranscriptStatus(ctx context.Context, id uint, status models.TranscriptStatus) error {

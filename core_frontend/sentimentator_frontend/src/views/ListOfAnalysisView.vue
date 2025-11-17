@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-secondary min-h-screen">
+  <div class="min-h-screen bg-secondary">
     <NavbarComponent
       :isSidebarOpen="isSidebarOpen"
       @update:isSidebarOpen="isSidebarOpen = $event"
@@ -10,7 +10,7 @@
           <li>
             <button
               @click="router.push({ name: 'home' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Home
             </button>
@@ -18,7 +18,7 @@
           <li>
             <button
               @click="router.push({ name: 'list' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Analysis Library
             </button>
@@ -26,7 +26,7 @@
           <li class="self-bottom">
             <button
               @click="router.push({ name: 'settings' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Settings
             </button>
@@ -35,12 +35,12 @@
       </Sidebar>
 
       <div class="px-8 py-8 max-w-[1400px] mx-auto flex-1">
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center justify-between mb-8">
           <h1 class="m-0 text-3xl font-extrabold text-tertiary">Analysis Library</h1>
           <div class="flex gap-3">
             <button
               @click="fetchAnalyses"
-              class="bg-primary text-background border-none px-4 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition flex items-center gap-2"
+              class="flex items-center gap-2 px-4 py-3 font-semibold transition border-none rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
               title="Refresh analyses"
             >
               <RotateCcw class="w-5 h-5" />
@@ -48,10 +48,10 @@
             </button>
             <button
               @click="createNew"
-              class="flex justify-center items-center bg-primary text-background border-none px-6 py-3 rounded-lg cursor-pointer font-semibold hover:opacity-80 transition"
+              class="flex items-center justify-center px-6 py-3 font-semibold transition border-none rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
             >
-            <Plus class="pr-2" />
-            <p>New Analysis</p>
+              <Plus class="pr-2" />
+              <p>New Analysis</p>
             </button>
           </div>
         </div>
@@ -61,11 +61,11 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search analyses..."
-            class="flex-1 px-3 py-3 border border-background rounded-lg text-base"
+            class="flex-1 px-3 py-3 text-base border rounded-lg border-background"
           />
           <!-- <select
             v-model="filterStatus"
-            class="cursor-pointer px-3 py-3 border border-background rounded-lg text-base"
+            class="px-3 py-3 text-base border rounded-lg cursor-pointer border-background"
           >
             <option value="">All Statuses</option>
             <option value="completed">Completed</option>
@@ -74,44 +74,44 @@
           </select> -->
         </div>
 
-        <div v-if="loading" class="text-center py-12">
+        <div v-if="loading" class="py-12 text-center">
           <span
-            class="inline-block w-5 h-5 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"
+            class="inline-block w-5 h-5 border-4 border-gray-200 rounded-full border-t-blue-500 animate-spin"
           ></span>
           Loading library...
         </div>
 
-        <div v-else-if="error" class="text-center py-12">
+        <div v-else-if="error" class="py-12 text-center">
           <p>
             Error fetching library: <br /><code>{{ error }}</code>
           </p>
           <button
             @click="fetchAnalyses"
-            class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
+            class="px-4 py-2 transition bg-gray-200 rounded hover:bg-gray-300"
           >
             Retry
           </button>
         </div>
 
-        <div v-else-if="filteredAnalyses.length === 0" class="text-center py-12">
+        <div v-else-if="filteredAnalyses.length === 0" class="py-12 text-center">
           <p>No analyses found in your library.</p>
           <button
             @click="createNew"
-            class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200 transition"
+            class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200"
           >
             Create your first analysis
           </button>
         </div>
 
-        <div v-else class="bg-background/80 rounded-lg overflow-hidden shadow-md">
+        <div v-else class="overflow-hidden rounded-lg shadow-md bg-background/80">
           <table class="w-full border-collapse">
-            <thead class="bg-background/90 border-b border-gray-100">
+            <thead class="border-b border-gray-100 bg-background/90">
               <tr>
-                <th class="text-left p-4 font-semibold text-tertiary">Title</th>
-                <!-- <th class="text-left p-4 font-semibold text-tertiary">Created</th> -->
-                <th class="text-left p-4 font-semibold text-tertiary">Status</th>
-                <!-- <th class="text-left p-4 font-semibold text-tertiary">Results</th> -->
-                <th class="text-left p-4 font-semibold text-tertiary">Actions</th>
+                <th class="p-4 font-semibold text-left text-tertiary">Title</th>
+                <!-- <th class="p-4 font-semibold text-left text-tertiary">Created</th> -->
+                <th class="p-4 font-semibold text-left text-tertiary">Status</th>
+                <!-- <th class="p-4 font-semibold text-left text-tertiary">Results</th> -->
+                <th class="p-4 font-semibold text-left text-tertiary">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -119,13 +119,15 @@
                 v-for="analysis in filteredAnalyses"
                 :key="analysis.id"
                 @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                :class="[analysis && analysis.transcription && analysis.id ? 'cursor-pointer transition hover:bg-background/10' : '', 'bg-background/90 border-b border-gray-100']"
+                :class="[
+                  analysis && analysis.transcription && analysis.id
+                    ? 'cursor-pointer transition hover:bg-background/10'
+                    : '',
+                  'bg-background/90 border-b border-gray-100',
+                ]"
               >
-                <td class="p-4 flex flex-col text-tertiary">
+                <td class="flex flex-col p-4 text-tertiary">
                   <strong>{{ analysis.url }}</strong>
-                  <span v-if="analysis.transcription" class="text-sm text-gray-500 mt-1">
-                    {{ analysis.transcription }}
-                  </span>
                 </td>
                 <!-- <td class="p-4 text-tertiary">{{ formatDate(analysis.createdAt) }}</td> -->
                 <td class="p-4">
@@ -141,7 +143,7 @@
                   </span>
                 </td>
                 <!-- <td class="p-4 border-t border-gray-100">
-                  <div v-if="analysis.sentiment" class="flex h-5 rounded overflow-hidden">
+                  <div v-if="analysis.sentiment" class="flex h-5 overflow-hidden rounded">
                     <span
                       class="h-full bg-green-600"
                       :style="`width: ${analysis.sentiment.positive}%`"
@@ -157,23 +159,25 @@
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td> -->
-                <td class="p-4 flex gap-2 items-center" @click.stop>
+                <td class="flex items-center gap-2 p-4" @click.stop>
                   <button
                     @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                    :class="analysis.summary === null
-                      ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
-                      : 'bg-transparent border-none cursor-pointer text-xl p-1'"
+                    :class="
+                      analysis.summary === null
+                        ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
+                        : 'bg-transparent border-none cursor-pointer text-xl p-1'
+                    "
                     :disabled="analysis.summary === null"
                     title="View"
                   >
-                    <Eye class="w-5 h-5 inline" color="var(--color-tertiary)"/>
+                    <Eye class="inline w-5 h-5" color="var(--color-tertiary)" />
                   </button>
                   <button
                     @click="analysis.id && eraseAnalysis(analysis.id)"
-                    class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70"
+                    class="p-1 text-xl bg-transparent border-none cursor-pointer hover:opacity-70"
                     title="Delete"
                   >
-                    <Trash2 class="w-5 h-5 inline" color="var(--color-tertiary)" />
+                    <Trash2 class="inline w-5 h-5" color="var(--color-tertiary)" />
                   </button>
                 </td>
               </tr>
@@ -226,7 +230,7 @@ const filteredAnalyses = computed(() => {
   return realAnalyses.value.filter((analysis) => {
     const matchesSearch = analysis.url.toLowerCase().includes(searchQuery.value.toLowerCase());
     // const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-    return matchesSearch
+    return matchesSearch;
   });
   // return analyses.value.filter((analysis) => {
   //   const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());

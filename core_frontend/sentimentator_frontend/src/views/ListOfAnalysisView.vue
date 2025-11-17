@@ -63,7 +63,7 @@
             placeholder="Search analyses..."
             class="flex-1 px-3 py-3 border border-background rounded-lg text-base"
           />
-          <select
+          <!-- <select
             v-model="filterStatus"
             class="cursor-pointer px-3 py-3 border border-background rounded-lg text-base"
           >
@@ -71,7 +71,7 @@
             <option value="completed">Completed</option>
             <option value="processing">Processing</option>
             <option value="failed">Failed</option>
-          </select>
+          </select> -->
         </div>
 
         <div v-if="loading" class="text-center py-12">
@@ -108,9 +108,9 @@
             <thead class="bg-background/90 border-b border-gray-100">
               <tr>
                 <th class="text-left p-4 font-semibold text-tertiary">Title</th>
-                <th class="text-left p-4 font-semibold text-tertiary">Created</th>
+                <!-- <th class="text-left p-4 font-semibold text-tertiary">Created</th> -->
                 <th class="text-left p-4 font-semibold text-tertiary">Status</th>
-                <th class="text-left p-4 font-semibold text-tertiary">Results</th>
+                <!-- <th class="text-left p-4 font-semibold text-tertiary">Results</th> -->
                 <th class="text-left p-4 font-semibold text-tertiary">Actions</th>
               </tr>
             </thead>
@@ -118,29 +118,29 @@
               <tr
                 v-for="analysis in filteredAnalyses"
                 :key="analysis.id"
-                @click="analysis.transcription && openAnalysis(analysis.id)"
-                :class="{ 'cursor-pointer transition': analysis.description }"
+                @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
+                :class="[analysis && analysis.transcription && analysis.id ? 'cursor-pointer transition hover:bg-background/10' : '', 'bg-background/90 border-b border-gray-100']"
               >
                 <td class="p-4 flex flex-col text-tertiary">
-                  <strong>{{ analysis.title }}</strong>
-                  <span v-if="analysis.description" class="text-sm text-gray-500 mt-1">
-                    {{ analysis.description }}
+                  <strong>{{ analysis.url }}</strong>
+                  <span v-if="analysis.transcription" class="text-sm text-gray-500 mt-1">
+                    {{ analysis.transcription }}
                   </span>
                 </td>
-                <td class="p-4 text-tertiary">{{ formatDate(analysis.createdAt) }}</td>
+                <!-- <td class="p-4 text-tertiary">{{ formatDate(analysis.createdAt) }}</td> -->
                 <td class="p-4">
                   <span
                     :class="[
                       'px-3 py-1 rounded-full text-sm font-semibold',
-                      analysis.status === 'completed' && 'bg-green-100 text-green-800',
-                      analysis.status === 'processing' && 'bg-yellow-100 text-yellow-800',
-                      analysis.status === 'failed' && 'bg-red-100 text-red-800',
+                      analysis.summary !== null && 'bg-green-100 text-green-800',
+                      analysis.summary === null && 'bg-yellow-100 text-yellow-800',
+                      // analysis.status === 'failed' && 'bg-red-100 text-red-800',
                     ]"
                   >
-                    {{ analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1) }}
+                    {{ analysis.summary === null ? 'Processing' : 'Completed' }}
                   </span>
                 </td>
-                <td class="p-4 border-t border-gray-100">
+                <!-- <td class="p-4 border-t border-gray-100">
                   <div v-if="analysis.sentiment" class="flex h-5 rounded overflow-hidden">
                     <span
                       class="h-full bg-green-600"
@@ -156,17 +156,20 @@
                     ></span>
                   </div>
                   <span v-else class="text-gray-400">—</span>
-                </td>
+                </td> -->
                 <td class="p-4 flex gap-2 items-center" @click.stop>
                   <button
-                    @click="analysis.transcription && openAnalysis(analysis.id)"
-                    class="bg-transparent border-none cursor-pointer text-xl p-1"
+                    @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
+                    :class="analysis.summary === null
+                      ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
+                      : 'bg-transparent border-none cursor-pointer text-xl p-1'"
+                    :disabled="analysis.summary === null"
                     title="View"
                   >
                     <Eye class="w-5 h-5 inline" color="var(--color-tertiary)"/>
                   </button>
                   <button
-                    @click="eraseAnalysis(analysis.id)"
+                    @click="analysis.id && eraseAnalysis(analysis.id)"
                     class="bg-transparent border-none cursor-pointer text-xl p-1 hover:opacity-70"
                     title="Delete"
                   >
@@ -193,6 +196,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalyses, deleteAnalysis } from '@/api/analyses';
+import { components } from '@/generated/schema';
 
 interface Sentiment {
   positive: number;
@@ -212,17 +216,23 @@ interface Analysis {
 
 const router = useRouter();
 const analyses = ref<Analysis[]>([]);
+const realAnalyses = ref<components['schemas']['Analysis'][]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const searchQuery = ref('');
 const filterStatus = ref('');
 
 const filteredAnalyses = computed(() => {
-  return analyses.value.filter((analysis) => {
-    const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-    return matchesSearch && matchesStatus;
+  return realAnalyses.value.filter((analysis) => {
+    const matchesSearch = analysis.url.toLowerCase().includes(searchQuery.value.toLowerCase());
+    // const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
+    return matchesSearch
   });
+  // return analyses.value.filter((analysis) => {
+  //   const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
+  //   const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
+  //   return matchesSearch && matchesStatus;
+  // });
 });
 
 const fetchAnalyses = async () => {
@@ -243,6 +253,8 @@ const fetchAnalyses = async () => {
       sentiment: { positive: 33, negative: 33, neutral: 34 },
       transcription: a.transcription,
     }));
+    realAnalyses.value = response;
+    console.log('Real analyses set:', realAnalyses.value);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred';
   } finally {

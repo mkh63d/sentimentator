@@ -64,7 +64,16 @@
               class="flex flex-col items-center justify-center space-y-6 md:flex-row md:space-x-8 md:space-y-0"
             >
               <div class="text-center">
-                <div class="mb-2 text-6xl font-bold text-primary">{{ dominantSentiment }}</div>
+                <div
+                  class="mb-2 text-6xl font-bold"
+                  :class="{
+                    'text-green-600': dominantSentiment === 'Positive',
+                    'text-red-600': dominantSentiment === 'Negative',
+                    'text-gray-400': dominantSentiment === 'Neutral',
+                  }"
+                >
+                  {{ dominantSentiment }}
+                </div>
                 <div class="text-lg text-[#bdccdb]">Dominant Sentiment</div>
               </div>
               <div class="w-full md:w-auto">

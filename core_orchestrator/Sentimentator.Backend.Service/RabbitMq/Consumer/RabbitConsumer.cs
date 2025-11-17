@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Sentimentator.Backend.Service.Analysis;
 using Sentimentator.Backend.Service.RabbitMq.Consumer.Model;
 using static System.Text.Json.JsonSerializer;
 

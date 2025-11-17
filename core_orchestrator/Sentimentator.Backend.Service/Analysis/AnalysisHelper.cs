@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace Sentimentator.Backend.Service;
+namespace Sentimentator.Backend.Service.Analysis;
 
 [UsedImplicitly]
 public record AnalysisDetails(string Transcription, string Summary);

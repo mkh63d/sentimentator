@@ -4,6 +4,7 @@ using System.Web;
 using Microsoft.AspNetCore.Identity;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Sentimentator.Backend.Service.Analysis;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
 using Sentimentator.Backend.Service.RabbitMq.Publisher.Model;
 

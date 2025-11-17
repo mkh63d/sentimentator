@@ -72,7 +72,7 @@ public static class AnalysisGroup
     private static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
     {
         group.MapPost("/{url}",
-                async (string url, AnalysisService service, ClaimsPrincipal principal, RabbitPublisher publisher) =>
+                async (string url, AnalysisService service, ClaimsPrincipal principal, IRabbitPublisher publisher) =>
                 {
                     var uri = HttpUtility.UrlDecode(url).ToUri();
                     switch (uri.result)

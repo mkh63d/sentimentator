@@ -21,19 +21,29 @@ public class ResendSender(ILogger<ResendSender> logger) : IEmailSender
         {
             resend = ResendClient.Create(resendApiKey);
         }
-        catch
+        catch (ResendException e)
         {
-            logger.LogError("Resend API key is invalid");
+            logger.LogError("Initializing resend client failed: {Error}", e.Message);
+            return;
+        }
+
+        ResendResponse<Guid> response;
+        try
+        {
+            response = await resend.EmailSendAsync( new EmailMessage
+            {
+                From = "sentimentator@bdymek.com",
+                To = email,
+                Subject = subject,
+                HtmlBody = htmlMessage
+            } );
+        }
+        catch (ResendException e)
+        {
+            logger.LogError("Resend email failed: {Error}", e.Message);
             return;
         }
         
-        var resp = await resend.EmailSendAsync( new EmailMessage()
-        {
-            From = "sentimentator@bdymek.com",
-            To = email,
-            Subject = subject,
-            HtmlBody = htmlMessage
-        } );
-        logger.LogInformation("Sent email to {Email} with subject {Subject}. Successful: {Success}", email, subject, resp.Success);
+        logger.LogInformation("Sent email to {Email} with subject {Subject}. Successful: {Success}", email, subject, response.Success);
     }
 }

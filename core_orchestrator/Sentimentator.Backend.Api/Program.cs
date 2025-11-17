@@ -100,7 +100,7 @@ builder.Services.AddOpenApi(options =>
 #region Services
 
 builder.Services.AddTransient<IEmailSender, ResendSender>();
-builder.Services.AddScoped<RabbitPublisher>();
+builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
 builder.Services.AddHostedService<HostedRabbitConsumer>();

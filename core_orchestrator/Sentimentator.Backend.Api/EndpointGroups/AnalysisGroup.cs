@@ -94,7 +94,7 @@ public static class AnalysisGroup
                         Url = result.Url,
                         Timestamp = DateTime.UtcNow
                     };
-                    await publisher.Send("video.transcript.requested", JsonSerializer.Serialize(downloadRequest));
+                    await publisher.Send("video.transcript", "video.transcript.requested", JsonSerializer.Serialize(downloadRequest));
 
                     return Results.Accepted($"/analyses/{result.Id}", result);
                 })

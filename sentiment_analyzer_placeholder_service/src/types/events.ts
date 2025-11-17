@@ -10,13 +10,7 @@ export interface TranscriptCompletedEvent {
 }
 
 export interface SentimentFeatures {
-    camera?: number;
-    battery?: number;
-    screen?: number;
-    performance?: number;
-    design?: number;
-    price?: number;
-    [key: string]: number | undefined;
+    [key: string]: number | undefined | object;
 }
 
 export interface SentimentAnalysis {
@@ -31,5 +25,4 @@ export interface AnalysisCompletedEvent {
     video_id: string;
     transcript: string;
     sentiment: SentimentAnalysis;
-    data: SentimentAnalysis;
 }

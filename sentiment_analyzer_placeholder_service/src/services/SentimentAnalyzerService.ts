@@ -58,6 +58,7 @@ export class SentimentAnalyzerService {
 
             await this.channel.assertQueue(TRANSCRIPT_QUEUE, {
                 durable: true,
+                exclusive: false,
                 arguments: {
                     "x-dead-letter-exchange": DLX_EXCHANGE,
                     "x-dead-letter-routing-key": "video.transcript.failed",
@@ -71,7 +72,8 @@ export class SentimentAnalyzerService {
             );
 
             await this.channel.assertQueue(ANALYSIS_QUEUE, {
-                durable: false,
+                durable: true,
+                exclusive: false,
             });
 
             await this.channel.bindQueue(
@@ -153,7 +155,6 @@ export class SentimentAnalyzerService {
                 video_id: transcriptEvent.video_id,
                 transcript: transcriptEvent.text,
                 sentiment: sentiment,
-                data: sentiment,
             };
 
             await this.publishAnalysisResult(analysisEvent);
@@ -178,9 +179,6 @@ export class SentimentAnalyzerService {
         if (!this.channel) {
             throw new Error("Channel not initialized");
         }
-
-        // TODO: rollback when C# service will be updated
-        event.video_id = event.analysis_id;
 
         try {
             const message = Buffer.from(JSON.stringify(event));

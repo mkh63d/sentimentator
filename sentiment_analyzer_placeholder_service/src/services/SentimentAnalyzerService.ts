@@ -49,20 +49,12 @@ export class SentimentAnalyzerService {
         try {
             await this.channel.assertExchange(ANALYSIS_EXCHANGE, "topic", {
                 durable: true,
-            });
-
-            const DLX_EXCHANGE = "sentimentator.dlx";
-            await this.channel.assertExchange(DLX_EXCHANGE, "topic", {
-                durable: true,
+                exclusive: false,
             });
 
             await this.channel.assertQueue(TRANSCRIPT_QUEUE, {
                 durable: true,
                 exclusive: false,
-                arguments: {
-                    "x-dead-letter-exchange": DLX_EXCHANGE,
-                    "x-dead-letter-routing-key": "video.transcript.failed",
-                },
             });
 
             await this.channel.bindQueue(

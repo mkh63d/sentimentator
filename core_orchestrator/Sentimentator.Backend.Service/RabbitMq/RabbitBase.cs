@@ -12,24 +12,27 @@ public class RabbitBase : IDisposable
     private static readonly string RabbitMqUri = Environment.GetEnvironmentVariable(RabbitMqUriEnvVar)
                                                  ?? RabbitMqDefaultUri;
 
-    private static readonly ConnectionFactory Factory = new() { Uri = new Uri(RabbitMqUri) };
-    private static readonly IConnection Connection = Factory.CreateConnectionAsync().Result;
-    internal readonly IChannel Channel = Connection.CreateChannelAsync().Result;
+    private readonly ConnectionFactory _factory = new() { Uri = new Uri(RabbitMqUri) };
+    private readonly IConnection _connection;
+    internal readonly IChannel Channel;
     
     internal readonly ILogger<RabbitBase> Logger;
-
+    
     internal RabbitBase(ILogger<RabbitBase> logger)
     {
+        _connection = _factory.CreateConnectionAsync().Result;
+        Channel = _connection.CreateChannelAsync().Result;
+        
         Logger = logger;
     }
     
     public void Dispose()
     {
         Channel.CloseAsync().Wait();
-        Connection.CloseAsync().Wait();
+        _connection.CloseAsync().Wait();
         Channel.DisposeAsync().AsTask().Wait();
-        Connection.DisposeAsync().AsTask().Wait();
-
+        _connection.DisposeAsync().AsTask().Wait();
+        
         GC.SuppressFinalize(this);
     }
 }

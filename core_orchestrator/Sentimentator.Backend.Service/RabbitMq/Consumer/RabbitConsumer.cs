@@ -64,6 +64,6 @@ public class RabbitConsumer(ILogger<RabbitConsumer> logger, IServiceScopeFactory
         using var scope = serviceScopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<AnalysisService>();
         
-        return await service.Update(data.AnalysisId, data.Transcript, Serialize(data.Sentiment));
+        return await service.Update(data.AnalysisId, data.Transcript, Serialize(data.Sentiment), DateTime.UtcNow);
     }
 }

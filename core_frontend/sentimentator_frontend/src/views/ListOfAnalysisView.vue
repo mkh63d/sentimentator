@@ -34,36 +34,37 @@
         </ul>
       </Sidebar>
 
-      <div class="px-8 py-8 max-w-[1400px] mx-auto flex-1">
-        <div class="flex items-center justify-between mb-8">
-          <h1 class="m-0 text-3xl font-extrabold text-tertiary">Analysis Library</h1>
-          <div class="flex gap-3">
-            <button
-              @click="fetchAnalyses"
-              class="flex items-center gap-2 px-4 py-3 font-semibold transition border-none rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="Refresh analyses"
-            >
-              <RotateCcw class="w-5 h-5" />
-              Refresh
-            </button>
-            <button
-              @click="createNew"
-              class="flex items-center justify-center px-6 py-3 font-semibold transition border-none rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-            >
-              <Plus class="pr-2" />
-              <p>New Analysis</p>
-            </button>
+      <div class="px-4 sm:px-8 py-8 max-w-[1400px] mx-auto flex-1">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
+          <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">Analysis Library</h1>
+          <div class="flex gap-2 sm:gap-3 items-center">
+        <button
+          @click="fetchAnalyses"
+          class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+          title="Refresh analyses"
+        >
+          <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+        <button
+          @click="createNew"
+          class="flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+          title="New Analysis"
+        >
+          <Plus class="pr-1 w-4 h-4 sm:w-5 sm:h-5" />
+          <span class="hidden sm:inline">New Analysis</span>
+        </button>
           </div>
         </div>
 
-        <div class="flex gap-4 mb-8">
+        <div class="flex gap-3 mb-6">
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search analyses..."
-            class="flex-1 px-3 py-3 text-base border rounded-lg border-background"
+            class="flex-1 px-3 py-2 text-sm sm:text-base border rounded-lg border-background"
           />
-          <!-- <select
+          <select
             v-model="filterStatus"
             class="px-3 py-3 text-base border rounded-lg cursor-pointer border-background"
           >
@@ -71,7 +72,7 @@
             <option value="completed">Completed</option>
             <option value="processing">Processing</option>
             <option value="failed">Failed</option>
-          </select> -->
+          </select>
         </div>
 
         <div v-if="loading" class="py-12 text-center">
@@ -103,88 +104,139 @@
           </button>
         </div>
 
-        <div v-else class="overflow-hidden rounded-lg shadow-md bg-background/80">
-          <table class="w-full border-collapse">
-            <thead class="border-b border-gray-100 bg-background/90">
-              <tr>
-                <th class="p-4 font-semibold text-left text-tertiary">Title</th>
-                <th class="p-4 font-semibold text-left text-tertiary">Created</th>
-                <th class="p-4 font-semibold text-left text-tertiary">Updated</th>
-                <th class="p-4 font-semibold text-left text-tertiary">Status</th>
-                <!-- <th class="p-4 font-semibold text-left text-tertiary">Results</th> -->
-                <th class="p-4 font-semibold text-left text-tertiary">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="analysis in filteredAnalyses"
-                :key="analysis.id"
-                @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                :class="[
-                  analysis && analysis.transcription && analysis.id
-                    ? 'cursor-pointer transition hover:bg-background/10'
-                    : '',
-                  'bg-background/90 border-b border-gray-100',
-                ]"
-              >
-                <td class="flex flex-col p-4 text-tertiary">
-                  <strong>{{ analysis.url }}</strong>
-                </td>
-                <td class="p-4 text-tertiary">{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</td>
-                <td class="p-4 text-tertiary">{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</td>
-                <td class="p-4">
-                  <span
-                    :class="[
-                      'px-3 py-1 rounded-full text-sm font-semibold',
-                      analysis.summary !== null && 'bg-green-100 text-green-800',
-                      analysis.summary === null && 'bg-yellow-100 text-yellow-800',
-                      // analysis.status === 'failed' && 'bg-red-100 text-red-800',
-                    ]"
-                  >
-                    {{ analysis.summary === null ? 'Processing' : 'Completed' }}
-                  </span>
-                </td>
-                <!-- <td class="p-4 border-t border-gray-100">
-                  <div v-if="analysis.sentiment" class="flex h-5 overflow-hidden rounded">
+        <!-- Desktop / Tablet: regular table -->
+        <div class="hidden md:block overflow-hidden rounded-lg shadow-md bg-background/80">
+          <div class="overflow-x-auto"> <!-- allow horizontal scroll if needed -->
+            <table class="w-full border-collapse">
+              <thead class="border-b border-gray-100 bg-background/90">
+                <tr>
+                  <th class="p-4 font-semibold text-left text-tertiary">Title</th>
+                  <th class="p-4 font-semibold text-left text-tertiary">Created</th>
+                  <th class="p-4 font-semibold text-left text-tertiary">Updated</th>
+                  <th class="p-4 font-semibold text-left text-tertiary">Status</th>
+                  <th class="p-4 font-semibold text-left text-tertiary">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="analysis in filteredAnalyses.filter(a => !filterStatus || ((a.summary === null ? 'processing' : 'completed') === filterStatus))"
+                  :key="analysis.id"
+                  @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
+                  :class="[
+                    analysis && analysis.transcription && analysis.id
+                      ? 'cursor-pointer transition hover:bg-background/10'
+                      : '',
+                    'bg-background/90 border-b border-gray-100',
+                  ]"
+                >
+                  <td class="flex flex-col p-4 text-tertiary">
+                    <strong class="block truncate max-w-[40ch]">{{ analysis.url }}</strong>
+                  </td>
+                  <td class="p-4 text-tertiary">{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</td>
+                  <td class="p-4 text-tertiary">{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</td>
+                  <td class="p-4">
                     <span
-                      class="h-full bg-green-600"
-                      :style="`width: ${analysis.sentiment.positive}%`"
-                    ></span>
-                    <span
-                      class="h-full bg-red-500"
-                      :style="`width: ${analysis.sentiment.negative}%`"
-                    ></span>
-                    <span
-                      class="h-full bg-gray-400"
-                      :style="`width: ${analysis.sentiment.neutral}%`"
-                    ></span>
-                  </div>
-                  <span v-else class="text-gray-400">—</span>
-                </td> -->
-                <td class="flex items-center gap-2 p-4" @click.stop>
+                      :class="[
+                        'px-3 py-1 rounded-full text-sm font-semibold',
+                        analysis.summary !== null && 'bg-green-100 text-green-800',
+                        analysis.summary === null && 'bg-yellow-100 text-yellow-800',
+                      ]"
+                    >
+                      {{ analysis.summary === null ? 'Processing' : 'Completed' }}
+                    </span>
+                  </td>
+                  <td class="flex items-center gap-2 p-4" @click.stop>
+                    <button
+                      @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
+                      :class="
+                        analysis.summary === null
+                          ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
+                          : 'bg-transparent border-none cursor-pointer text-xl p-1'
+                      "
+                      :disabled="analysis.summary === null"
+                      title="View"
+                    >
+                      <Eye class="inline w-5 h-5" color="var(--color-tertiary)" />
+                    </button>
+                    <button
+                      @click="analysis.id && eraseAnalysis(analysis.id)"
+                      class="p-1 text-xl bg-transparent border-none cursor-pointer hover:opacity-70"
+                      title="Delete"
+                    >
+                      <Trash2 class="inline w-5 h-5" color="var(--color-tertiary)" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mobile: stacked cards -->
+        <div class="md:hidden space-y-3">
+          <div
+            v-for="analysis in filteredAnalyses"
+            :key="analysis.id"
+            class="border rounded-lg p-3 flex flex-col gap-2"
+            :class="[
+              // color the whole card based on status on small screens so the status badge can be hidden
+              analysis.summary !== null ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200',
+              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/10' : '',
+            ]"
+          >
+            <div class="flex justify-between items-start gap-3">
+              <div class="min-w-0">
+                <div
+                  class="text-sm font-semibold text-tertiary truncate max-w-[60%] sm:max-w-[70%]"
+                  :title="analysis.url"
+                >
+                  {{ analysis.url }}
+                </div>
+                <div class="text-xs text-tertiary/70 mt-1">
+                  <div>Created: {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</div>
+                  <div>Updated: {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</div>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-end gap-2">
+                <!-- hide the compact badge on very small screens to save space; color indicates status -->
+                <span
+                  class="hidden sm:inline-block px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+                  :class="analysis.summary !== null ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                >
+                  {{ analysis.summary === null ? 'Processing' : 'Completed' }}
+                </span>
+
+                <div class="flex items-center gap-2">
                   <button
-                    @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                    :class="
-                      analysis.summary === null
-                        ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
-                        : 'bg-transparent border-none cursor-pointer text-xl p-1'
-                    "
+                    @click.stop="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
                     :disabled="analysis.summary === null"
+                    :class="[
+                      'p-1 rounded shrink-0 inline-flex items-center justify-center',
+                      analysis.summary === null ? 'opacity-50 cursor-not-allowed' : '',
+                    ]"
                     title="View"
+                    aria-label="View analysis"
                   >
-                    <Eye class="inline w-5 h-5" color="var(--color-tertiary)" />
+                    <Eye class="w-5 h-5" color="var(--color-tertiary)" />
                   </button>
+
                   <button
-                    @click="analysis.id && eraseAnalysis(analysis.id)"
-                    class="p-1 text-xl bg-transparent border-none cursor-pointer hover:opacity-70"
+                    @click.stop="analysis.id && eraseAnalysis(analysis.id)"
+                    class="p-1 rounded hover:opacity-75 shrink-0 inline-flex items-center justify-center"
                     title="Delete"
+                    aria-label="Delete analysis"
                   >
-                    <Trash2 class="inline w-5 h-5" color="var(--color-tertiary)" />
+                    <Trash2 class="w-5 h-5" color="var(--color-tertiary)" />
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="analysis.summary === null" class="text-xs text-tertiary/60">
+              Summary is not ready yet.
+            </div>
+          </div>
         </div>
       </div>
     </div>

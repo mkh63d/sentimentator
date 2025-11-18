@@ -108,7 +108,8 @@
             <thead class="border-b border-gray-100 bg-background/90">
               <tr>
                 <th class="p-4 font-semibold text-left text-tertiary">Title</th>
-                <!-- <th class="p-4 font-semibold text-left text-tertiary">Created</th> -->
+                <th class="p-4 font-semibold text-left text-tertiary">Created</th>
+                <th class="p-4 font-semibold text-left text-tertiary">Updated</th>
                 <th class="p-4 font-semibold text-left text-tertiary">Status</th>
                 <!-- <th class="p-4 font-semibold text-left text-tertiary">Results</th> -->
                 <th class="p-4 font-semibold text-left text-tertiary">Actions</th>
@@ -129,7 +130,8 @@
                 <td class="flex flex-col p-4 text-tertiary">
                   <strong>{{ analysis.url }}</strong>
                 </td>
-                <!-- <td class="p-4 text-tertiary">{{ formatDate(analysis.createdAt) }}</td> -->
+                <td class="p-4 text-tertiary">{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</td>
+                <td class="p-4 text-tertiary">{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</td>
                 <td class="p-4">
                   <span
                     :class="[

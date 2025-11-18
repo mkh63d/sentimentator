@@ -10,7 +10,7 @@ export type AnalysisDetails = components['schemas']['AnalysisDetails'];
  */
 export async function getAnalyses(): Promise<Analysis[]> {
   const { data, error } = await api.GET('/analyses');
-  if (error) throw new Error(error.detail ?? 'Failed to fetch analyses');
+  if (error) throw new Error(error.title ?? 'Failed to fetch analyses');
   if (!data) throw new Error('No data returned from server');
   return data;
 }
@@ -36,7 +36,7 @@ export async function getAnalysisById(id: string): Promise<Analysis> {
   const { data, error } = await api.GET('/analyses/{id}', {
     params: { path: { id } },
   });
-  if (error) throw new Error(error.detail ?? 'Failed to fetch analysis');
+  if (error) throw new Error(error.title ?? 'Failed to fetch analysis');
   if (!data) throw new Error('No data returned from server');
   return data;
 }
@@ -50,7 +50,7 @@ export async function updateAnalysis(id: string, details: AnalysisDetails): Prom
     params: { path: { id } },
     body: details,
   });
-  if (error) throw new Error(error.detail ?? 'Failed to update analysis');
+  if (error) throw new Error(error.title ?? 'Failed to update analysis');
 }
 
 /**
@@ -61,5 +61,5 @@ export async function deleteAnalysis(id: string): Promise<void> {
   const { error } = await api.DELETE('/analyses/{id}', {
     params: { path: { id } },
   });
-  if (error) throw new Error(error.detail ?? 'Failed to delete analysis');
+  if (error) throw new Error(error.title ?? 'Failed to delete analysis');
 }

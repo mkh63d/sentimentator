@@ -72,7 +72,7 @@ public static class AnalysisGroup
     private static RouteGroupBuilder AnalysisPostGroup(this RouteGroupBuilder group)
     {
         group.MapPost("/{url}",
-                async (string url, AnalysisService service, ClaimsPrincipal principal, IRabbitPublisher publisher) =>
+                async (string url, AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal, IRabbitPublisher publisher) =>
                 {
                     var uri = HttpUtility.UrlDecode(url).ToUri();
                     switch (uri.result)
@@ -85,6 +85,11 @@ public static class AnalysisGroup
                         default:
                             break;
                     }
+                    
+                    var user = await userManager.GetUserAsync(principal);
+                    await service.Get();
+                    var a = user!.Analyses.FirstOrDefault(x => x.Url.Equals(uri.uri));
+                    if (a is { Summary: not null, Transcription: not null }) return Results.Ok(a);
                     
                     var result = await service.Add(principal, uri.uri!);
                     if (result is null) return Results.InternalServerError();
@@ -99,6 +104,7 @@ public static class AnalysisGroup
 
                     return Results.Accepted($"/analyses/{result.Id}", result);
                 })
+            .Produces<Analysis>()
             .Produces<Analysis>(StatusCodes.Status202Accepted)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);

@@ -110,10 +110,21 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		slog.String("correlation_id", msg.CorrelationId))
 
 	retryCount := int64(0)
-	if xDeath, ok := msg.Headers["x-death"].([]interface{}); ok && len(xDeath) > 0 {
-		if deathMap, ok := xDeath[0].(amqp.Table); ok {
-			if count, ok := deathMap["count"].(int64); ok {
-				retryCount = count
+	if msg.Headers != nil {
+		if val, ok := msg.Headers["retry-count"]; ok {
+			switch v := val.(type) {
+			case int64:
+				retryCount = v
+			case int32:
+				retryCount = int64(v)
+			case int:
+				retryCount = int64(v)
+			case float64:
+				retryCount = int64(v)
+			case string:
+				if parsed, err := strconv.ParseInt(v, 10, 64); err == nil {
+					retryCount = parsed
+				}
 			}
 		}
 	}
@@ -211,9 +222,18 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 			return
 		}
 
-		// Requeue to DLX for retry
 		if err := msg.Nack(false, false); err != nil {
 			slog.Error("Failed to nack message", slog.String("error", err.Error()))
+		}
+
+		slog.Info("Re-publishing message for retry",
+			slog.String("queue", queueName),
+			slog.Int64("retry_count", retryCount))
+
+		if err := c.republishForRetry(context.Background(), msg, queueName, retryCount+1); err != nil {
+			slog.Error("Failed to republish message for retry",
+				slog.String("queue", queueName),
+				slog.String("error", err.Error()))
 		}
 		return
 	}
@@ -233,16 +253,7 @@ func (c *Consumer) republishForRetry(ctx context.Context, originalMsg amqp.Deliv
 		maps.Copy(headers, originalMsg.Headers)
 	}
 
-	xDeath := []any{
-		amqp.Table{
-			"count":    retryCount,
-			"reason":   "rejected",
-			"queue":    queueName,
-			"time":     time.Now(),
-			"exchange": "",
-		},
-	}
-	headers["x-death"] = xDeath
+	headers["retry-count"] = retryCount
 
 	return c.rabbitmq.channel.PublishWithContext(
 		ctx,

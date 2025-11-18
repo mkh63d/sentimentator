@@ -9,6 +9,7 @@ services:
         environment:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
+            - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
         ports:
             - "8081:80"
 
@@ -33,12 +34,25 @@ services:
         ports:
             - "8080:8080"
 
-    nlp-analyzer:
-        build: ./NLP_analyzer_service
+    sentiment-analyzer-placeholder-service:
+        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer_placeholder_service:dev
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_started
         environment:
             - RABBITMQ_URL=${AMQP_URL}
+            - TRANSCRIPT_QUEUE=video.transcript
+            - ANALYSIS_EXCHANGE=sentimentator.topic
+            - ANALYSIS_QUEUE=video.analysis
+            - ANALYSIS_ROUTING_KEY=video.analysis.completed
+            - LOG_LEVEL=info
+
+    # nlp-analyzer:
+    #     build: ./NLP_analyzer_service
+    #     depends_on:
+    #         - rabbitmq
+    #     environment:
+    #         - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
         build: ./core_frontend/sentimentator_frontend

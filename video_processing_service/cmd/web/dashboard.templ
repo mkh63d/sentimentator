@@ -5,194 +5,290 @@ import (
 	"github.com/Oskarowski/sentimentator/video_processing_service/internal/models"
 )
 
-templ JobStatsComponent(stats map[string]int64) {
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-		<!-- Total Jobs -->
-		<div class="p-6 bg-white rounded-lg shadow">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">Total Jobs</p>
-					<p class="text-3xl font-bold text-gray-900">{ fmt.Sprintf("%d", stats["total"]) }</p>
-				</div>
-				<div class="p-3 bg-blue-100 rounded-full">
-					<svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-					</svg>
-				</div>
+templ VideoListComponent(videos []models.Video, total int, currentPage int, itemsPerPage int) {
+	<div class="space-y-4">
+		<!-- Header -->
+		<div class="flex items-center justify-between">
+			<div>
+				<h3 class="text-2xl font-bold text-gray-900">Videos</h3>
+				<p class="mt-1 text-sm text-gray-600">{ fmt.Sprintf("%d", total) } video(s) found</p>
 			</div>
+			<button
+				hx-get="/web/videos/list"
+				hx-target="#video-list-container"
+				hx-swap="innerHTML"
+				class="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition-all rounded-lg shadow-sm cursor-pointer bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-md"
+			>
+				<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+				</svg>
+				Refresh
+			</button>
 		</div>
-		<!-- Pending Jobs -->
-		<div class="p-6 bg-white rounded-lg shadow">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">Pending</p>
-					<p class="text-3xl font-bold text-yellow-600">{ fmt.Sprintf("%d", stats["pending"]) }</p>
-				</div>
-				<div class="p-3 bg-yellow-100 rounded-full">
-					<svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-					</svg>
-				</div>
+		<!-- Video List -->
+		if len(videos) == 0 {
+			<div class="flex flex-col items-center justify-center p-12 border-2 border-gray-300 border-dashed bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+				<svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+				</svg>
+				<p class="text-lg font-semibold text-gray-600">No videos found</p>
+				<p class="mt-1 text-sm text-gray-500">Submit a video to get started</p>
 			</div>
-		</div>
-		<!-- Processing Jobs -->
-		<div class="p-6 bg-white rounded-lg shadow">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">Processing</p>
-					<p class="text-3xl font-bold text-blue-600">{ fmt.Sprintf("%d", stats["processing"]) }</p>
-				</div>
-				<div class="p-3 bg-blue-100 rounded-full">
-					<svg class="w-6 h-6 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-					</svg>
-				</div>
-			</div>
-		</div>
-		<!-- Completed Jobs -->
-		<div class="p-6 bg-white rounded-lg shadow">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">Completed</p>
-					<p class="text-3xl font-bold text-green-600">{ fmt.Sprintf("%d", stats["completed"]) }</p>
-				</div>
-				<div class="p-3 bg-green-100 rounded-full">
-					<svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-					</svg>
-				</div>
-			</div>
-		</div>
-		<!-- Failed Jobs -->
-		<div class="p-6 bg-white rounded-lg shadow">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">Failed</p>
-					<p class="text-3xl font-bold text-red-600">{ fmt.Sprintf("%d", stats["failed"]) }</p>
-				</div>
-				<div class="p-3 bg-red-100 rounded-full">
-					<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-					</svg>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ JobStatsError(message string) {
-	<div class="p-4 text-red-700 bg-red-100 rounded-lg">
-		<p class="font-semibold">Error</p>
-		<p class="text-sm">{ message }</p>
-	</div>
-}
-
-templ VideoListComponent(videos []models.Video, total int) {
-	<div class="overflow-hidden bg-white rounded-lg shadow">
-		<div class="px-6 py-4 border-b border-gray-200">
-			<div class="flex items-center justify-between">
-				<h3 class="text-lg font-semibold text-gray-900">Videos ({ fmt.Sprintf("%d", total) })</h3>
-				<button
-					hx-get="/web/videos/list"
-					hx-target="#video-list-container"
-					hx-swap="innerHTML"
-					class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-				>
-					Refresh
-				</button>
-			</div>
-		</div>
-		<div class="divide-y divide-gray-200">
-			if len(videos) == 0 {
-				<div class="px-6 py-12 text-center">
-					<svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-					</svg>
-					<p class="mt-2 text-sm text-gray-500">No videos found</p>
-				</div>
-			} else {
+		} else {
+			<div class="grid gap-4" id="videos-grid">
 				for _, video := range videos {
 					@VideoListItem(video)
 				}
+			</div>
+			<!-- Pagination Controls -->
+			@PaginationControls(total, currentPage, itemsPerPage)
+		}
+	</div>
+}
+
+templ VideoListItem(video models.Video) {
+	<div class="overflow-hidden transition-all duration-300 bg-white border border-gray-100 shadow-sm rounded-xl hover:shadow-lg hover:border-blue-200">
+		<!-- Video Header -->
+		<div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+			<div class="flex items-start justify-between">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3">
+						<div class="p-2 bg-blue-100 rounded-lg">
+							<svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+								<path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
+							</svg>
+						</div>
+						<div>
+							<h4 class="text-lg font-semibold text-gray-900">
+								if video.Title != "" {
+									{ video.Title }
+								} else {
+									{ video.VideoID }
+								}
+							</h4>
+							<p class="text-xs text-gray-500 mt-0.5">Extracted Video Content ID:{ video.VideoID }</p>
+						</div>
+					</div>
+				</div>
+				<div class="text-right">
+					<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
+						{ video.Platform }
+					</span>
+				</div>
+			</div>
+			<!-- Video Metadata Chips -->
+			<div class="flex flex-wrap gap-2 mt-3">
+				if video.Duration > 0 {
+					<span class="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full">
+						<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						{ formatDuration(video.Duration) }
+					</span>
+				}
+				<span class="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full">
+					<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+					</svg>
+					{ video.CreatedAt.Format("Jan 02, 2006") }
+				</span>
+			</div>
+		</div>
+		<!-- Transcripts Section -->
+		<div class="px-6 py-5">
+			if len(video.Transcripts) > 0 {
+				<div class="flex items-center justify-between mb-4">
+					<h5 class="flex items-center text-sm font-semibold text-gray-900">
+						<svg class="w-4 h-4 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+							<path d="M4.3 12.98l6.6-6.6a1 1 0 00-1.414-1.414l-6.6 6.6a1 1 0 001.414 1.414zm1.414 2.122l2.828-2.828a1 1 0 10-1.414-1.414L4.3 13.686a1 1 0 101.414 1.414zM17.656 3.344a2 2 0 00-2.828 0l-10 10a2 2 0 102.828 2.828l10-10a2 2 0 000-2.828z"></path>
+						</svg>
+						Transcripts ({ fmt.Sprintf("%d", len(video.Transcripts)) })
+					</h5>
+				</div>
+				<div class="space-y-3">
+					for _, transcript := range video.Transcripts {
+						@TranscriptItem(transcript)
+					}
+				</div>
+			} else {
+				<div class="flex items-center justify-center p-6 border border-gray-200 border-dashed rounded-lg bg-gray-50">
+					<p class="flex items-center text-sm text-gray-500">
+						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						No transcripts yet
+					</p>
+				</div>
 			}
 		</div>
 	</div>
 }
 
-templ VideoListItem(video models.Video) {
-	<div class="px-6 py-4 hover:bg-gray-50">
-		<div class="flex items-start justify-between">
-			<div class="flex-1">
-				<div class="flex items-center space-x-3">
-					<h4 class="text-sm font-medium text-gray-900">
-						if video.Title != "" {
-							{ video.Title }
-						} else {
-							{ video.VideoID }
-						}
-					</h4>
-				</div>
-				<div class="mt-1 space-y-1">
-					<p class="text-sm text-gray-500">
-						<span class="font-medium">Platform:</span> { video.Platform }
-						<span class="mx-2">•</span>
-						<span class="font-medium">Video ID:</span> { video.VideoID }
-					</p>
-					if video.Duration > 0 {
-						<p class="text-sm text-gray-500">
-							<span class="font-medium">Duration:</span> { formatDuration(video.Duration) }
-						</p>
-					}
-					<p class="text-sm text-gray-500">
-						<span class="font-medium">Created:</span> { video.CreatedAt.Format("2006-01-02 15:04:05") }
-					</p>
-				</div>
-				<!-- Transcripts -->
-				if len(video.Transcripts) > 0 {
-					<div class="mt-3">
-						<p class="text-xs font-semibold text-gray-700">Transcripts:</p>
-						<div class="mt-2 space-y-2">
-							for _, transcript := range video.Transcripts {
-								@TranscriptItem(transcript)
-							}
-						</div>
-					</div>
-				} else {
-					<p class="mt-3 text-xs text-gray-400">No transcripts available</p>
-				}
-			</div>
-		</div>
-	</div>
-}
-
 templ TranscriptItem(transcript models.Transcript) {
-	<div class="p-3 border border-gray-200 rounded-lg bg-gray-50">
-		<div class="flex items-center justify-between">
-			<div class="flex items-center space-x-2">
-				<span class="text-xs font-medium text-gray-700">
-					{ string(transcript.Method) } - { transcript.Language }
-				</span>
-				<span class={ "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium", getTranscriptStatusClass(string(transcript.Status)) }>
-					{ string(transcript.Status) }
-				</span>
-			</div>
-			<span class="text-xs text-gray-500">
-				{ transcript.CreatedAt.Format("2006-01-02 15:04") }
+	<div class="p-4 transition-all duration-300 border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl hover:border-indigo-300 hover:shadow-md">
+		<!-- Metadata Chips -->
+		<div class="flex flex-wrap gap-2 mb-3">
+			<!-- Method Chip -->
+			<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200 rounded-full bg-gradient-to-r from-indigo-100 to-indigo-50">
+				<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+					<path d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948-.684l1.498-4.493a1 1 0 011.502-.684l1.498 4.493a1 1 0 00.948.684H17a2 2 0 012 2v2a1 1 0 001 1h1a1 1 0 100-2h-.5V6a4 4 0 00-4-4h-3.28a3 3 0 00-2.846 2.051L8.75 6H5a1 1 0 00-1 1v2a1 1 0 11-2 0V5z"></path>
+				</svg>
+				{ string(transcript.Method) }
+			</span>
+			<!-- Language Chip -->
+			<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full bg-gradient-to-r from-blue-100 to-blue-50">
+				<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+					<path d="M7 2a1 1 0 100 2h6a1 1 0 100-2H7zM4 5a2 2 0 012-2 1 1 0 100 2H4zm12 0h-2a1 1 0 100 2 2 2 0 012-2zM4 13a1 1 0 100 2h12a1 1 0 100-2H4zm1.172-3.556a1 1 0 01.828.556h9a1 1 0 01.828-.556A6 6 0 005.172 9.444z"></path>
+				</svg>
+				{ transcript.Language }
+			</span>
+			<!-- Status Chip -->
+			<span class={ "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border", getTranscriptStatusChipClass(string(transcript.Status)) }>
+				if transcript.Status == models.StatusCompleted {
+					<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+					</svg>
+				} else if transcript.Status == models.StatusProcessing {
+					<svg class="w-3 h-3 mr-1.5 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 1119.414 5.414 1 1 0 01-1.414-1.414A5.002 5.002 0 005.659 5.242V3a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+					</svg>
+				} else if transcript.Status == models.StatusFailed {
+					<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+					</svg>
+				} else {
+					<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+					</svg>
+				}
+				{ string(transcript.Status) }
+			</span>
+			<!-- Timestamp -->
+			<span class="inline-flex items-center px-3 py-1 ml-auto text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-full">
+				<svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				{ transcript.CreatedAt.UTC().Format("02-01-2006 15:04:05") } UTC
 			</span>
 		</div>
-		if transcript.Status == models.StatusCompleted && transcript.Text != "" {
-			<div class="mt-2">
-				<details class="text-xs text-gray-600">
-					<summary class="text-sm text-blue-600 cursor-pointer">Show transcript</summary>
-					<div class="mt-2 whitespace-pre-wrap">{ transcript.Text }</div>
+		<!-- Metrics Grid -->
+		if transcript.Status == models.StatusCompleted {
+			<div class="grid grid-cols-2 gap-2 mb-3 md:grid-cols-4">
+				if transcript.AudioFileSizeBytes != nil {
+					<div class="p-3 transition bg-white border border-blue-100 rounded-lg hover:border-blue-300">
+						<p class="flex items-center mb-1 text-xs font-medium text-gray-600">
+							<svg class="w-3 h-3 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+								<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+								<path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 100 2H4zm12 0h-2a1 1 0 100 2 2 2 0 012-2zM4 13a1 1 0 100 2h12a1 1 0 100-2H4zm1.172-3.556a1 1 0 01.828.556h9a1 1 0 01.828-.556A6 6 0 005.172 9.444z" clip-rule="evenodd"></path>
+							</svg>
+							Size
+						</p>
+						<p class="text-sm font-bold text-blue-700">
+							{ formatFileSize(*transcript.AudioFileSizeBytes) }
+						</p>
+					</div>
+				}
+				if transcript.AudioExtractionDuration != nil {
+					<div class="p-3 transition bg-white border border-purple-100 rounded-lg hover:border-purple-300">
+						<p class="flex items-center mb-1 text-xs font-medium text-gray-600">
+							<svg class="w-3 h-3 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+							</svg>
+							Extract
+						</p>
+						<p class="text-sm font-bold text-purple-700">
+							{ formatSeconds(*transcript.AudioExtractionDuration) }
+						</p>
+					</div>
+				}
+				if transcript.TranscriptionDuration != nil {
+					<div class="p-3 transition bg-white border border-green-100 rounded-lg hover:border-green-300">
+						<p class="flex items-center mb-1 text-xs font-medium text-gray-600">
+							<svg class="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293-1.293a1 1 0 011.414 0L9 7.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+							</svg>
+							Process
+						</p>
+						<p class="text-sm font-bold text-green-700">
+							{ formatSeconds(*transcript.TranscriptionDuration) }
+						</p>
+					</div>
+				}
+				if transcript.TotalProcessingDuration != nil {
+					<div class="p-3 transition bg-white border border-orange-100 rounded-lg hover:border-orange-300">
+						<p class="flex items-center mb-1 text-xs font-medium text-gray-600">
+							<svg class="w-3 h-3 mr-1 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+							</svg>
+							Total
+						</p>
+						<p class="text-sm font-bold text-orange-700">
+							{ formatSeconds(*transcript.TotalProcessingDuration) }
+						</p>
+					</div>
+				}
+			</div>
+		}
+		<!-- Segments Display -->
+		if transcript.Status == models.StatusCompleted && len(transcript.Segments) > 0 {
+			<div class="mt-3">
+				<details class="group">
+					<summary class="flex items-center p-3 transition bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-cyan-300 hover:bg-cyan-50">
+						<svg class="w-4 h-4 mr-2 transition-transform text-cyan-600 group-open:rotate-90" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-sm font-medium text-gray-900">Segments ({ fmt.Sprintf("%d", len(transcript.Segments)) })</span>
+					</summary>
+					<div class="p-4 mt-2 space-y-2 overflow-y-auto bg-white border border-gray-200 rounded-lg max-h-96">
+						for i, segment := range transcript.Segments {
+							<div class="flex items-start p-3 transition border rounded-lg bg-gradient-to-r from-cyan-50 to-blue-50 border-cyan-100 hover:border-cyan-300">
+								<div class="flex-shrink-0 mr-3">
+									<span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
+										{ fmt.Sprintf("%d", i+1) }
+									</span>
+								</div>
+								<div class="flex-1 min-w-0">
+									<div class="flex items-center justify-between mb-2">
+										<span class="text-xs font-semibold text-gray-600">
+											{ formatTimestamp(segment.Start) } - { formatTimestamp(segment.End) }
+										</span>
+										<span class="text-xs font-medium text-cyan-700 bg-cyan-100 px-2 py-0.5 rounded-full">
+											{ fmt.Sprintf("%.1fs", segment.End-segment.Start) }
+										</span>
+									</div>
+									<p class="text-sm leading-relaxed text-gray-700 break-words">{ segment.Text }</p>
+								</div>
+							</div>
+						}
+					</div>
 				</details>
 			</div>
 		}
+		<!-- Transcript Content -->
+		if transcript.Status == models.StatusCompleted && transcript.Text != "" {
+			<div class="mt-3">
+				<details class="group">
+					<summary class="flex items-center p-3 transition bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-indigo-300 hover:bg-indigo-50">
+						<svg class="w-4 h-4 mr-2 text-indigo-600 transition-transform group-open:rotate-90" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-sm font-medium text-gray-900">View Full Transcript</span>
+					</summary>
+					<div class="p-4 mt-2 overflow-y-auto bg-white border border-gray-200 rounded-lg max-h-96">
+						<p class="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">{ transcript.Text }</p>
+					</div>
+				</details>
+			</div>
+		}
+		<!-- Error Display -->
 		if transcript.Error != "" {
-			<div class="mt-2">
-				<p class="text-xs text-red-600">
-					Error: { transcript.Error }
-				</p>
+			<div class="p-3 mt-3 border border-red-200 rounded-lg bg-red-50">
+				<div class="flex items-start">
+					<svg class="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+					</svg>
+					<p class="text-xs font-medium text-red-700">{ transcript.Error }</p>
+				</div>
 			</div>
 		}
 	</div>
@@ -202,6 +298,74 @@ templ VideoListError(message string) {
 	<div class="p-4 text-red-700 bg-red-100 rounded-lg">
 		<p class="font-semibold">Error</p>
 		<p class="text-sm">{ message }</p>
+	</div>
+}
+
+templ PaginationControls(total int, currentPage int, itemsPerPage int) {
+	{{
+		maxPage := (total + itemsPerPage - 1) / itemsPerPage
+		if maxPage < 1 {
+			maxPage = 1
+		}
+	}}
+	<div class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+		<div class="text-sm text-gray-600">
+			{{
+				start := (currentPage - 1) * itemsPerPage + 1
+				end := currentPage * itemsPerPage
+				if end > total {
+					end = total
+				}
+			}}
+			Showing <span class="font-semibold text-gray-900">{ fmt.Sprintf("%d", start) } - { fmt.Sprintf("%d", end) }</span> of <span class="font-semibold text-gray-900">{ fmt.Sprintf("%d", total) }</span> videos
+		</div>
+		<div class="flex items-center space-x-2">
+			<button
+				hx-get="/web/videos/list?page=1"
+				hx-target="#video-list-container"
+				hx-swap="innerHTML"
+				class="inline-flex items-center justify-center w-10 h-10 text-gray-600 transition border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+				disabled
+			>
+				<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L7.414 10 3.121 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5z" clip-rule="evenodd"></path>
+				</svg>
+			</button>
+			<button
+				hx-get="/web/videos/list?page=prev"
+				hx-target="#video-list-container"
+				hx-swap="innerHTML"
+				class="inline-flex items-center justify-center w-10 h-10 text-gray-600 transition border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+				disabled
+			>
+				<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+				</svg>
+			</button>
+			<span class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
+				Page <span id="current-page">{ fmt.Sprintf("%d", currentPage) }</span> of { fmt.Sprintf("%d", maxPage) }
+			</span>
+			<button
+				hx-get="/web/videos/list?page=next"
+				hx-target="#video-list-container"
+				hx-swap="innerHTML"
+				class="inline-flex items-center justify-center w-10 h-10 text-gray-600 transition border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400"
+			>
+				<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+				</svg>
+			</button>
+			<button
+				hx-get="/web/videos/list?page=last"
+				hx-target="#video-list-container"
+				hx-swap="innerHTML"
+				class="inline-flex items-center justify-center w-10 h-10 text-gray-600 transition border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400"
+			>
+				<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414zm6 0a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 11-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+				</svg>
+			</button>
+		</div>
 	</div>
 }
 
@@ -220,6 +384,21 @@ func getTranscriptStatusClass(status string) string {
 	}
 }
 
+func getTranscriptStatusChipClass(status string) string {
+	switch status {
+	case "completed":
+		return "bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200"
+	case "processing":
+		return "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200"
+	case "failed":
+		return "bg-gradient-to-r from-red-100 to-red-50 text-red-700 border-red-200"
+	case "pending":
+		return "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-700 border-yellow-200"
+	default:
+		return "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200"
+	}
+}
+
 func formatDuration(seconds int) string {
 
 	hours := seconds / 3600
@@ -232,4 +411,39 @@ func formatDuration(seconds int) string {
 		return fmt.Sprintf("%dm %ds", minutes, secs)
 	}
 	return fmt.Sprintf("%ds", secs)
+}
+
+func formatFileSize(bytes int64) string {
+	const unit = 1024
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	div, exp := int64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.2f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+}
+
+func formatSeconds(seconds int64) string {
+	totalSeconds := float64(seconds)
+	if totalSeconds < 60 {
+		return fmt.Sprintf("%.2fs", totalSeconds)
+	}
+	minutes := int(totalSeconds) / 60
+	secs := int(totalSeconds) % 60
+	return fmt.Sprintf("%dm %ds", minutes, secs)
+}
+
+func formatTimestamp(seconds float64) string {
+	totalSeconds := int(seconds)
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds % 3600) / 60
+	secs := totalSeconds % 60
+
+	if hours > 0 {
+		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, secs)
+	}
+	return fmt.Sprintf("%d:%02d", minutes, secs)
 }

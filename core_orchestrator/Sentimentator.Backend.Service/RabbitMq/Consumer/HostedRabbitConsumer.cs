@@ -6,6 +6,9 @@ public class HostedRabbitConsumer(IRabbitConsumer rabbitConsumer) : BackgroundSe
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await rabbitConsumer.Receive("video.analysis.complete");
+        const string queueName = "video.analysis";
+        const string routingKey = "video.analysis.completed";
+
+        await rabbitConsumer.Receive(queueName, routingKey);
     }
 }

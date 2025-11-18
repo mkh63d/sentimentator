@@ -20,13 +20,19 @@ func NewMockWhisperStrategy() *MockWhisperStrategy {
 }
 
 func (m *MockWhisperStrategy) Name() string {
-	return "mock_whisper"
+	return "mock_whisper_api"
 }
 
 // GetTranscript returns mock Lorem Ipsum transcript data without making API calls
 func (m *MockWhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
+	minSeconds := int64(5)
+	maxSeconds := int64(15)
+
+	randomSeconds := minSeconds + rand.Int63n(maxSeconds-minSeconds+1)
+	randomDuration := time.Duration(randomSeconds) * time.Second
+
 	select {
-	case <-time.After(500 * time.Millisecond):
+	case <-time.After(randomDuration):
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -43,9 +49,14 @@ func (m *MockWhisperStrategy) GetTranscript(ctx context.Context, videoURL, platf
 	}
 
 	return &Result{
-		Text:     fullText,
-		Segments: segments,
-		Method:   models.MockMethodWhisper,
+		Text:                    fullText,
+		Segments:                segments,
+		Method:                  models.MockMethodWhisper,
+		DetectedLanguage:        "latin",
+		AudioExtractionDuration: -1,
+		TranscriptionDuration:   randomSeconds,
+		TotalProcessingDuration: randomSeconds,
+		AudioFileSizeBytes:      -1,
 	}, nil
 }
 

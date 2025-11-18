@@ -12,7 +12,13 @@ type Strategy interface {
 }
 
 type Result struct {
-	Text     string
-	Segments []models.Segment
-	Method   models.TranscriptMethod
+	Text             string
+	Segments         []models.Segment
+	Method           models.TranscriptMethod
+	DetectedLanguage string
+
+	AudioExtractionDuration int64
+	TranscriptionDuration   int64
+	TotalProcessingDuration int64
+	AudioFileSizeBytes      int64
 }

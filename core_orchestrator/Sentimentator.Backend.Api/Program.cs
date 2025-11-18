@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Scalar.AspNetCore;
 using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service;
+using Sentimentator.Backend.Service.Analysis;
+using Sentimentator.Backend.Service.Email;
 using Sentimentator.Backend.Service.RabbitMq.Consumer;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
 
@@ -14,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging
 
 builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Logging.AddConsole();
 
 #endregion
@@ -35,11 +39,27 @@ builder.Services
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
 
-        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedEmail = true;
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<SentimentatorContext>()
     .AddApiEndpoints();
+
+#endregion
+
+#region CORS
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:8000")
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 #endregion
 
@@ -79,7 +99,8 @@ builder.Services.AddOpenApi(options =>
 
 #region Services
 
-builder.Services.AddScoped<RabbitPublisher>();
+builder.Services.AddTransient<IEmailSender, ResendSender>();
+builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
 builder.Services.AddHostedService<HostedRabbitConsumer>();
@@ -93,6 +114,12 @@ var app = builder.Build();
 await using var scope = app.Services.CreateAsyncScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
 await dbContext.Database.EnsureCreatedAsync();
+
+#endregion
+
+#region CORS
+
+app.UseCors("AllowSpecificOrigin");
 
 #endregion
 
@@ -151,6 +178,11 @@ app.MapGroup("/account")
     .MapIdentityApi<User>()
     .WithTags("Identity")
     .AllowAnonymous();
+
+app.MapGroup("/users")
+    .MapUser()
+    .WithTags("Users")
+    .AddOperationBearerSecuritySchemeWithAuthorization();
 
 #endregion
 

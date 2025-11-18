@@ -4,51 +4,51 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Sentimentator.Backend.Model;
 
-namespace Sentimentator.Backend.Service;
+namespace Sentimentator.Backend.Service.Analysis;
 
 public class AnalysisService(
     SentimentatorContext context,
     UserManager<User> userManager,
     ILogger<AnalysisService> logger)
 {
-    public async Task<Analysis?> Add(string url)
+    private async Task<Model.Analysis?> Add(Uri uri)
     {
         try
         {
-            var analysis = new Analysis { Id = Guid.NewGuid(), Url = url };
+            var analysis = new Model.Analysis { Id = Guid.NewGuid(), Url = uri, CreatedAt = DateTime.UtcNow };
             context.Analyses.Add(analysis);
             await context.SaveChangesAsync();
-            logger.LogInformation("Added analysis {AnalysisId} for URL {Url}", analysis.Id, url);
+            logger.LogInformation("Added analysis {AnalysisId} for URL {Url}", analysis.Id, uri.ToString());
             return analysis;
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to add analysis for URL {Url}: {Error}", url, ex.Message);
+            logger.LogError("Failed to add analysis for URL {Url}: {Error}", uri.ToString(), ex.Message);
             return null;
         }
     }
 
-    public async Task<Analysis?> Add(ClaimsPrincipal principal, string url)
+    public async Task<Model.Analysis?> Add(ClaimsPrincipal principal, Uri uri)
     {
         try
         {
-            var analysis = await Add(url);
+            var analysis = await Add(uri);
             if (analysis is null) throw new Exception();
             var user = await userManager.GetUserAsync(principal);
             user!.Analyses.Add(analysis);
             await userManager.UpdateAsync(user);
             logger.LogInformation("Added analysis {AnalysisId} for URL {URL} associated with user {UserId}",
-                analysis.Id, url, user.Id);
+                analysis.Id, uri.ToString(), user.Id);
             return analysis;
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to add analysis for URL {Url}: {Error}", url, ex.Message);
+            logger.LogError("Failed to add analysis for URL {Url}: {Error}", uri.ToString(), ex.Message);
             return null;
         }
     }
 
-    public async Task<Analysis?> Get(Guid id)
+    public async Task<Model.Analysis?> Get(Guid id)
     {
         var a = await context.Analyses.FirstOrDefaultAsync(x => x.Id == id);
         if (a is null) logger.LogWarning("Analysis with ID {AnalysisId} not found", id);
@@ -56,20 +56,20 @@ public class AnalysisService(
         return a;
     }
 
-    public async Task<Analysis?> Get(string url)
+    public async Task<Model.Analysis?> Get(Uri uri)
     {
-        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url == url);
-        if (a is null) logger.LogWarning("Analysis with URL {Url} not found", url);
-        else logger.LogInformation("Retrieved analysis {AnalysisId} for URL {Url}", a.Id, url);
+        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url.Equals(uri));
+        if (a is null) logger.LogWarning("Analysis with URL {Url} not found", uri.ToString());
+        else logger.LogInformation("Retrieved analysis {AnalysisId} for URL {Url}", a.Id, uri.ToString());
         return a;
     }
 
-    public async Task<List<Analysis>> Get()
+    public async Task<List<Model.Analysis>> Get()
     {
         return await context.Analyses.ToListAsync();
     }
 
-    public async Task<bool> Update(Guid id, string transcription, string summary)
+    public async Task<bool> Update(Guid id, string transcription, string summary, DateTime updatedAt)
     {
         try
         {
@@ -82,6 +82,7 @@ public class AnalysisService(
 
             a.Transcription = transcription;
             a.Summary = summary;
+            a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
             logger.LogInformation("Updated analysis {AnalysisId}", id);
             return true;
@@ -93,26 +94,27 @@ public class AnalysisService(
         }
     }
 
-    public async Task<bool> Update(string url, string transcription, string summary)
+    public async Task<bool> Update(Uri uri, string transcription, string summary, DateTime updatedAt)
     {
         try
         {
-            var a = await Get(url);
+            var a = await Get(uri);
             if (a is null)
             {
-                logger.LogError("Failed to update analysis for URL {Url}: not found", url);
+                logger.LogError("Failed to update analysis for URL {Url}: not found", uri.ToString());
                 return false;
             }
 
             a.Transcription = transcription;
             a.Summary = summary;
+            a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
-            logger.LogInformation("Updated analysis {AnalysisId} for URL {Url}", a.Id, url);
+            logger.LogInformation("Updated analysis {AnalysisId} for URL {Url}", a.Id, uri.ToString());
             return true;
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to update analysis for URL {Url}: {Exception}", url, ex.Message);
+            logger.LogError("Failed to update analysis for URL {Url}: {Exception}", uri.ToString(), ex.Message);
             return false;
         }
     }
@@ -121,7 +123,7 @@ public class AnalysisService(
     {
         try
         {
-            var analysis = new Analysis { Id = id, Url = "" };
+            var analysis = new Model.Analysis { Id = id, Url = new Uri("about:blank") };
             context.Analyses.Attach(analysis);
             context.Analyses.Remove(analysis);
             await context.SaveChangesAsync();

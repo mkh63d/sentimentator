@@ -55,8 +55,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 			templ.Handler(component).ServeHTTP(c.Writer, c.Request)
 		})
 
-		wr.POST("/video/process", videoWebHandler.ProcessVideo)
-
 		wr.GET("/videos/list", videoWebHandler.ListVideos)
 
 		wr.GET("/debug/events", debugHandler.ServeDebugPage)

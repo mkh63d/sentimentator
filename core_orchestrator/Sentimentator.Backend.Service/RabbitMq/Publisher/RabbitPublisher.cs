@@ -4,20 +4,17 @@ using RabbitMQ.Client;
 
 namespace Sentimentator.Backend.Service.RabbitMq.Publisher;
 
-public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase
+public class RabbitPublisher(ILogger<RabbitPublisher> logger) : RabbitBase(logger), IRabbitPublisher
 {
-    private const string ExchangeName = "sentimentator.topic";
-
-    public async Task Send(string routingKey, string message)
+    public async Task Send(string queue, string routingKey, string message)
     {
-        await using var connection = await Factory.CreateConnectionAsync();
-        await using var channel = await connection.CreateChannelAsync();
-
-        await channel.ExchangeDeclareAsync(ExchangeName, "topic", durable: true, autoDelete: false);
+        await Channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+        await Channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false);
+        await Channel.QueueBindAsync(queue, ExchangeName, routingKey);
 
         var body = Encoding.UTF8.GetBytes(message);
 
-        await channel.BasicPublishAsync(ExchangeName, routingKey, body);
+        await Channel.BasicPublishAsync(ExchangeName, routingKey, body);
         logger.LogInformation("Message published to exchange {Exchange} with routing key {RoutingKey} at {Time} with message \"{Message}\"",
             ExchangeName, routingKey, DateTime.UtcNow.ToLongTimeString(), message);
     }

@@ -284,7 +284,6 @@ func TestYouTubePlatform_ExtractAudio(t *testing.T) {
 				t.Fatalf("ExtractAudio() error = %v", err)
 			}
 
-			// Cleanup downloaded file
 			defer func() {
 				if result.FilePath != "" {
 					os.Remove(result.FilePath)

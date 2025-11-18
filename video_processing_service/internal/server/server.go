@@ -35,6 +35,7 @@ func NewServer() (*Server, *http.Server) {
 	portEnv, exists := os.LookupEnv("PORT")
 	if !exists {
 		portEnv = "8080"
+		slog.Warn("PORT not set, using default", slog.String("port", portEnv))
 	}
 	port, err := strconv.Atoi(portEnv)
 	if err != nil {
@@ -54,9 +55,8 @@ func NewServer() (*Server, *http.Server) {
 
 	rabbitmq, err := messaging.NewRabbitMQ(messaging.Config{
 		URL:           rabbitmqURL,
-		MaxRetries:    2,
 		RetryDelay:    5 * time.Second,
-		PrefetchCount: 1,
+		PrefetchCount: 10,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to RabbitMQ: %v", err))
@@ -66,7 +66,6 @@ func NewServer() (*Server, *http.Server) {
 		panic(fmt.Sprintf("failed to setup RabbitMQ topology: %v", err))
 	}
 
-	// Initialize services
 	extractorService := extractor.NewService("")
 	transcriptService := transcript.NewService(extractorService)
 
@@ -108,22 +107,23 @@ func NewServer() (*Server, *http.Server) {
 
 // setupRabbitMQTopology declares exchanges, queues, and bindings
 func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
-	// Declare topic exchange
 	if err := rabbitmq.DeclareExchange(messaging.ExchangeTopic, "topic"); err != nil {
 		return fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
 	queues := []string{
-
 		messaging.QueueVideoProcessing,
-
 		messaging.QueueTranscript,
 	}
 
 	for _, queueName := range queues {
-		if _, err := rabbitmq.DeclareQueue(queueName); err != nil {
+		queue, err := rabbitmq.DeclareQueue(queueName)
+		if err != nil {
 			return fmt.Errorf("failed to declare queue %s: %w", queueName, err)
 		}
+		slog.Info("Declared queue",
+			slog.String("queue", queueName),
+			slog.Int("messages", queue.Messages))
 	}
 
 	bindings := map[string]string{

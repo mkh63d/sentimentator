@@ -80,7 +80,7 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 			"db_id", videoRecord.ID)
 	}
 
-	hasTranscript, existingTranscript, err := h.db.HasTranscript(ctx, videoRecord.ID, req.Language)
+	hasTranscript, existingTranscript, err := h.db.HasTranscript(ctx, videoRecord)
 	if err != nil {
 		slog.Error("failed to check for existing transcript", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check for existing transcript"})

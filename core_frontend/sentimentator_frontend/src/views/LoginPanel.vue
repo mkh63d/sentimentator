@@ -157,6 +157,7 @@ import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
 import { useAuthStore } from '@/stores/authStore';
 import { forgotPassword as apiForgotPassword } from '@/api/account';
+import { fireTimedAlert } from '@/lib/sweetAlerts';
 
 const emit = defineEmits(['login', 'register']);
 const router = useRouter();
@@ -202,6 +203,10 @@ async function handleSubmit() {
         await authStore.loginUser(form.value.email, form.value.password, false, false);
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
+        const errTitle = 'Login failed';
+        const errMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+        fireTimedAlert(errTitle, errMessage, 1000);
+        return;
       }
       emit('login', { email: form.value.email, password: form.value.password });
     } else {
@@ -209,6 +214,10 @@ async function handleSubmit() {
         await authStore.registerUser(form.value.email, form.value.password);
       } catch (e) {
         error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
+        const errTitle = 'Registration failed';
+        const errMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+        fireTimedAlert(errTitle, errMessage, 1000);
+        return;
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
@@ -228,8 +237,12 @@ function forgotPassword() {
   try {
     apiForgotPassword(form.value.email);
   } catch (err) {
-    alert('An error occurred while trying to reset the password.');
-    console.error(err);
+    const errTitle = 'Password Reset Failed';
+    const errMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+    fireTimedAlert(errTitle, errMessage, 1000);
+    return;
+    // alert('An error occurred while trying to reset the password.');
+    // console.error(err);
   }
   isForgotSent.value = true;
 }

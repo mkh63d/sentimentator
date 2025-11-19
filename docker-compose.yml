@@ -55,7 +55,7 @@ services:
     #         - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
-        build: ./core_frontend/sentimentator_frontend
+        build: ./core_frontend
         depends_on:
             orchestrator:
                 condition: service_started

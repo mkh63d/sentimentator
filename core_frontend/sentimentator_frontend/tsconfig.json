@@ -1,19 +1,18 @@
 {
   "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
     "target": "es6",
-    "module": "es6",
-    "moduleResolution": "Node",
+    "module": "preserve",
+    "lib": ["ES2017", "DOM"],
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["vite/client"],
+    "ignoreDeprecations": "6.0",
     "declaration": true,
     "declarationMap": true,
     "baseUrl": ".",
@@ -21,5 +20,13 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*", "vitest.setup.js"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*",
+    "vitest.setup.js",
+    "src/generated/schema.d.ts"
+  ]
 }

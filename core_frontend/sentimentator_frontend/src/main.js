@@ -1,14 +1,18 @@
-import './assets/main.css';
-
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 
 import App from './App.vue';
 import router from './router';
 
-const app = createApp(App);
+if (import.meta.env.VITE_DEMO_MODE === 'true') {
+  const { worker } = await import('./mocks/browser');
+  await worker.start({ onUnhandledRequest: 'warn' });
+}
 
-app.use(createPinia());
+const app = createApp(App);
+const pinia = createPinia();
+
+app.use(pinia);
 app.use(router);
 
 app.mount('#app');

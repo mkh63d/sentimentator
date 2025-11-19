@@ -17,13 +17,13 @@ html {
 
 [data-theme="light"] {
     --color-primary: #10a20b;
-    --color-secondary: hsl(210, 30%, 80%);
-    --color-tertiary: #3d4d5c;
-    --color-accent: hsl(350, 100%, 50%);
+    --color-secondary: #bdccdb;
+    --color-tertiary: #08415C;
+    --color-accent: #CC2936;
     --color-textBase: hsl(0, 0%, 9%);
-    --color-background: hsl(0, 0%, 100%);
+    --color-background: #F0F3BD;
     --color-fourth: #011936;
-} 
+}
 
 [data-theme="dark"] {
     --color-primary:hsl(350, 100%, 47%);

@@ -3,7 +3,14 @@ import type { paths } from '@generated/schema';
 import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
 import { getConfig } from '@/lib/runtimeConfig';
 
-const BASE_URL = getConfig().VITE_BACKEND_API;
+// Lazy-load BASE_URL
+let BASE_URL: string;
+function getBaseUrl(): string {
+  if (!BASE_URL) {
+    BASE_URL = getConfig().VITE_BACKEND_API;
+  }
+  return BASE_URL;
+}
 
 // Single-flight refresh lock
 let refreshing: Promise<boolean> | null = null;
@@ -14,7 +21,7 @@ async function doRefresh(refreshToken: string): Promise<boolean> {
 
   refreshing = (async () => {
     try {
-      const res = await fetch(`${BASE_URL}/account/refresh`, {
+      const res = await fetch(`${getBaseUrl()}/account/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -77,8 +84,13 @@ const authMiddleware: Middleware = {
 };
 
 export const api = createClient<paths>({
-  baseUrl: BASE_URL,
+  baseUrl: '', // Will be set dynamically
   credentials: 'include',
 });
+
+// Update baseUrl after config is loaded
+export function initializeApiClient() {
+  api.baseUrl = getBaseUrl();
+}
 
 api.use(authMiddleware);

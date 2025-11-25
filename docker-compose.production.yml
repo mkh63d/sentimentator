@@ -1,6 +1,7 @@
 services:
     orchestrator:
         image: ghcr.io/oskarowski/sentimentator/core_orchestrator:dev
+        pull_policy: always
         container_name: sentimentator-orchestrator
         restart: unless-stopped
         depends_on:
@@ -66,6 +67,7 @@ services:
 
     video-processing-service:
         image: ghcr.io/oskarowski/sentimentator/video_processing_service:dev
+        pull_policy: always
         container_name: sentimentator-vps
         restart: unless-stopped
         depends_on:
@@ -147,6 +149,7 @@ services:
 
     frontend:
         image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
+        pull_policy: always
         container_name: sentimentator-frontend
         restart: unless-stopped
         depends_on:

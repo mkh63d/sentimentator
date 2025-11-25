@@ -1,8 +1,9 @@
 import createClient, { type Middleware } from 'openapi-fetch';
 import type { paths } from '@generated/schema';
 import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
+import { getConfig } from '@/lib/runtimeConfig';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8081/api';
+const BASE_URL = getConfig().VITE_BACKEND_API;
 
 // Single-flight refresh lock
 let refreshing: Promise<boolean> | null = null;

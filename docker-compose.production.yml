@@ -18,6 +18,8 @@ services:
             - CORS_ALLOWED_ORIGIN=https://sentimentator.jdex.pl
         networks:
             - dokploy-network
+        volumes:
+            - orchestrator_keys:/root/.aspnet/DataProtection-Keys
         labels:
             - "traefik.enable=true"
             # HTTP to HTTPS redirect
@@ -260,4 +262,6 @@ volumes:
     postgres18_data:
         driver: local
     rabbitmq_data:
+        driver: local
+    orchestrator_keys:
         driver: local

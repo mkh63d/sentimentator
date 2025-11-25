@@ -65,6 +65,7 @@ services:
         environment:
             VITE_BACKEND_API: ${VITE_BACKEND_API}
             VITE_DEMO_MODE: ${VITE_DEMO_MODE}
+            VITE_REGISTER_ENABLED: ${VITE_REGISTER_ENABLED}
 
     rabbitmq:
         image: rabbitmq:4.1.4-management

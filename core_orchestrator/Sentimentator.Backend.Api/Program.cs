@@ -53,11 +53,25 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:8000")
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "https://sentimentator.jdex.pl"
+        };
+
+        var customOrigin = builder.Configuration["CORS_ALLOWED_ORIGIN"];
+        if (!string.IsNullOrWhiteSpace(customOrigin))
+        {
+            allowedOrigins.Add(customOrigin);
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .SetIsOriginAllowedToAllowWildcardSubdomains();
     });
 });
 

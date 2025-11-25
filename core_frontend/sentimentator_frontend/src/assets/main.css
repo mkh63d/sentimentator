@@ -1,35 +1,44 @@
-@import './base.css';
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+@import 'tailwindcss';
+html {
+  transition: background-color 0.3s, color 0.3s;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+
+@theme {
+  --color-primary: var(--theme-primary);
+  --color-secondary: var(--theme-secondary);
+  --color-tertiary: var(--theme-tertiary);
+  --color-accent: var(--theme-accent);
+  --color-background: var(--theme-background);
+  --color-textBase: var(--theme-textBase);
+  --color-fourth: var(--theme-fourth);
+
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+[data-theme="light"] {
+    --color-primary: #10a20b;
+    --color-secondary: hsl(210, 30%, 80%);
+    --color-tertiary: #3d4d5c;
+    --color-accent: hsl(350, 100%, 50%);
+    --color-textBase: hsl(0, 0%, 9%);
+    --color-background: hsl(0, 0%, 100%);
+    --color-fourth: #011936;
+} 
+
+[data-theme="dark"] {
+    --color-primary:hsl(350, 100%, 47%);
+    --color-secondary: hsl(210, 20%, 30%);
+    --color-tertiary: hsl(210, 30%, 80%);
+    --color-accent:  hsl(92, 100%, 50%);
+    --color-textBase: hsl(0, 0%, 100%);
+    --color-background: hsl(0, 0%, 9%);
+    --color-fourth: #011936;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

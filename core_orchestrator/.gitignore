@@ -1,0 +1,72 @@
+# .gitignore for a .NET project (JetBrains Rider / Visual Studio)
+# Ignore build outputs
+**/bin/
+**/obj/
+out/
+artifacts/
+publish/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+*.DotSettings.user
+.idea/**/workspace.xml
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# dotnet
+project.lock.json
+project.fragment.lock.json
+*.deps.json
+*.runtimeconfig.json
+
+# Logs, temp, and caches
+*.log
+*.cache
+*.pid
+
+# Local configuration and secrets
+appsettings.Development.json
+secrets.json
+local.settings.json
+
+# Certificates and keys
+*.pfx
+*.key
+*.cer
+
+# Test results & coverage
+TestResults/
+coverage/
+coverage.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor swap/backup files
+*~
+*.swp
+*.swo
+
+# VS Code
+.vscode/
+
+# Misc
+*.vsix
+
+# Keep EF migrations and source files tracked (do not ignore Model/Migrations folders)
+# (If you want to ignore specific generated files add them explicitly above)
+

@@ -1,0 +1,33 @@
+{
+    "name": "sentiment-analyzer-placeholder-service",
+    "version": "1.0.0",
+    "description": "Mock sentiment analyzer service that consumes transcripts and publishes sentiment analysis results",
+    "main": "src/index.ts",
+    "type": "module",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "start": "tsx src/index.ts",
+        "build": "tsc"
+    },
+    "keywords": [
+        "sentiment-analysis",
+        "nlp",
+        "mock-service",
+        "rabbitmq"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "amqplib": "^0.10.4",
+        "dotenv": "^16.6.1"
+    },
+    "devDependencies": {
+        "@types/amqplib": "^0.10.4",
+        "@types/node": "^22.0.0",
+        "tsx": "^4.7.0",
+        "typescript": "^5.5.0"
+    },
+    "engines": {
+        "node": ">=24"
+    }
+}

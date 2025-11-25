@@ -1,0 +1,259 @@
+services:
+    orchestrator:
+        image: ghcr.io/oskarowski/sentimentator/core_orchestrator:dev
+        container_name: sentimentator-orchestrator
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+        environment:
+            - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
+            - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
+            - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ASPNETCORE_ENVIRONMENT=Production
+            - ASPNETCORE_URLS=http://+:80
+            - CORS_ALLOWED_ORIGIN=https://sentimentator.jdex.pl
+        networks:
+            - dokploy-network
+        labels:
+            - "traefik.enable=true"
+            # HTTP to HTTPS redirect
+            - "traefik.http.routers.orchestrator-http.rule=Host(`sentimentator.api.jdex.pl`)"
+            - "traefik.http.routers.orchestrator-http.entrypoints=web"
+            - "traefik.http.routers.orchestrator-http.middlewares=redirect-to-https"
+            - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+            - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+            # HTTPS Router
+            - "traefik.http.routers.orchestrator.rule=Host(`sentimentator.api.jdex.pl`)"
+            - "traefik.http.routers.orchestrator.entrypoints=websecure"
+            - "traefik.http.routers.orchestrator.tls=true"
+            - "traefik.http.routers.orchestrator.tls.certresolver=letsencrypt"
+            # Service
+            - "traefik.http.services.orchestrator.loadbalancer.server.port=80"
+            # CORS Middleware
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,X-Requested-With"
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolalloworiginlist=https://sentimentator.jdex.pl"
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowcredentials=true"
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolmaxage=100"
+            - "traefik.http.middlewares.orchestrator-cors.headers.addvaryheader=true"
+            # Security Headers
+            - "traefik.http.middlewares.orchestrator-security.headers.stsSeconds=31536000"
+            - "traefik.http.middlewares.orchestrator-security.headers.stsIncludeSubdomains=true"
+            - "traefik.http.middlewares.orchestrator-security.headers.stsPreload=true"
+            - "traefik.http.middlewares.orchestrator-security.headers.forceSTSHeader=true"
+            - "traefik.http.middlewares.orchestrator-security.headers.frameDeny=true"
+            - "traefik.http.middlewares.orchestrator-security.headers.contentTypeNosniff=true"
+            - "traefik.http.middlewares.orchestrator-security.headers.browserXssFilter=true"
+            # Apply Middlewares
+            - "traefik.http.routers.orchestrator.middlewares=orchestrator-cors,orchestrator-security"
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "--quiet",
+                    "--tries=1",
+                    "--spider",
+                    "http://localhost:80/health",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+    video-processing-service:
+        image: ghcr.io/oskarowski/sentimentator/video_processing_service:dev
+        container_name: sentimentator-vps
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+        environment:
+            - PORT=8080
+            - APP_ENV=production
+            - SENTIMENTATOR_VPS_DB_HOST=postgres
+            - SENTIMENTATOR_VPS_DB_PORT=5432
+            - SENTIMENTATOR_VPS_DB_DATABASE=video_processing_db
+            - SENTIMENTATOR_VPS_DB_SCHEMA=public
+            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
+            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
+            - AMQP_URL=${AMQP_URL}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
+            - MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS=${MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS}
+        networks:
+            - dokploy-network
+        labels:
+            - "traefik.enable=true"
+            # HTTP to HTTPS redirect
+            - "traefik.http.routers.vps-http.rule=Host(`sentimentator.vps.jdex.pl`)"
+            - "traefik.http.routers.vps-http.entrypoints=web"
+            - "traefik.http.routers.vps-http.middlewares=redirect-to-https"
+            # HTTPS Router
+            - "traefik.http.routers.vps.rule=Host(`sentimentator.vps.jdex.pl`)"
+            - "traefik.http.routers.vps.entrypoints=websecure"
+            - "traefik.http.routers.vps.tls=true"
+            - "traefik.http.routers.vps.tls.certresolver=letsencrypt"
+            # Service
+            - "traefik.http.services.vps.loadbalancer.server.port=8080"
+            # Security Headers
+            - "traefik.http.middlewares.vps-security.headers.stsSeconds=31536000"
+            - "traefik.http.middlewares.vps-security.headers.stsIncludeSubdomains=true"
+            - "traefik.http.middlewares.vps-security.headers.stsPreload=true"
+            - "traefik.http.middlewares.vps-security.headers.forceSTSHeader=true"
+            - "traefik.http.middlewares.vps-security.headers.frameDeny=true"
+            - "traefik.http.middlewares.vps-security.headers.contentTypeNosniff=true"
+            - "traefik.http.middlewares.vps-security.headers.browserXssFilter=true"
+            # Apply Middlewares
+            - "traefik.http.routers.vps.middlewares=vps-security"
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "--quiet",
+                    "--tries=1",
+                    "--spider",
+                    "http://localhost:8080/health",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+    sentiment-analyzer-placeholder-service:
+        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer_placeholder_service:dev
+        container_name: sentimentator-nlp
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+        environment:
+            - RABBITMQ_URL=${AMQP_URL}
+            - TRANSCRIPT_QUEUE=video.transcript
+            - ANALYSIS_EXCHANGE=sentimentator.topic
+            - ANALYSIS_QUEUE=video.analysis
+            - ANALYSIS_ROUTING_KEY=video.analysis.completed
+            - LOG_LEVEL=info
+        networks:
+            - dokploy-network
+        labels:
+            - "traefik.enable=false"
+
+    frontend:
+        image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
+        container_name: sentimentator-frontend
+        restart: unless-stopped
+        depends_on:
+            orchestrator:
+                condition: service_started
+        environment:
+            - VITE_BACKEND_API=https://sentimentator.api.jdex.pl
+            - VITE_DEMO_MODE=${VITE_DEMO_MODE}
+        networks:
+            - dokploy-network
+        labels:
+            - "traefik.enable=true"
+            # HTTP to HTTPS redirect
+            - "traefik.http.routers.frontend-http.rule=Host(`sentimentator.jdex.pl`)"
+            - "traefik.http.routers.frontend-http.entrypoints=web"
+            - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
+            # HTTPS Router
+            - "traefik.http.routers.frontend.rule=Host(`sentimentator.jdex.pl`)"
+            - "traefik.http.routers.frontend.entrypoints=websecure"
+            - "traefik.http.routers.frontend.tls=true"
+            - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+            # Service
+            - "traefik.http.services.frontend.loadbalancer.server.port=8000"
+            # Security Headers
+            - "traefik.http.middlewares.frontend-security.headers.stsSeconds=31536000"
+            - "traefik.http.middlewares.frontend-security.headers.stsIncludeSubdomains=true"
+            - "traefik.http.middlewares.frontend-security.headers.stsPreload=true"
+            - "traefik.http.middlewares.frontend-security.headers.forceSTSHeader=true"
+            - "traefik.http.middlewares.frontend-security.headers.contentTypeNosniff=true"
+            - "traefik.http.middlewares.frontend-security.headers.browserXssFilter=true"
+            - "traefik.http.middlewares.frontend-security.headers.customFrameOptionsValue=SAMEORIGIN"
+            # Apply Middlewares
+            - "traefik.http.routers.frontend.middlewares=frontend-security"
+
+    rabbitmq:
+        image: rabbitmq:4.1.4-management
+        container_name: sentimentator-rabbitmq
+        restart: unless-stopped
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+        networks:
+            - dokploy-network
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        labels:
+            - "traefik.enable=true"
+            # HTTP to HTTPS redirect
+            - "traefik.http.routers.rabbitmq-http.rule=Host(`sentimentator.rabbitmq.jdex.pl`)"
+            - "traefik.http.routers.rabbitmq-http.entrypoints=web"
+            - "traefik.http.routers.rabbitmq-http.middlewares=redirect-to-https"
+            # HTTPS Router for Management UI
+            - "traefik.http.routers.rabbitmq.rule=Host(`sentimentator.rabbitmq.jdex.pl`)"
+            - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+            - "traefik.http.routers.rabbitmq.tls=true"
+            - "traefik.http.routers.rabbitmq.tls.certresolver=letsencrypt"
+            - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+            # Basic Auth for Management UI
+            - "traefik.http.middlewares.rabbitmq-auth.basicauth.users=${RABBITMQ_ADMIN_AUTH}"
+            # Security Headers
+            - "traefik.http.middlewares.rabbitmq-security.headers.stsSeconds=31536000"
+            - "traefik.http.middlewares.rabbitmq-security.headers.stsIncludeSubdomains=true"
+            - "traefik.http.middlewares.rabbitmq-security.headers.stsPreload=true"
+            - "traefik.http.middlewares.rabbitmq-security.headers.forceSTSHeader=true"
+            - "traefik.http.middlewares.rabbitmq-security.headers.frameDeny=true"
+            - "traefik.http.middlewares.rabbitmq-security.headers.contentTypeNosniff=true"
+            # Apply Middlewares
+            - "traefik.http.routers.rabbitmq.middlewares=rabbitmq-auth,rabbitmq-security"
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+    postgres:
+        image: postgres:18
+        container_name: sentimentator-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+            ORCHESTRATOR_DB_USER: ${ORCHESTRATOR_DB_USER}
+            ORCHESTRATOR_DB_PASS: ${ORCHESTRATOR_DB_PASS}
+            VPS_DB_USER: ${VPS_DB_USER}
+            VPS_DB_PASS: ${VPS_DB_PASS}
+        networks:
+            - dokploy-network
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+        labels:
+            - "traefik.enable=false"
+
+networks:
+    dokploy-network:
+        external: true
+
+volumes:
+    postgres_data:
+        driver: local
+    rabbitmq_data:
+        driver: local

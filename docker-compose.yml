@@ -29,8 +29,9 @@ services:
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
             - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
             - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
-            - OPENAI_API_KEY=${OPENAI_API_KEY}
             - AMQP_URL=${AMQP_URL}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
         ports:
             - "8080:8080"
 

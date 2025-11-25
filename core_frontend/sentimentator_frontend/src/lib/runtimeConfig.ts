@@ -1,6 +1,7 @@
 interface RuntimeConfig {
   VITE_BACKEND_API: string;
   VITE_DEMO_MODE: string;
+  VITE_REGISTER_ENABLED: string;
 }
 
 let configCache: RuntimeConfig | null = null;
@@ -34,6 +35,7 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
       configCache = {
         VITE_BACKEND_API: import.meta.env.VITE_BACKEND_API || 'http://localhost:8081/api',
         VITE_DEMO_MODE: import.meta.env.VITE_DEMO_MODE || 'false',
+        VITE_REGISTER_ENABLED: import.meta.env.VITE_REGISTER_ENABLED || 'false',
       };
       return configCache;
     }

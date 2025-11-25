@@ -36,13 +36,6 @@ services:
             - "traefik.http.routers.orchestrator.tls.certresolver=letsencrypt"
             # Service
             - "traefik.http.services.orchestrator.loadbalancer.server.port=80"
-            # CORS Middleware
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowheaders=Accept,Authorization,Content-Type,X-Requested-With,Origin,User-Agent,Sec-Fetch-Mode,Sec-Fetch-Site,Sec-Fetch-Dest,sec-ch-ua,sec-ch-ua-mobile,sec-ch-ua-platform"
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolalloworiginlist=https://sentimentator.jdex.pl"
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowcredentials=true"
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolmaxage=100"
-            - "traefik.http.middlewares.orchestrator-cors.headers.addvaryheader=true"
             # Security Headers
             - "traefik.http.middlewares.orchestrator-security.headers.stsSeconds=31536000"
             - "traefik.http.middlewares.orchestrator-security.headers.stsIncludeSubdomains=true"
@@ -52,7 +45,7 @@ services:
             - "traefik.http.middlewares.orchestrator-security.headers.contentTypeNosniff=true"
             - "traefik.http.middlewares.orchestrator-security.headers.browserXssFilter=true"
             # Apply Middlewares
-            - "traefik.http.routers.orchestrator.middlewares=orchestrator-cors,orchestrator-security"
+            - "traefik.http.routers.orchestrator.middlewares=orchestrator-security"
         healthcheck:
             test:
                 [

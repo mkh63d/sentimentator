@@ -38,7 +38,7 @@ services:
             - "traefik.http.services.orchestrator.loadbalancer.server.port=80"
             # CORS Middleware
             - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
-            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,X-Requested-With"
+            - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowheaders=Accept,Authorization,Content-Type,X-Requested-With,Origin,User-Agent,Sec-Fetch-Mode,Sec-Fetch-Site,Sec-Fetch-Dest,sec-ch-ua,sec-ch-ua-mobile,sec-ch-ua-platform"
             - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolalloworiginlist=https://sentimentator.jdex.pl"
             - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolallowcredentials=true"
             - "traefik.http.middlewares.orchestrator-cors.headers.accesscontrolmaxage=100"

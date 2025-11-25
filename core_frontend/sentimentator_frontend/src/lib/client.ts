@@ -83,14 +83,24 @@ const authMiddleware: Middleware = {
   },
 };
 
-export const api = createClient<paths>({
-  baseUrl: '', // Will be set dynamically
-  credentials: 'include',
-});
+let _api: ReturnType<typeof createClient<paths>> | null = null;
 
-// Update baseUrl after config is loaded
+// Initialize and return API client (creates once after config loads)
 export function initializeApiClient() {
-  api.baseUrl = getBaseUrl();
+  if (!_api) {
+    _api = createClient<paths>({
+      baseUrl: getBaseUrl(),
+      credentials: 'include',
+    });
+    _api.use(authMiddleware);
+  }
+  return _api;
 }
 
-api.use(authMiddleware);
+// Export api getter that ensures client is initialized
+export const api = new Proxy({} as ReturnType<typeof createClient<paths>>, {
+  get(target, prop) {
+    const client = _api || initializeApiClient();
+    return client[prop as keyof typeof client];
+  },
+});

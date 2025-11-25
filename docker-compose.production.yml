@@ -13,7 +13,8 @@ services:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
             - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
-            # - ASPNETCORE_ENVIRONMENT=Production
+            - ASPNETCORE_ENVIRONMENT=Production
+            - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
             - ASPNETCORE_URLS=http://+:80
             - CORS_ALLOWED_ORIGIN=https://sentimentator.jdex.pl
         networks:

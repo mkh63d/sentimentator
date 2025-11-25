@@ -36,17 +36,17 @@ class SentimentAnalysisService:
 
         while self._running:
             print("[*] Waiting for next transcript message...")
-            if not self.consumer.wait_for_message(timeout=5):  # Shorter timeout for responsiveness
+            if not self.consumer.wait_for_message(timeout=None):  # Shorter timeout for responsiveness
                 continue
 
-            video_id = self.consumer.get_video_id()
+            analysis_id = self.consumer.get_analysis_id()
             text = self.consumer.get_text()
 
-            if not video_id or not text:
+            if not analysis_id or not text:
                 print("[!] Received invalid or incomplete message, skipping...")
                 continue
 
-            print(f"[*] Analyzing text for video: {video_id}")
+            print(f"[*] Analyzing text for video: {analysis_id}")
             try:
                 feature_results = self.features.detect_features(text)
                 print(f"[*] Detected features: {list(feature_results.keys())}")
@@ -54,11 +54,11 @@ class SentimentAnalysisService:
                 sentiment_results = self.sentiments.analyze_feature_sentiments(feature_results)
                 print(f"[*] Generated sentiment results")
                 
-                self.publisher.publish_analysis(video_id, sentiment_results)
-                print(f"[*] Published analysis for video {video_id}")
+                self.publisher.publish_analysis(analysis_id, sentiment_results)
+                print(f"[*] Published analysis for video {analysis_id}")
                 
             except Exception as e:
-                print(f"[*] Error processing video {video_id}: {e}")
+                print(f"[*] Error processing video {analysis_id}: {e}")
                 
     def start(self):
         """Start the service in a background thread."""

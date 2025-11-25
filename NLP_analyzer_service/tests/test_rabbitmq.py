@@ -22,7 +22,7 @@ def test_rabbit_communication():
     channel.queue_bind(exchange=EXCHANGE, queue=QUEUE, routing_key=ROUTING_KEY)
 
     # Message to send
-    test_message = {"video_id": 999, "transcript": "Integration test transcript."}
+    test_message = {"analysis_id": 999, "transcript": "Integration test transcript."}
 
     # Publish message
     channel.basic_publish(

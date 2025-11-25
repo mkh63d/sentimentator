@@ -7,7 +7,7 @@ import time
 RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"
 EXCHANGE = "events"
 QUEUE = "transcripts_queue"
-ROUTING_KEY = "video.transcript.ready"
+ROUTING_KEY = "video.transcript.completed"
 
 
 class RabbitConsumer:
@@ -40,7 +40,7 @@ class RabbitConsumer:
     def _on_message(self, ch, method, properties, body):
         try:
             data = json.loads(body)
-            print(f"[📥] Received message for video: {data.get('video_id', 'unknown')}")
+            print(f"[*] Received message for video: {data.get('analysis_id', 'unknown')}")
             
             with self._lock:
                 self._latest_message = data
@@ -61,7 +61,7 @@ class RabbitConsumer:
             return False
             
         def _consume():
-            print("[*] Waiting for 'video.transcript.ready' messages...")
+            print("[*] Waiting for 'video.transcript.completed' messages...")
             try:
                 self.channel.basic_consume(queue=QUEUE, on_message_callback=self._on_message)
                 self._consuming = True
@@ -82,9 +82,9 @@ class RabbitConsumer:
             self._new_message_event.clear()
         return received
 
-    def get_video_id(self):
+    def get_analysis_id(self):
         with self._lock:
-            return self._latest_message.get("video_id") if self._latest_message else None
+            return self._latest_message.get("analysis_id") if self._latest_message else None
 
     def get_text(self):
         with self._lock:

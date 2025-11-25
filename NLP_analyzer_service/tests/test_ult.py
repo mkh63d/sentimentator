@@ -14,8 +14,8 @@ from NLP_service import SentimentAnalysisService
 
 RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"
 EXCHANGE = "events"
-SENDING_ROUTING_KEY = "video.transcript.ready"
-RESULT_QUEUE = "video.analysis.complete"
+SENDING_ROUTING_KEY = "video.transcript.completed"
+RESULT_QUEUE = "video.analysis.completed"
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "../resources")
 MOCK_TRANSCRIPT_PATH = os.path.join(RESOURCE_DIR, "review_text.txt")
@@ -31,8 +31,8 @@ EXPECTED_ANALYSIS = {
 # ---------------- Helpers ----------------
 class MockSender:
     """Sends a transcript to RabbitMQ like a video event."""
-    def __init__(self, video_id=1):
-        self.video_id = video_id
+    def __init__(self, analysis_id=1):
+        self.analysis_id = analysis_id
 
     def send(self):
         with open(MOCK_TRANSCRIPT_PATH, "r", encoding="utf-8") as f:
@@ -40,9 +40,9 @@ class MockSender:
         
         # Use the format expected by the consumer
         message = {
-            "video_id": self.video_id, 
+            "analysis_id": self.analysis_id, 
             "transcript": transcript,
-            "event": "video.transcript.ready"  # Add event type
+            "event": "video.transcript.completed"  # Add event type
         }
 
         connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
@@ -58,7 +58,7 @@ class MockSender:
             )
         )
         connection.close()
-        print(f"[*] Sent message for video {self.video_id}")
+        print(f"[*] Sent message for video {self.analysis_id}")
         return message
 
 
@@ -79,7 +79,7 @@ class MockReceiver:
         if method_frame:
             result = json.loads(body)
             channel.basic_ack(method_frame.delivery_tag)
-            print(f"[*] Received analysis result for video {result.get('video_id', 'unknown')}")
+            print(f"[*] Received analysis result for video {result.get('analysis_id', 'unknown')}")
         else:
             print("[*] No message received from analysis queue")
             
@@ -100,9 +100,9 @@ def test_ultimate_sentiment_pipeline():
 
     try:
         # Send the transcript
-        sender = MockSender(video_id=1)
+        sender = MockSender(analysis_id=1)
         sent_message = sender.send()
-        video_id = sent_message["video_id"]
+        analysis_id = sent_message["analysis_id"]
 
         # Wait a bit for processing
         time.sleep(5)
@@ -113,7 +113,7 @@ def test_ultimate_sentiment_pipeline():
 
         # --- Assertions ---
         assert received is not None, "No message received from service"
-        assert received.get("video_id") == video_id, f"Video ID mismatch: {received.get('video_id')} != {video_id}"
+        assert received.get("analysis_id") == analysis_id, f"Video ID mismatch: {received.get('analysis_id')} != {analysis_id}"
         
         data = received.get("data", {})
         assert data, "No data in received message"

@@ -17,14 +17,14 @@ class RabbitPublisher:
             self.params = pika.URLParameters(self.rabbit_url)
             self.connection = pika.BlockingConnection(self.params)
             self.channel = self.connection.channel()
-            self.queue_name = "video.analysis.complete"
+            self.queue_name = "video.analysis.completed"
             self.channel.queue_declare(queue=self.queue_name, durable=True)
-            print("[✓] RabbitMQ publisher connected")
+            print("[*] RabbitMQ publisher connected")
         except Exception as e:
             print(f"[!] Failed to connect RabbitMQ publisher: {e}")
             raise
 
-    def publish_analysis(self, video_id: str, sentiment_results: dict):
+    def publish_analysis(self, analysis_id: str, sentiment_results: dict):
         """
         Publish structured sentiment analysis result as JSON.
         """
@@ -34,8 +34,8 @@ class RabbitPublisher:
             self._connect()
 
         message = {
-            "event": "video.analysis.complete",
-            "video_id": video_id,
+            "event": "video.analysis.completed",
+            "analysis_id": analysis_id,
             "data": sentiment_results,
         }
 
@@ -50,7 +50,7 @@ class RabbitPublisher:
                     content_type="application/json"
                 ),
             )
-            print(f"[*] Published sentiment analysis for {video_id} to {self.queue_name}")
+            print(f"[*] Published sentiment analysis for {analysis_id} to {self.queue_name}")
         except Exception as e:
             print(f"[*] Failed to publish message: {e}")
             # Try to reconnect and retry once
@@ -65,7 +65,7 @@ class RabbitPublisher:
                         content_type="application/json"
                     ),
                 )
-                print(f"[*] Published sentiment analysis for {video_id} (after reconnect)")
+                print(f"[*] Published sentiment analysis for {analysis_id} (after reconnect)")
             except Exception as retry_error:
                 print(f"[*] Failed to publish even after reconnect: {retry_error}")
                 raise

@@ -54,7 +54,7 @@ public class AnalysisService(
 
     public async Task<Model.Analysis?> Get(Guid id)
     {
-        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Id == id);
+        var a = await context.Analyses.Include(x => x.Users).FirstOrDefaultAsync(x => x.Id == id);
         if (a is null) logger.LogWarning("Analysis with ID {AnalysisId} not found", id);
         else logger.LogInformation("Retrieved analysis {AnalysisId}", id);
         return a;
@@ -62,7 +62,7 @@ public class AnalysisService(
 
     public async Task<Model.Analysis?> Get(Uri uri)
     {
-        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url.Equals(uri));
+        var a = await context.Analyses.Include(x => x.Users).FirstOrDefaultAsync(x => x.Url.Equals(uri));
         if (a is null) logger.LogWarning("Analysis with URL {Url} not found", uri.ToString());
         else logger.LogInformation("Retrieved analysis {AnalysisId} for URL {Url}", a.Id, uri.ToString());
         return a;

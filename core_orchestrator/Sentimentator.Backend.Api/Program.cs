@@ -6,7 +6,6 @@ using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
-using Sentimentator.Backend.Service;
 using Sentimentator.Backend.Service.Analysis;
 using Sentimentator.Backend.Service.Email;
 using Sentimentator.Backend.Service.RabbitMq.Consumer;

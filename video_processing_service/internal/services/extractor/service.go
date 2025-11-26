@@ -46,6 +46,7 @@ type VideoMetadata struct {
 	HasCaptions               bool
 	AvailableCaptionLanguages []string
 	OriginalURL               string
+	ThumbnailURL              string
 }
 
 type Segment struct {

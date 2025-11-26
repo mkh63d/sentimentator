@@ -288,11 +288,12 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 	videoRecord, err := c.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
 	if err != nil {
 		videoRecord = &models.Video{
-			VideoID:     metadata.VideoID,
-			Platform:    metadata.Platform,
-			OriginalURL: event.URL,
-			Title:       metadata.Title,
-			Duration:    metadata.Duration,
+			VideoID:      metadata.VideoID,
+			Platform:     metadata.Platform,
+			OriginalURL:  event.URL,
+			Title:        metadata.Title,
+			Duration:     metadata.Duration,
+			ThumbnailURL: metadata.ThumbnailURL,
 		}
 
 		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {

@@ -49,8 +49,9 @@ public static class AnalysisGroup
                             break;
                     }
                     
-                    var user = await userManager.GetUserAsync(principal);
+                    
                     var analysis = await service.Get(uri.uri!);
+                    var user = await userManager.GetUserAsync(principal);
                     if (analysis is null) return Results.NotFound();
                     return user!.Analyses.Contains(analysis) ? Results.Ok(analysis) : Results.NotFound();
                 })
@@ -60,8 +61,8 @@ public static class AnalysisGroup
 
         group.MapGet("/", async (AnalysisService service, UserManager<User> userManager, ClaimsPrincipal principal) =>
             {
-                var user = await userManager.GetUserAsync(principal);
                 await service.Get();
+                var user = await userManager.GetUserAsync(principal);
                 var analyses = user!.Analyses.Select(x => x).ToList();
                 return Results.Ok(analyses);
             })

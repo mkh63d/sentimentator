@@ -22,6 +22,12 @@ builder.Logging.AddConsole();
 
 #endregion
 
+#region Json
+
+
+
+#endregion
+
 #region Identity
 
 builder.Services.AddDbContext<SentimentatorContext>();
@@ -116,7 +122,7 @@ var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>()
 await dbContext.Database.EnsureCreatedAsync();
 
 #endregion
-
+    
 #region CORS
 
 app.UseCors("AllowSpecificOrigin");

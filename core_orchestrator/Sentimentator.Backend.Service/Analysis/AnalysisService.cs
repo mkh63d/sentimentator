@@ -32,8 +32,12 @@ public class AnalysisService(
     {
         try
         {
-            var analysis = await Add(uri);
-            if (analysis is null) throw new Exception();
+            var analysis = await Get(uri);
+            if (analysis is null)
+            {
+                analysis = await Add(uri);
+                if (analysis is null) throw new Exception();
+            }
             var user = await userManager.GetUserAsync(principal);
             user!.Analyses.Add(analysis);
             await userManager.UpdateAsync(user);
@@ -66,7 +70,7 @@ public class AnalysisService(
 
     public async Task<List<Model.Analysis>> Get()
     {
-        return await context.Analyses.ToListAsync();
+        return await context.Analyses.Include(x => x.Users).ToListAsync();
     }
 
     public async Task<bool> Update(Guid id, string transcription, string summary, DateTime updatedAt)

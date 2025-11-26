@@ -47,9 +47,9 @@ services:
             - OPENAI_API_KEY=${OPENAI_API_KEY}
             - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
             - MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS=${MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS}
-            - YOUTUBE_COOKIES_PATH=/app/youtube_cookies.txt
+            - YOUTUBE_COOKIES_PATH=/app/files/youtube_cookies.txt
         volumes:
-            - ../files/youtube_cookies.txt:/app/youtube_cookies.txt
+            - ../files:/app/files:ro
         networks:
             - dokploy-network
             - internal-net

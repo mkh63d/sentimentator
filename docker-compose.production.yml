@@ -1,0 +1,147 @@
+services:
+    orchestrator:
+        image: ghcr.io/oskarowski/sentimentator/core_orchestrator:dev
+        pull_policy: always
+        container_name: sentimentator-orchestrator
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+        environment:
+            - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
+            - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
+            - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ASPNETCORE_URLS=http://+:80
+        networks:
+            - dokploy-network
+            - internal-net
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.sentimentator-api.rule=Host(`sentimentator.api.jdex.pl`)"
+            - "traefik.http.routers.sentimentator-api.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-api.tls.certresolver=letsencrypt"
+            - "traefik.http.services.sentimentator-api.loadbalancer.server.port=80"
+
+    video-processing-service:
+        image: ghcr.io/oskarowski/sentimentator/video_processing_service:dev
+        pull_policy: always
+        container_name: sentimentator-vps
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+        environment:
+            - PORT=8080
+            - APP_ENV=production
+            - SENTIMENTATOR_VPS_DB_HOST=postgres
+            - SENTIMENTATOR_VPS_DB_PORT=5432
+            - SENTIMENTATOR_VPS_DB_DATABASE=video_processing_db
+            - SENTIMENTATOR_VPS_DB_SCHEMA=public
+            - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
+            - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
+            - AMQP_URL=${AMQP_URL}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
+            - MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS=${MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS}
+        networks:
+            - dokploy-network
+            - internal-net
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.sentimentator-vps.rule=Host(`sentimentator.vps.jdex.pl`)"
+            - "traefik.http.routers.sentimentator-vps.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-vps.tls.certresolver=letsencrypt"
+            - "traefik.http.services.sentimentator-vps.loadbalancer.server.port=8080"
+
+    sentiment-analyzer-placeholder-service:
+        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer_placeholder_service:dev
+        container_name: sentimentator-analyzer
+        restart: unless-stopped
+        depends_on:
+            rabbitmq:
+                condition: service_started
+        environment:
+            - RABBITMQ_URL=${AMQP_URL}
+            - TRANSCRIPT_QUEUE=video.transcript
+            - ANALYSIS_EXCHANGE=sentimentator.topic
+            - ANALYSIS_QUEUE=video.analysis
+            - ANALYSIS_ROUTING_KEY=video.analysis.completed
+            - LOG_LEVEL=info
+        networks:
+            - internal-net
+
+    frontend:
+        image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
+        pull_policy: always
+        container_name: sentimentator-frontend
+        restart: unless-stopped
+        depends_on:
+            orchestrator:
+                condition: service_started
+        environment:
+            - VITE_BACKEND_API=https://sentimentator.api.jdex.pl
+            - VITE_DEMO_MODE=false
+            - VITE_REGISTER_ENABLED=${VITE_REGISTER_ENABLED}
+        networks:
+            - dokploy-network
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.sentimentator-front.rule=Host(`sentimentator.jdex.pl`)"
+            - "traefik.http.routers.sentimentator-front.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-front.tls.certresolver=letsencrypt"
+            - "traefik.http.services.sentimentator-front.loadbalancer.server.port=8000"
+
+    rabbitmq:
+        image: rabbitmq:4.1.4-management
+        container_name: sentimentator-rabbitmq
+        restart: unless-stopped
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - internal-net
+
+    postgres:
+        image: postgres:18
+        container_name: sentimentator-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+            ORCHESTRATOR_DB_USER: ${ORCHESTRATOR_DB_USER}
+            ORCHESTRATOR_DB_PASS: ${ORCHESTRATOR_DB_PASS}
+            VPS_DB_USER: ${VPS_DB_USER}
+            VPS_DB_PASS: ${VPS_DB_PASS}
+        networks:
+            - internal-net
+        volumes:
+            - postgres_data:/var/lib/postgresql
+            - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+networks:
+    dokploy-network:
+        external: true
+    internal-net:
+        name: sentimentator-internal
+        driver: bridge
+
+volumes:
+    postgres_data:
+    rabbitmq_data:

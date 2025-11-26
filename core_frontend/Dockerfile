@@ -12,14 +12,24 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine3.22 AS runner
 
-USER nginx
+# Install gettext for envsubst
+USER root
+RUN apk add --no-cache gettext
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
 COPY --chown=nginx:nginx --from=builder /app/dist /usr/share/nginx/html
 
+# Make html directory writable for runtime config generation
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
+COPY start.sh /start.sh
+RUN chmod +x /start.sh && chown nginx:nginx /start.sh
+
+USER nginx
+
 EXPOSE 8000
 
-# Start Nginx directly with custom config
-ENTRYPOINT ["nginx", "-c", "/etc/nginx/nginx.conf"]
-CMD ["-g", "daemon off;"]
+# Use start script to generate runtime config and start nginx
+ENTRYPOINT ["/start.sh"]

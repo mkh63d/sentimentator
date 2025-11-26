@@ -10,6 +10,7 @@ services:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
             - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ASPNETCORE_URLS=http://+:80
         ports:
             - "8081:80"
 
@@ -29,8 +30,9 @@ services:
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
             - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
             - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
-            - OPENAI_API_KEY=${OPENAI_API_KEY}
             - AMQP_URL=${AMQP_URL}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
         ports:
             - "8080:8080"
 
@@ -55,7 +57,7 @@ services:
     #         - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
-        build: ./core_frontend
+        image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
         depends_on:
             orchestrator:
                 condition: service_started
@@ -64,6 +66,7 @@ services:
         environment:
             VITE_BACKEND_API: ${VITE_BACKEND_API}
             VITE_DEMO_MODE: ${VITE_DEMO_MODE}
+            VITE_REGISTER_ENABLED: ${VITE_REGISTER_ENABLED}
 
     rabbitmq:
         image: rabbitmq:4.1.4-management

@@ -18,11 +18,21 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 
+	allowedOrigins := []string{
+		"http://localhost:5173",
+		"http://localhost:3000",
+		"http://localhost:8000",
+		"https://sentimentator.jdex.pl",
+		"https://sentimentator.api.jdex.pl",
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true, // Enable cookies/auth
+		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length"},
+		MaxAge:           12 * 3600,
 	}))
 
 	r.GET("/health", handlers.HealthCheck)

@@ -1,8 +1,16 @@
 import createClient, { type Middleware } from 'openapi-fetch';
 import type { paths } from '@generated/schema';
 import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
+import { getConfig } from '@/lib/runtimeConfig';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_API || 'http://localhost:8081/api';
+// Lazy-load BASE_URL
+let BASE_URL: string;
+function getBaseUrl(): string {
+  if (!BASE_URL) {
+    BASE_URL = getConfig().VITE_BACKEND_API;
+  }
+  return BASE_URL;
+}
 
 // Single-flight refresh lock
 let refreshing: Promise<boolean> | null = null;
@@ -13,7 +21,7 @@ async function doRefresh(refreshToken: string): Promise<boolean> {
 
   refreshing = (async () => {
     try {
-      const res = await fetch(`${BASE_URL}/account/refresh`, {
+      const res = await fetch(`${getBaseUrl()}/account/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -75,9 +83,24 @@ const authMiddleware: Middleware = {
   },
 };
 
-export const api = createClient<paths>({
-  baseUrl: BASE_URL,
-  credentials: 'include',
-});
+let _api: ReturnType<typeof createClient<paths>> | null = null;
 
-api.use(authMiddleware);
+// Initialize and return API client (creates once after config loads)
+export function initializeApiClient() {
+  if (!_api) {
+    _api = createClient<paths>({
+      baseUrl: getBaseUrl(),
+      credentials: 'include',
+    });
+    _api.use(authMiddleware);
+  }
+  return _api;
+}
+
+// Export api getter that ensures client is initialized
+export const api = new Proxy({} as ReturnType<typeof createClient<paths>>, {
+  get(target, prop) {
+    const client = _api || initializeApiClient();
+    return client[prop as keyof typeof client];
+  },
+});

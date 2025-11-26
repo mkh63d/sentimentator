@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Scalar.AspNetCore;
@@ -19,6 +20,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Logging.AddConsole();
+
+#endregion
+
+#region Forwarded Headers (for reverse proxy support)
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 #endregion
 
@@ -53,11 +65,25 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:8000")
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "https://sentimentator.jdex.pl"
+        };
+
+        var customOrigin = builder.Configuration["CORS_ALLOWED_ORIGIN"];
+        if (!string.IsNullOrWhiteSpace(customOrigin))
+        {
+            allowedOrigins.Add(customOrigin);
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .SetIsOriginAllowedToAllowWildcardSubdomains();
     });
 });
 
@@ -117,6 +143,12 @@ await dbContext.Database.EnsureCreatedAsync();
 
 #endregion
 
+#region Forwarded Headers
+
+app.UseForwardedHeaders();
+
+#endregion
+
 #region CORS
 
 app.UseCors("AllowSpecificOrigin");
@@ -162,6 +194,10 @@ app.MapScalarApiReference(options =>
 #region Endpoints
 
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
+    .ExcludeFromDescription()
+    .AllowAnonymous();
+
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .ExcludeFromDescription()
     .AllowAnonymous();
 

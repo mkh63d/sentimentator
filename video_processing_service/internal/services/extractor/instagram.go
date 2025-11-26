@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -87,6 +88,9 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 		return nil, err
 	}
 
+	// Debug: Log available keys to understand the structure
+	slog.DebugContext(ctx, "Instagram metadata keys", slog.Any("keys", getKeys(obj)))
+
 	title := ""
 	if t, ok := obj["title"].(string); ok {
 		title = t
@@ -123,8 +127,30 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 	}
 
 	thumbnailURL := ""
-	if thumbnail, ok := obj["thumbnail"].(string); ok {
+	if thumbnail, ok := obj["thumbnail"].(string); ok && thumbnail != "" {
 		thumbnailURL = thumbnail
+	}
+	if thumbnailURL == "" {
+		if thumbnails, ok := obj["thumbnails"].([]interface{}); ok && len(thumbnails) > 0 {
+			if lastThumb, ok := thumbnails[len(thumbnails)-1].(map[string]interface{}); ok {
+				if url, ok := lastThumb["url"].(string); ok {
+					thumbnailURL = url
+				}
+			}
+		}
+	}
+	if thumbnailURL == "" {
+		if thumbObj, ok := obj["thumbnail"].(map[string]interface{}); ok {
+			if url, ok := thumbObj["url"].(string); ok {
+				thumbnailURL = url
+			}
+		}
+	}
+
+	if thumbnailURL != "" {
+		slog.DebugContext(ctx, "Instagram thumbnail extracted", slog.String("url", thumbnailURL))
+	} else {
+		slog.WarnContext(ctx, "No Instagram thumbnail found in metadata")
 	}
 
 	metadata := &VideoMetadata{
@@ -245,4 +271,13 @@ func (ip *InstagramPlatform) ExtractAudio(ctx context.Context, videoID string) (
 		FileSize: fileInfo.Size(),
 		Metadata: nil,
 	}, nil
+}
+
+// getKeys returns all keys from a map for debugging
+func getKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

@@ -77,6 +77,16 @@
               {{ error }}
             </div>
 
+            <div class="flex items-center mb-4">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                v-model="useCookies"
+                class="h-4 w-4 text-fourth focus:ring-fourth border-gray-300 rounded"
+              />
+              <label for="rememberMe" class="ml-2">Remember me</label>
+            </div>
+
             <button
               type="submit"
               class="w-full cursor-pointer p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
@@ -163,6 +173,9 @@ const emit = defineEmits(['login', 'register']);
 const router = useRouter();
 const authStore = useAuthStore();
 
+const useCookies = ref(false);
+const useSessionCookies = ref(false);
+
 const isLogin = ref(true);
 const isForgotSent = ref(false);
 const mode = ref<'login' | 'forgot' | '2fa'>('login');
@@ -200,7 +213,12 @@ async function handleSubmit() {
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
-        await authStore.loginUser(form.value.email, form.value.password, false, false);
+        await authStore.loginUser(
+          form.value.email,
+          form.value.password,
+          useCookies.value,
+          useSessionCookies.value,
+        );
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Login failed';

@@ -107,6 +107,7 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Cookie", "CONSENT=YES+")
 
 	resp, err := ytp.client.Do(req)
 	if err != nil {
@@ -129,9 +130,9 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 	slog.InfoContext(ctx, "fetched YouTube page", slog.Int("body_size", len(body)))
 
 	patterns := []string{
-		`var ytInitialPlayerResponse = ({.+?});`,
-		`ytInitialPlayerResponse\s*=\s*({.+?});`,
-		`"playerResponse":"({.+?})"`,
+		`(?s)var ytInitialPlayerResponse\s*=\s*({.+?});`,
+		`(?s)ytInitialPlayerResponse\s*=\s*({.+?});`,
+		`(?s)"playerResponse":"({.+?})"`,
 	}
 
 	var playerResponseJSON []byte
@@ -169,6 +170,13 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 				} `json:"captionTracks"`
 			} `json:"playerCaptionsTracklistRenderer"`
 		} `json:"captions"`
+		Microformat struct {
+			PlayerMicroformatRenderer struct {
+				Title struct {
+					SimpleText string `json:"simpleText"`
+				} `json:"title"`
+			} `json:"playerMicroformatRenderer"`
+		} `json:"microformat"`
 	}
 
 	if err := json.Unmarshal(playerResponseJSON, &data); err != nil {
@@ -178,14 +186,28 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 
 	hasCaptions := len(data.Captions.PlayerCaptionsTracklistRenderer.CaptionTracks) > 0
 
+	title := strings.TrimSpace(data.VideoDetails.Title)
+	if title == "" {
+		if t := strings.TrimSpace(data.Microformat.PlayerMicroformatRenderer.Title.SimpleText); t != "" {
+			title = t
+		} else {
+			// Fallback: parse og:title from HTML
+			reOg := regexp.MustCompile(`(?i)<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']`)
+			if m := reOg.FindSubmatch(body); len(m) == 2 {
+				title = strings.TrimSpace(string(m[1]))
+			}
+		}
+	}
+
 	slog.InfoContext(ctx, "successfully parsed metadata",
-		slog.String("title", data.VideoDetails.Title),
+		slog.String("video_id", videoID),
+		slog.String("title", title),
 		slog.Bool("has_captions", hasCaptions))
 
 	return &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ytp.Name(),
-		Title:                     data.VideoDetails.Title,
+		Title:                     title,
 		Duration:                  -1, //TODO: scrape for Duration
 		HasCaptions:               hasCaptions,
 		AvailableCaptionLanguages: make([]string, 0),
@@ -210,9 +232,10 @@ func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*
 		"--referer", "https://www.youtube.com/",
 		"--add-header", "Accept-Language: en-US,en;q=0.9",
 		"--no-check-certificates",
-		"--extractor-args", "youtube:player_client=default,ios,web",
+		"--extractor-args", "youtube:player_client=default,web",
 		"--retries", "2",
 		"--fragment-retries", "3",
+		"--no-cache-dir",
 	}
 
 	// Check for YouTube cookies for authentication because when service is running in production, it for sure will be marked as a bot

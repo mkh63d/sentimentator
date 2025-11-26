@@ -1,47 +1,47 @@
 <template>
   <div class="min-h-screen bg-background">
-    <nav class="px-4 py-5 fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-xs">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <nav class="fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-transparent backdrop-blur-xs">
+      <div class="flex items-center justify-between mx-auto max-w-7xl">
         <div
           class="text-2xl font-bold cursor-pointer text-background"
           @click="() => router.push({ name: 'home' })"
         >
           Sentimentator
         </div>
-        <ul class="hidden md:flex gap-8">
+        <ul class="hidden gap-8 md:flex">
           <li class="order-2 md:order-1">
             <router-link
               :to="{ hash: '#features' }"
-              class="text-background font-medium hover:text-indigo-100 transition"
+              class="font-medium transition text-background hover:text-indigo-100"
               >Features</router-link
             >
           </li>
           <li class="order-2 md:order-2">
             <router-link
               :to="{ hash: '#methods' }"
-              class="text-background font-medium hover:text-indigo-100 transition"
+              class="font-medium transition text-background hover:text-indigo-100"
               >Methods</router-link
             >
           </li>
           <li class="order-2 md:order-3">
             <router-link
               :to="{ hash: '#about' }"
-              class="text-background font-medium hover:text-indigo-100 transition"
+              class="font-medium transition text-background hover:text-indigo-100"
               >About</router-link
             >
           </li>
           <li class="order-2 md:order-4">
             <router-link
               :to="{ hash: '#team' }"
-              class="text-background font-medium hover:text-indigo-100 transition"
+              class="font-medium transition text-background hover:text-indigo-100"
               >Team</router-link
             >
           </li>
         </ul>
-        <ul class="hidden md:flex gap-8">
+        <ul class="hidden gap-8 md:flex">
           <li>
             <button
-              class="cursor-pointer px-6 py-3 bg-background text-primary rounded-lg font-semibold hover:bg-secondary transition"
+              class="px-6 py-3 font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
               @click="hasTokens ? goToDashboard() : goToLogin()"
             >
               Try for Free
@@ -49,7 +49,7 @@
           </li>
           <li>
             <button
-              class="cursor-pointer px-6 py-2 mr-3 bg-transparent text-background rounded-lg font-semibold transition border-3 border-background"
+              class="px-6 py-2 mr-3 font-semibold transition bg-transparent rounded-lg cursor-pointer text-background border-3 border-background"
               @click="goToLogin"
             >
               Login
@@ -63,20 +63,20 @@
     </nav>
     <!-- Hero Section -->
     <section class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth -mt-14 pt-14">
-      <div class="max-w-7xl mx-auto px-4 py-20 md:py-32 text-center text-background">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-5">Analyze Video Reviews in Seconds</h1>
-        <p class="text-xl mb-10 opacity-90">
+      <div class="px-4 py-20 mx-auto text-center max-w-7xl md:py-32 text-background">
+        <h1 class="mb-5 text-5xl font-extrabold md:text-6xl">Analyze Video Reviews in Seconds</h1>
+        <p class="mb-10 text-xl opacity-90">
           Transform your favourite video reviews into actionable sentiment insights with ease.
         </p>
-        <div class="flex flex-col sm:flex-row gap-5 justify-center">
+        <div class="flex flex-col justify-center gap-5 sm:flex-row">
           <button
-            class="cursor-pointer px-8 py-4 bg-background text-primary rounded-lg text-lg font-semibold hover:bg-secondary transition"
+            class="px-8 py-4 text-lg font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
             @click="hasTokens ? goToDashboard() : goToLogin()"
           >
             Start Now!
           </button>
           <button
-            class="cursor-pointer px-8 py-4 bg-transparent text-background border-2 border-background rounded-lg text-lg font-semibold hover:bg-background hover:text-primary transition"
+            class="px-8 py-4 text-lg font-semibold transition bg-transparent border-2 rounded-lg cursor-pointer text-background border-background hover:bg-background hover:text-primary"
             @click="goToLogin"
           >
             Sign In
@@ -86,35 +86,33 @@
     </section>
 
     <section id="compatible">
-      <div class="max-w-12xl mx-auto px-1 py-1 bg-white">
-        <ul class="flex flex-wrap justify-center items-center gap-15">
+      <div class="px-1 py-1 mx-auto bg-white max-w-12xl">
+        <ul class="flex flex-wrap items-center justify-center gap-15">
           <li>
             <h3 class="text-md md:text-md font-bold px-20 text-[#3d4d5c] border-r-2">
               Compatible with <br />
               Popular Platforms
             </h3>
           </li>
-          <li></li>
           <li>
-            <img
-              src="@/assets/logos/youtube-logo.jpg"
-              alt="YouTube"
-              class="w-30 md:w-40 object-contain"
-            />
+            <svg viewBox="0 0 100 70" role="img" aria-label="YouTube" class="w-30 md:w-40">
+              <rect width="100" height="70" rx="12" fill="#ff0000" />
+              <polygon points="40,20 70,35 40,50" fill="#fff" />
+            </svg>
           </li>
           <li>
-            <img
-              src="@/assets/logos/instagram-logo.png"
-              alt="Instagram"
-              class="w-30 md:w-40 object-contain"
-            />
-          </li>
-          <li>
-            <img
-              src="@/assets/logos/tiktok-logo.png"
-              alt="TikTok"
-              class="h-8 md:h-8 object-contain"
-            />
+            <svg viewBox="0 0 100 100" role="img" aria-label="Instagram" class="w-30 md:w-40">
+              <defs>
+                <linearGradient id="instaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f58529" />
+                  <stop offset="50%" stop-color="#dd2a7b" />
+                  <stop offset="100%" stop-color="#8134af" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="url(#instaGradient)" />
+              <circle cx="50" cy="50" r="23" fill="none" stroke="#fff" stroke-width="8" />
+              <circle cx="74" cy="26" r="6" fill="#fff" />
+            </svg>
           </li>
         </ul>
       </div>
@@ -123,37 +121,37 @@
     <!-- Features Section -->
     <section id="features" class="py-2 bg-tertiary">
       <div
-        class="max-w-8xl mx-0 px-0 flex flex-wrap justify-center divide-y divide-x divide-primary"
+        class="flex flex-wrap justify-center px-0 mx-0 divide-x divide-y max-w-8xl divide-primary"
       >
         <div class="w-[50%] text-center p-12 col-1">
-          <h3 class="text-xl font-bold mb-1 text-secondary text-align-left">Available non-stop</h3>
-          <h2 class="text-2xl font-extrabold mb-1 text-primary text-align-left">
+          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">Available non-stop</h3>
+          <h2 class="mb-1 text-2xl font-extrabold text-primary text-align-left">
             24/7 - on demand,
           </h2>
-          <h3 class="text-xl font-bold mb-1 text-secondary text-align-left">
+          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">
             whenever you need it
           </h3>
         </div>
         <div class="text-center w-[30%] p-12 col-1 border-r-0">
-          <h2 class="text-2xl font-bold mb-4 text-primary">Accurate Results</h2>
+          <h2 class="mb-4 text-2xl font-bold text-primary">Accurate Results</h2>
           <p class="text-textBase">
             Our advanced algorithms ensure you get the most accurate sentiment insights.
           </p>
         </div>
         <div class="text-center w-[40%] p-6 col-2">
-          <h2 class="text-2xl font-bold mb-4 text-primary">User-Friendly</h2>
+          <h2 class="mb-4 text-2xl font-bold text-primary">User-Friendly</h2>
           <p class="text-textBase">
             An intuitive interface makes it easy for anyone to analyze video reviews.
           </p>
         </div>
         <div class="text-center p-6 col-2 w-[60%] border-r-0">
-          <h2 class="text-2xl font-bold mb-4 text-primary">In One Place</h2>
+          <h2 class="mb-4 text-2xl font-bold text-primary">In One Place</h2>
           <p class="text-textBase">
             All your data for your next better consumer choice in one place.
           </p>
         </div>
-        <div class="text-center p-6 col-1 w-full">
-          <h2 class="text-2xl font-bold mb-4 text-primary">Be a Conscious Customer</h2>
+        <div class="w-full p-6 text-center col-1">
+          <h2 class="mb-4 text-2xl font-bold text-primary">Be a Conscious Customer</h2>
           <p class="text-textBase">
             Make informed decisions based on a comprehensive sentiment analysis.
           </p>
@@ -162,25 +160,25 @@
     </section>
 
     <section id="methods" class="bg-secondary">
-      <div class="max-w-7xl mx-auto px-4 py-18 text-center">
-        <h2 class="text-4xl font-extrabold mb-5 text-primary">Our Analysis Methods</h2>
-        <p class="text-xl mb-10 text-tertiary">
+      <div class="px-4 mx-auto text-center max-w-7xl py-18">
+        <h2 class="mb-5 text-4xl font-extrabold text-primary">Our Analysis Methods</h2>
+        <p class="mb-10 text-xl text-tertiary">
           Try out our cutting-edge techniques to deliver precise sentiment analysis.
         </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div
-            class="bg-secondary p-6 rounded-lg shadow-md hover:shadow-lg transition duration-700 opacity-40 hover:opacity-100 border-accent border-2"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
           >
-            <h3 class="text-2xl font-bold mb-4 text-primary">Natural Language Processing (NLP)</h3>
+            <h3 class="mb-4 text-2xl font-bold text-primary">Natural Language Processing (NLP)</h3>
             <p class="text-tertiary">
               Leveraging advanced NLP algorithms to understand and interpret human language in video
               reviews.
             </p>
           </div>
           <div
-            class="bg-secondary p-6 rounded-lg shadow-md hover:shadow-lg transition duration-700 opacity-40 hover:opacity-100 border-accent border-2"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
           >
-            <h3 class="text-2xl font-bold mb-4 text-primary">
+            <h3 class="mb-4 text-2xl font-bold text-primary">
               Transcript and highlight extraction
             </h3>
             <p class="text-tertiary">
@@ -189,9 +187,9 @@
             </p>
           </div>
           <div
-            class="bg-secondary p-6 rounded-lg shadow-md hover:shadow-lg transition duration-700 opacity-40 hover:opacity-100 border-accent border-2"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
           >
-            <h3 class="text-2xl font-bold mb-4 text-primary">Sentiment Scoring</h3>
+            <h3 class="mb-4 text-2xl font-bold text-primary">Sentiment Scoring</h3>
             <p class="text-tertiary">
               Assigning sentiment scores to reviews to quantify positive, negative, and neutral
               feedback.
@@ -202,177 +200,90 @@
     </section>
 
     <section id="about">
-      <div class="max-w-7xl mx-auto px-4 pt-18 pb-12 text-center">
-        <h2 class="text-4xl font-extrabold mb-5 text-primary">About Us</h2>
-        <p class="text-xl mb-10 text-tertiary">
+      <div class="px-4 pb-12 mx-auto text-center max-w-7xl pt-18">
+        <h2 class="mb-5 text-4xl font-extrabold text-primary">About Us</h2>
+        <p class="mb-10 text-xl text-tertiary">
           Sentimentator is dedicated to empowering consumers with insights derived from video
           reviews. <br />
           Our mission is to make sentiment analysis accessible and actionable for everyone.
         </p>
       </div>
     </section>
-    <section id="team">
-      <div
-        class="w-[90%] rounded-3xl mx-auto px-4 py-10 bg-[radial-gradient(circle_at_top_left,var(--color-tertiary),var(--color-primary),transparent_70%),radial-gradient(circle_at_bottom_right,var(--color-primary),var(--color-tertiary),transparent_80%)] bg-blend-overlay"
-      >
-        <div class="relative translate-y-80 w-full">
-          <!-- Left Arrow -->
-          <button
-            @click="scrollLeft"
-            class="absolute left-0 top-0 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10 hover:bg-gray-700"
-          >
-            ‹
-          </button>
-          <button
-            @click="scrollRight"
-            class="absolute right-0 top-0 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10 hover:bg-gray-700"
-          >
-            ›
-          </button>
-        </div>
-        <h2 class="text-5xl pt-5 font-bold mb-15 text-white text-center">Meet the Team</h2>
-        <div ref="scrollContainer" class="overflow-x-auto scrollbar-hide px-4 scroll-smooth">
-          <div class="flex space-x-4 py-4">
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/OK.jpg"
-                alt="Oskar Kacprzak"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Oskar Kacprzak
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/MH.jpg"
-                alt="Michał Hołyński"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Michał Hołyński
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/default.jpg"
-                alt="Wojciech Kapica"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Wojciech Kapica
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/default.jpg"
-                alt="Błazej Dymek"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Błazej Dymek
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/default.jpg"
-                alt="Natalia Kośmider"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Natalia Kośmider
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/default.jpg"
-                alt="Anna Krzempek"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Anna Krzempek
-              </h3>
-            </div>
-            <div class="min-w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src="@/assets/team/default.jpg"
-                alt="Jeremi Cichawa"
-                class="w-48 h-80 object-cover object-center"
-              />
-              <h3
-                class="text-2xl font-bold my-2 text-white text-shadow-xl text-shadow-gray-900 text-center"
-              >
-                Jeremi Cichawa
-              </h3>
-            </div>
+    <section id="team" ref="teamSectionRef">
+      <Suspense v-if="shouldRenderTeamCarousel">
+        <template #default>
+          <TeamCarousel />
+        </template>
+        <template #fallback>
+          <div class="w-[90%] rounded-3xl mx-auto px-4 py-10 bg-slate-900/30">
+            <div class="h-60 animate-pulse bg-slate-700 rounded-3xl" />
           </div>
-        </div>
+        </template>
+      </Suspense>
+      <div
+        v-else
+        class="w-[90%] rounded-3xl mx-auto px-4 py-10 bg-slate-900/10 animate-pulse"
+        aria-hidden="true"
+      >
+        <div class="h-60 bg-slate-800/30 rounded-3xl" />
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-background text-primary py-10 text-center">
-      <div class="max-w-7xl mx-auto px-4">
+    <footer class="py-10 text-center bg-background text-primary">
+      <div class="px-4 mx-auto max-w-7xl">
         <p>&copy; 2025 Sentimentator. All rights reserved.</p>
       </div>
     </footer>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 
+const TeamCarousel = defineAsyncComponent(() => import('@/components/TeamCarousel.vue'));
+
 const router = useRouter();
-
-const scrollContainer = ref(null);
-
 const authStore = useAuthStore();
 
-const doAutoScroll = ref(true);
-const scrollAmount = 200;
+const teamSectionRef = ref<HTMLElement | null>(null);
+const shouldRenderTeamCarousel = ref(false);
+let teamObserver: IntersectionObserver | null = null;
 
-const scrollRight = () => {
-  doAutoScroll.value = false;
-  scrollContainer.value.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-};
-
-const scrollLeft = () => {
-  doAutoScroll.value = false;
-  scrollContainer.value.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-};
-
-let autoScroll;
 onMounted(() => {
-  autoScroll = setInterval(() => {
-    if (!scrollContainer.value) return;
-    if (!doAutoScroll.value) return;
+  if (!('IntersectionObserver' in window)) {
+    shouldRenderTeamCarousel.value = true;
+    return;
+  }
 
-    const el = scrollContainer.value;
-    // Scroll right slowly
-    el.scrollLeft += 1;
-  }, 40); // smaller = faster (try 10–50)
+  teamObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        shouldRenderTeamCarousel.value = true;
+        teamObserver?.disconnect();
+        teamObserver = null;
+      }
+    },
+    {
+      rootMargin: '0px 0px -15% 0px',
+      threshold: 0.2,
+    },
+  );
+
+  if (teamSectionRef.value) {
+    teamObserver.observe(teamSectionRef.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  teamObserver?.disconnect();
+  teamObserver = null;
 });
 
 const hasTokens = computed(() => !!authStore.accessToken);
-
-onBeforeUnmount(() => {
-  clearInterval(autoScroll);
-});
 
 const goToLogin = () => {
   router.push({ name: 'login' });

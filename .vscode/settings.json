@@ -37,6 +37,7 @@
         "testdata",
         "tmpl",
         "Tracklist",
+        "traefik",
         "VARCHAR",
         "VHOST",
         "vibecoded",

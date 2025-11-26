@@ -199,11 +199,6 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 		}
 	}
 
-	slog.InfoContext(ctx, "successfully parsed metadata",
-		slog.String("video_id", videoID),
-		slog.String("title", title),
-		slog.Bool("has_captions", hasCaptions))
-
 	return &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ytp.Name(),

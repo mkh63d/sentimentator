@@ -210,6 +210,22 @@ func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*
 		"--referer", "https://www.youtube.com/",
 		"--add-header", "Accept-Language: en-US,en;q=0.9",
 		"--no-check-certificates",
+		"--extractor-args", "youtube:player_client=default,ios,web",
+		"--retries", "2",
+		"--fragment-retries", "3",
+	}
+
+	// Check for YouTube cookies for authentication because when service is running in production, it for sure will be marked as a bot
+	cookiesPath := os.Getenv("YOUTUBE_COOKIES_PATH")
+	if cookiesPath != "" {
+		if _, err := os.Stat(cookiesPath); err == nil {
+			slog.InfoContext(ctx, "using YouTube cookies for authentication", slog.String("path", cookiesPath))
+			args = append(args, "--cookies", cookiesPath)
+		} else {
+			slog.WarnContext(ctx, "YOUTUBE_COOKIES_PATH set but file not found",
+				slog.String("path", cookiesPath),
+				slog.String("error", err.Error()))
+		}
 	}
 
 	args = append(args, videoURL)

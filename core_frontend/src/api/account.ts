@@ -102,14 +102,33 @@ export async function register(email: string, password: string) {
  * @param refreshToken - The refresh token to use for refreshing the access token
  * @returns The new access token
  */
-export async function refreshAccount(refreshToken: string) {
-  const { data: accessTokenResponse } = await api.POST('/account/refresh', {
-    body: {
-      refreshToken,
-    },
-  });
+export async function refreshAccount(refreshToken?: string | null) {
+  // If a refresh token string is provided, send it in the body (token-based refresh).
+  // Otherwise, rely on cookie-based refresh where the server reads httpOnly cookie.
+  if (refreshToken) {
+    const { data: accessTokenResponse } = await api.POST('/account/refresh', {
+      body: { refreshToken },
+    });
+    return accessTokenResponse;
+  }
+  // If no refresh token is provided, attempt cookie-based refresh using fetch
+  try {
+    const baseUrl = getConfig().VITE_BACKEND_API;
+    const res = await fetch(`${baseUrl}/account/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-  return accessTokenResponse;
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 /**

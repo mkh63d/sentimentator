@@ -48,6 +48,7 @@ services:
             - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
             - MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS=${MAX_CONCURRENT_RABBIT_PROCESSING_WORKERS}
             - YOUTUBE_COOKIES_PATH=/app/files/youtube_cookies.txt
+            - INSTAGRAM_COOKIES_PATH=/app/files/instagram_cookies.txt
             - YT_DLP_ENABLE_EJS=1
         volumes:
             - ../files:/app/files

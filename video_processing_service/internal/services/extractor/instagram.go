@@ -122,6 +122,11 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 		}
 	}
 
+	thumbnailURL := ""
+	if thumbnail, ok := obj["thumbnail"].(string); ok {
+		thumbnailURL = thumbnail
+	}
+
 	metadata := &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ip.Name(),
@@ -130,6 +135,7 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 		HasCaptions:               hasCaptions,
 		AvailableCaptionLanguages: availableLangs,
 		OriginalURL:               origURL,
+		ThumbnailURL:              thumbnailURL,
 	}
 
 	return metadata, nil
@@ -155,6 +161,7 @@ func (ip *InstagramPlatform) getMetadataFromOEmbed(ctx context.Context, videoURL
 		return nil, fmt.Errorf("oEmbed API returned status %d", resp.StatusCode)
 	}
 
+	//INFO: Docs https://developers.facebook.com/docs/instagram-platform/oembed/
 	var oembed struct {
 		Title        string `json:"title"`
 		AuthorName   string `json:"author_name"`
@@ -178,6 +185,7 @@ func (ip *InstagramPlatform) getMetadataFromOEmbed(ctx context.Context, videoURL
 		HasCaptions:               false,
 		AvailableCaptionLanguages: make([]string, 0),
 		OriginalURL:               videoURL,
+		ThumbnailURL:              oembed.ThumbnailURL,
 	}, nil
 }
 

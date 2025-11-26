@@ -199,6 +199,11 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 		}
 	}
 
+	thumbnailURL := fmt.Sprintf("https://i.ytimg.com/vi/%s/maxresdefault.jpg", videoID)
+	if len(data.VideoDetails.Thumbnail.Thumbnails) > 0 {
+		thumbnailURL = data.VideoDetails.Thumbnail.Thumbnails[len(data.VideoDetails.Thumbnail.Thumbnails)-1].URL
+	}
+
 	return &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ytp.Name(),
@@ -207,6 +212,7 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 		HasCaptions:               hasCaptions,
 		AvailableCaptionLanguages: make([]string, 0),
 		OriginalURL:               videoURL,
+		ThumbnailURL:              thumbnailURL,
 	}, nil
 }
 

@@ -304,6 +304,20 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		slog.Debug("Found existing video record", slog.String("video_id", metadata.VideoID))
 	}
 
+	metaEvent := VideoMetadataCompletedEvent{
+		AnalysisID:   event.AnalysisID,
+		VideoID:      metadata.VideoID,
+		Platform:     metadata.Platform,
+		Title:        metadata.Title,
+		ThumbnailURL: metadata.ThumbnailURL,
+		OriginalURL:  event.URL,
+		Duration:     metadata.Duration,
+		CompletedAt:  time.Now(),
+	}
+	if err := c.producer.PublishVideoMetadata(ctx, metaEvent); err != nil {
+		return fmt.Errorf("failed to publish %s:video metadata event: %w", metadata.VideoID, err)
+	}
+
 	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord)
 	if err != nil {
 		return fmt.Errorf("failed to check for existing transcript: %w", err)

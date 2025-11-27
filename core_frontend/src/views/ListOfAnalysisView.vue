@@ -111,7 +111,7 @@
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-lg p-3 flex flex-col gap-2"
+            class="border rounded-lg p-3 flex flex-col gap-2 cursor-pointer"
             :class="[
               // color the whole card based on status so the status badge can be hidden
               analysis.summary !== null
@@ -119,6 +119,7 @@
                 : 'bg-yellow-50 border-yellow-200',
               analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
             ]"
+            @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
           >
             <div class="flex justify-between items-start gap-3">
               <div>

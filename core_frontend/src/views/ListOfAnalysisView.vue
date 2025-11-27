@@ -117,11 +117,61 @@
               analysis.summary !== null
                 ? 'bg-green-50 border-green-200'
                 : 'bg-yellow-50 border-yellow-200',
-              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/30' : '',
+              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
             ]"
           >
             <div class="flex justify-between items-start gap-3">
-              <div class="min-w-0">
+              <div>
+                <div class="flex items-center gap-3">
+                  <!-- Thumbnail / video preview area -->
+                  <div
+                    class="w-28 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 flex items-center justify-center"
+                    :class="
+                      analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
+                    "
+                    @click.stop="
+                      analysis.summary !== null && analysis.id && openAnalysis(analysis.id)
+                    "
+                    role="button"
+                    :aria-disabled="analysis.summary === null"
+                    :title="analysis.summary !== null ? 'Open analysis' : 'Summary not ready'"
+                  >
+                    <!-- image if provided by API -->
+                    <img
+                      v-if="analysis.thumbnail_url"
+                      :src="analysis.thumbnail_url"
+                      alt="analysis thumbnail"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+
+                    <!-- fallback placeholder -->
+                    <template v-else>
+                      <div
+                        class="flex flex-col items-center justify-center text-xs text-tertiary/60 px-2 text-center"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-6 h-6 mb-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
+                          />
+                        </svg>
+                        <div class="text-xs">No thumbnail</div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="min-w-0 flex-1">
                 <div
                   class="text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
                   :title="analysis.url"
@@ -244,17 +294,6 @@ const fetchAnalyses = async () => {
     const response = await getAnalyses();
     console.log('Fetched analyses response:', response);
 
-    // TODO: Adjust mapping for description, createdAt, status, sentiment based on real response structure
-    // Waiting for backend API to provide these fields
-    analyses.value = await response.map((a) => ({
-      id: a.id,
-      title: a.url,
-      description: '',
-      createdAt: new Date().toISOString(),
-      status: 'processing',
-      sentiment: { positive: 33, negative: 33, neutral: 34 },
-      transcription: a.transcription,
-    }));
     realAnalyses.value = response;
     console.log('Real analyses set:', realAnalyses.value);
   } catch (err) {
@@ -277,7 +316,7 @@ const createNew = () => {
 const eraseAnalysis = async (id: string) => {
   // Use SweetAlert2 for confirmation
   // Make sure to install sweetalert2 and import it
-  const result = await Swal.fire({
+  await Swal.fire({
     title: 'Are you sure?',
     text: 'Do you really want to delete this analysis?',
     icon: 'warning',
@@ -289,7 +328,7 @@ const eraseAnalysis = async (id: string) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const response = await deleteAnalysis(id);
+        await deleteAnalysis(id);
         analyses.value = analyses.value.filter((a) => a.id !== id);
         Swal.fire({
           title: 'Deleted!',
@@ -298,10 +337,10 @@ const eraseAnalysis = async (id: string) => {
           timer: 2000,
           showConfirmButton: false,
         });
-      } catch (err) {
+      } catch (e) {
         Swal.fire({
           title: 'Error!',
-          text: 'Failed to delete analysis.',
+          text: 'Failed to delete analysis:' + (e instanceof Error ? e.message : ''),
           icon: 'error',
           timer: 2000,
           showConfirmButton: false,

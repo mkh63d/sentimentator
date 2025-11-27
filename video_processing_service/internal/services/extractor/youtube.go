@@ -146,7 +146,7 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 	hasCaptions := len(ytdlpData.Subtitles) > 0
 
 	thumbnailURL := ytdlpData.Thumbnail
-	if strings.Trim(thumbnailURL, "") == "" {
+	if strings.TrimSpace(thumbnailURL) == "" {
 		slog.WarnContext(ctx, "thumbnail URL is empty in yt-dlp metadata", slog.String("video_id", videoID))
 		thumbnailURL = fmt.Sprintf("https://i.ytimg.com/vi/%s/maxresdefault.jpg", videoID)
 	}

@@ -206,10 +206,13 @@ async function handleSubmit() {
 
   if (!isLogin.value && form.value.password !== form.value.confirmPassword) {
     error.value = 'Passwords do not match';
+    fireTimedAlert('Registration Error', error.value, 1000);
+    error.value = '';
     return;
   }
 
   try {
+    let isSuccess = false;
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
@@ -219,6 +222,7 @@ async function handleSubmit() {
           useCookies.value,
           useSessionCookies.value,
         );
+        isSuccess = true;
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Login failed';
@@ -230,6 +234,7 @@ async function handleSubmit() {
     } else {
       try {
         await authStore.registerUser(form.value.email, form.value.password);
+        isSuccess = true;
       } catch (e) {
         error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Registration failed';
@@ -239,7 +244,9 @@ async function handleSubmit() {
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    await router.push({ name: 'list' });
+    if (isSuccess) {
+      await router.push({ name: 'list' });
+    }
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message;

@@ -15,9 +15,9 @@ public static class OpenApiOperationBearerSecuritySchemeTransformer
             .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 
-    internal sealed class OperationBearerSecuritySchemeTransformer : IOpenApiOperationTransformer
+    private sealed class OperationBearerSecuritySchemeTransformer : IOpenApiOperationTransformer
     {
-        public async Task TransformAsync(
+        public Task TransformAsync(
             OpenApiOperation operation, OpenApiOperationTransformerContext context,
             CancellationToken cancellationToken)
         {
@@ -26,6 +26,7 @@ public static class OpenApiOperationBearerSecuritySchemeTransformer
             {
                 [new OpenApiSecuritySchemeReference(IdentityConstants.BearerScheme, context.Document)] = []
             });
+            return Task.CompletedTask;
         }
     }
 }

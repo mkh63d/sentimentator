@@ -21,12 +21,6 @@ builder.Logging.AddConsole();
 
 #endregion
 
-#region Json
-
-
-
-#endregion
-
 #region Identity
 
 builder.Services.AddDbContext<SentimentatorContext>();
@@ -84,6 +78,16 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .AddAuthenticationSchemes(IdentityConstants.BearerScheme)
         .Build();
+    
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireRole("Admin");
+    });
+    
+    options.AddPolicy("CanRequestAnalysis", policy =>
+    {
+        policy.RequireClaim("CanRequestAnalysis", "true");
+    });
 
     options.FallbackPolicy = options.DefaultPolicy;
 });
@@ -116,9 +120,46 @@ var app = builder.Build();
 
 #region Database Initialization
 
-await using var scope = app.Services.CreateAsyncScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
-await dbContext.Database.EnsureCreatedAsync();
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
+
+#endregion
+
+#region Admin User Initialization
+
+const string adminPassEnvVar = "ORCHESTRATOR_ADMIN_PASSWORD";
+var adminPassword = Environment.GetEnvironmentVariable(adminPassEnvVar);
+
+if (!string.IsNullOrEmpty(adminPassword))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var adminUser = await userManager.FindByNameAsync("admin");
+    if (adminUser is null)
+    {
+        var user = new User();
+        await userManager.SetUserNameAsync(user, "admin");
+        await userManager.SetEmailAsync(user, "admin@sentimentator");
+        _ = await userManager.CreateAsync(user, adminPassword);
+        
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var adminRoleExists = await roleManager.RoleExistsAsync("Admin");
+        if (!adminRoleExists)
+        {
+            var adminRole = new IdentityRole<Guid>("Admin");
+            _ = await roleManager.CreateAsync(adminRole);
+            
+        }
+        _ = await userManager.AddToRoleAsync(user, "Admin");
+        app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator' and the provided password.");
+    }
+}
+
+
 
 #endregion
     

@@ -2,6 +2,8 @@ package server
 
 import (
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,6 +16,39 @@ import (
 
 	"github.com/a-h/templ"
 )
+
+// authMiddleware protects /web routes using a static bearer token
+// The token is provided via env var WEB_ADMIN_TOKEN. Requests must include
+// either header Authorization: Bearer <token> or a cookie named "web_admin_token"
+// with the same value.
+func authMiddleware() gin.HandlerFunc {
+	expected := strings.TrimSpace(os.Getenv("WEB_ADMIN_TOKEN"))
+	return func(c *gin.Context) {
+		// If no token is configured, allow access
+		if expected == "" {
+			c.Next()
+			return
+		}
+
+		auth := c.GetHeader("Authorization")
+		if after, ok := strings.CutPrefix(auth, "Bearer "); ok {
+			token := strings.TrimSpace(after)
+			if token == expected {
+				c.Next()
+				return
+			}
+		}
+
+		if cookie, err := c.Cookie("web_admin_token"); err == nil {
+			if strings.TrimSpace(cookie) == expected {
+				c.Next()
+				return
+			}
+		}
+
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
+}
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
@@ -52,9 +87,26 @@ func (s *Server) RegisterRoutes() http.Handler {
 	videoWebHandler := webhandlers.NewVideoHandler(s.db, s.extractorService, s.transcriptService, s.producer)
 	debugHandler := webhandlers.NewDebugHandler(s.producer)
 
+	r.StaticFS("/web/assets", http.FS(staticFiles))
+
+	r.GET("/web/login", func(c *gin.Context) {
+		component := web.LoginPage()
+		templ.Handler(component).ServeHTTP(c.Writer, c.Request)
+	})
+
 	wr := r.Group("/web")
+	wr.Use(authMiddleware())
 	{
-		wr.StaticFS("/assets", http.FS(staticFiles))
+		r.POST("/web/login", func(c *gin.Context) {
+			token := c.PostForm("token")
+			if token == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "token required"})
+				return
+			}
+			c.SetCookie("web_admin_token", token, 12*60*60, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/web/")
+		})
+
 		wr.GET("/", func(c *gin.Context) {
 			component := web.MainPage()
 			templ.Handler(component).ServeHTTP(c.Writer, c.Request)

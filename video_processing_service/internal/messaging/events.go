@@ -74,5 +74,5 @@ type VideoMetadataCompletedEvent struct {
 	ThumbnailURL string    `json:"thumbnail_url"`
 	OriginalURL  string    `json:"original_url,omitempty"`
 	Duration     int       `json:"duration,omitempty"`
-	CompletedAt  time.Time `json:"Completed_at"`
+	CompletedAt  time.Time `json:"completed_at"`
 }

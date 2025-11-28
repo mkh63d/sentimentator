@@ -104,23 +104,25 @@ func (c *Consumer) processMessages(ctx context.Context, queueName string, msgs <
 }
 
 func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler MessageHandler, queueName string) {
-	slog.Debug("Processing message",
-		slog.String("queue", queueName),
-		slog.String("message_id", msg.MessageId),
-		slog.String("correlation_id", msg.CorrelationId))
-
 	retryCount := int64(0)
-	if xDeath, ok := msg.Headers["x-death"].([]interface{}); ok && len(xDeath) > 0 {
-		if deathMap, ok := xDeath[0].(amqp.Table); ok {
-			if count, ok := deathMap["count"].(int64); ok {
-				retryCount = count
+	if msg.Headers != nil {
+		if val, ok := msg.Headers["retry-count"]; ok {
+			switch v := val.(type) {
+			case int64:
+				retryCount = v
+			case int32:
+				retryCount = int64(v)
+			case int:
+				retryCount = int64(v)
+			case float64:
+				retryCount = int64(v)
+			case string:
+				if parsed, err := strconv.ParseInt(v, 10, 64); err == nil {
+					retryCount = parsed
+				}
 			}
 		}
 	}
-
-	slog.Debug("Message retry info",
-		slog.String("queue", queueName),
-		slog.Int64("retry_count", retryCount))
 
 	// async processing with worker pool
 	if queueName == QueueVideoProcessing {
@@ -201,7 +203,7 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 		}
 
 		if retryCount >= 2 {
-			slog.Warn("Message exceeded retry limit, discarding permanently",
+			slog.Warn("Message exceeded retry limit, discarding",
 				slog.String("queue", queueName),
 				slog.Int64("retry_count", retryCount))
 			// Reject without requeue - message is discarded permanently
@@ -211,19 +213,28 @@ func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery, handler
 			return
 		}
 
-		// Requeue to DLX for retry
 		if err := msg.Nack(false, false); err != nil {
 			slog.Error("Failed to nack message", slog.String("error", err.Error()))
+		}
+
+		slog.Info("Re-publishing message for retry",
+			slog.String("queue", queueName),
+			slog.Int64("retry_count", retryCount))
+
+		if err := c.republishForRetry(context.Background(), msg, queueName, retryCount+1); err != nil {
+			slog.Error("Failed to republish message for retry",
+				slog.String("queue", queueName),
+				slog.String("error", err.Error()))
 		}
 		return
 	}
 
 	// Acknowledge the message on success
 	if err := msg.Ack(false); err != nil {
-		slog.Error("Failed to ack message", slog.String("error", err.Error()))
+		slog.Error("Failed to ack message",
+			slog.String("queue", queueName),
+			slog.String("error", err.Error()))
 	}
-
-	slog.Debug("Message processed successfully", slog.String("queue", queueName))
 }
 
 // republishForRetry publishes a failed message back to the queue with retry metadata
@@ -233,16 +244,7 @@ func (c *Consumer) republishForRetry(ctx context.Context, originalMsg amqp.Deliv
 		maps.Copy(headers, originalMsg.Headers)
 	}
 
-	xDeath := []any{
-		amqp.Table{
-			"count":    retryCount,
-			"reason":   "rejected",
-			"queue":    queueName,
-			"time":     time.Now(),
-			"exchange": "",
-		},
-	}
-	headers["x-death"] = xDeath
+	headers["retry-count"] = retryCount
 
 	return c.rabbitmq.channel.PublishWithContext(
 		ctx,
@@ -270,40 +272,53 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	slog.Info("Received transcript request event (async processing)",
-		slog.String("url", event.URL),
-		slog.String("analysis_id", event.AnalysisID))
+	slog.Info("Processing transcript request",
+		slog.String("analysis_id", event.AnalysisID),
+		slog.String("url", event.URL))
 
 	metadata, err := c.extractorService.GetMetadata(ctx, event.URL)
 	if err != nil {
 		return fmt.Errorf("failed to get video metadata: %w", err)
 	}
 
-	slog.Info("Retrieved video metadata",
+	slog.Info("Video metadata retrieved",
 		slog.String("video_id", metadata.VideoID),
-		slog.String("title", metadata.Title),
-		slog.Int("duration", metadata.Duration),
-		slog.String("elapsed", time.Since(startTime).String()))
+		slog.String("title", metadata.Title))
 
 	videoRecord, err := c.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
 	if err != nil {
 		videoRecord = &models.Video{
-			VideoID:     metadata.VideoID,
-			Platform:    metadata.Platform,
-			OriginalURL: event.URL,
-			Title:       metadata.Title,
-			Duration:    metadata.Duration,
+			VideoID:      metadata.VideoID,
+			Platform:     metadata.Platform,
+			OriginalURL:  event.URL,
+			Title:        metadata.Title,
+			Duration:     metadata.Duration,
+			ThumbnailURL: metadata.ThumbnailURL,
 		}
 
 		if err := c.db.SaveVideo(ctx, videoRecord); err != nil {
 			return fmt.Errorf("failed to save video record: %w", err)
 		}
-		slog.Info("Created new video record", slog.String("video_id", metadata.VideoID))
+		slog.Debug("Created new video record", slog.String("video_id", metadata.VideoID))
 	} else {
-		slog.Info("Found existing video record", slog.String("video_id", metadata.VideoID))
+		slog.Debug("Found existing video record", slog.String("video_id", metadata.VideoID))
 	}
 
-	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord.ID, "en")
+	metaEvent := VideoMetadataCompletedEvent{
+		AnalysisID:   event.AnalysisID,
+		VideoID:      metadata.VideoID,
+		Platform:     metadata.Platform,
+		Title:        metadata.Title,
+		ThumbnailURL: metadata.ThumbnailURL,
+		OriginalURL:  event.URL,
+		Duration:     metadata.Duration,
+		CompletedAt:  time.Now(),
+	}
+	if err := c.producer.PublishVideoMetadata(ctx, metaEvent); err != nil {
+		return fmt.Errorf("failed to publish %s:video metadata event: %w", metadata.VideoID, err)
+	}
+
+	hasTranscript, existingTranscript, err := c.db.HasTranscript(ctx, videoRecord)
 	if err != nil {
 		return fmt.Errorf("failed to check for existing transcript: %w", err)
 	}
@@ -324,19 +339,17 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 			if err != nil {
 				return fmt.Errorf("failed to publish transcript ready event: %w", err)
 			}
-
-			slog.Info("Transcript already exists, published ready event",
+			slog.Info("Transcript already exists, reusing",
 				slog.String("video_id", videoRecord.VideoID),
-				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)),
-				slog.String("total_elapsed", time.Since(startTime).String()),
-			)
+				slog.String("transcript_id", fmt.Sprintf("%d", existingTranscript.ID)))
 			return nil
+		} else {
+			slog.Warn("Transcript in progress, skipping",
+				slog.String("video_id", videoRecord.VideoID),
+				slog.String("status", string(existingTranscript.Status)))
+			return fmt.Errorf("transcript already exists with status: %s", existingTranscript.Status)
 		}
 	}
-
-	slog.Info("Starting transcript generation",
-		slog.String("video_id", metadata.VideoID),
-		slog.String("url", event.URL))
 
 	transcriptStartTime := time.Now()
 	result, err := c.transcriptService.GetTranscript(ctx, event.URL, "en")
@@ -350,15 +363,10 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		return fmt.Errorf("failed to get transcript: %w", err)
 	}
 
-	slog.Info("Transcript generated successfully",
+	slog.Debug("Transcript generated",
 		slog.String("video_id", metadata.VideoID),
-		slog.Int("text_length", len(result.Text)),
 		slog.String("method", string(result.Method)),
-		slog.Int64("audio_extraction_seconds", result.AudioExtractionDuration),
-		slog.Int64("transcription_seconds", result.TranscriptionDuration),
-		slog.Int64("total_processing_seconds", result.TotalProcessingDuration),
-		slog.Int64("audio_file_size_bytes", result.AudioFileSizeBytes),
-		slog.String("transcript_elapsed", time.Since(transcriptStartTime).String()))
+		slog.Int64("total_processing_seconds", result.TotalProcessingDuration))
 
 	transcriptRecord := &models.Transcript{
 		VideoID:                 videoRecord.ID,
@@ -398,10 +406,11 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 		return fmt.Errorf("failed to publish transcript ready event: %w", err)
 	}
 
-	slog.Info("Transcript processing completed successfully",
+	slog.Info("Transcript retrieval completed",
+		slog.String("analysis_id", event.AnalysisID),
 		slog.String("video_id", metadata.VideoID),
 		slog.String("transcript_id", fmt.Sprintf("%d", transcriptRecord.ID)),
-		slog.String("total_elapsed", time.Since(startTime).String()))
+		slog.Int64("total_seconds", int64(time.Since(startTime).Seconds())))
 
 	return nil
 }

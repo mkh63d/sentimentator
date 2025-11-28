@@ -1,28 +1,65 @@
-import { apiFetch, apiPost, Endpoints } from './api';
+import { api } from '@/lib/client';
+import type { components } from '@/generated/schema';
 
-export interface Analysis {
-  id: string;
-  text: string;
-  sentiment: 'positive' | 'negative' | 'neutral';
-  score: number;
-  createdAt: string;
+export type Analysis = components['schemas']['Analysis'];
+export type AnalysisDetails = components['schemas']['AnalysisDetails'];
+
+/**
+ * GET /analyses
+ * Returns all analyses for the authenticated user.
+ */
+export async function getAnalyses(): Promise<Analysis[]> {
+  const { data, error } = await api.GET('/analyses');
+  if (error) throw new Error(error.title ?? 'Failed to fetch analyses');
+  if (!data) throw new Error('No data returned from server');
+  return data;
 }
 
-// Fetch all analyses but not in their full structural data detail
-export const getAnalyses = async (): Promise<Analysis[]> => {
-  return apiFetch(Endpoints.ANALYSES, { method: 'GET' });
-};
+/**
+ * POST /analyses/{url}
+ * Creates or triggers a new analysis.
+ */
+export async function createAnalysis(url: string): Promise<Analysis> {
+  const { data, error } = await api.POST('/analyses/{url}', {
+    params: { path: { url: encodeURIComponent(url) } },
+  });
+  if (error) throw new Error(error.title ?? 'Failed to create analysis');
+  if (!data) throw new Error('No data returned from server');
+  return data;
+}
 
-// Fetch a single analysis by ID with full structural data detail
-export const getAnalysis = async (id: string): Promise<Analysis> => {
-  return apiFetch(Endpoints.ANALYSES + `/${id}`, { method: 'GET' });
-};
+/**
+ * GET /analyses/{id}
+ * Fetch a single analysis by its UUID.
+ */
+export async function getAnalysisById(id: string): Promise<Analysis> {
+  const { data, error } = await api.GET('/analyses/{id}', {
+    params: { path: { id } },
+  });
+  if (error) throw new Error(error.title ?? 'Failed to fetch analysis');
+  if (!data) throw new Error('No data returned from server');
+  return data;
+}
 
-// Send request to create a new analysis based on a link
-export const createAnalysisFromLink = async (link: string): Promise<Analysis> => {
-  return apiPost(Endpoints.ANALYSES, JSON.stringify({ link }));
-};
+/**
+ * PUT /analyses/{id}
+ * Updates an analysis.
+ */
+export async function updateAnalysis(id: string, details: AnalysisDetails): Promise<void> {
+  const { error } = await api.PUT('/analyses/{id}', {
+    params: { path: { id } },
+    body: details,
+  });
+  if (error) throw new Error(error.title ?? 'Failed to update analysis');
+}
 
-export const createAnalysis = async (text: string): Promise<Analysis> => {
-  return apiPost(Endpoints.ANALYSES, JSON.stringify({ text }));
-};
+/**
+ * DELETE /analyses/{id}
+ * Deletes an analysis by UUID.
+ */
+export async function deleteAnalysis(id: string): Promise<void> {
+  const { error } = await api.DELETE('/analyses/{id}', {
+    params: { path: { id } },
+  });
+  if (error) throw new Error(error.title ?? 'Failed to delete analysis');
+}

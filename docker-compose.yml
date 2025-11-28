@@ -9,6 +9,8 @@ services:
         environment:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
+            - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ASPNETCORE_URLS=http://+:80
         ports:
             - "8081:80"
 
@@ -28,22 +30,43 @@ services:
             - SENTIMENTATOR_VPS_DB_SCHEMA=public
             - SENTIMENTATOR_VPS_DB_USERNAME=${VPS_DB_USER}
             - SENTIMENTATOR_VPS_DB_PASSWORD=${VPS_DB_PASS}
-            - OPENAI_API_KEY=${OPENAI_API_KEY}
             - AMQP_URL=${AMQP_URL}
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - WHISPER_MOCK_MODE=${WHISPER_MOCK_MODE}
         ports:
             - "8080:8080"
 
-    nlp-analyzer:
-        build: ./NLP_analyzer_service
+    sentiment-analyzer-placeholder-service:
+        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer_placeholder_service:dev
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_started
         environment:
             - RABBITMQ_URL=${AMQP_URL}
+            - TRANSCRIPT_QUEUE=video.transcript
+            - ANALYSIS_EXCHANGE=sentimentator.topic
+            - ANALYSIS_QUEUE=video.analysis
+            - ANALYSIS_ROUTING_KEY=video.analysis.completed
+            - LOG_LEVEL=info
+
+    # nlp-analyzer:
+    #     build: ./NLP_analyzer_service
+    #     depends_on:
+    #         - rabbitmq
+    #     environment:
+    #         - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
-        build: ./core_frontend
+        image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
         depends_on:
-            - orchestrator
+            orchestrator:
+                condition: service_started
+        ports:
+            - "8000:8000"
+        environment:
+            VITE_BACKEND_API: ${VITE_BACKEND_API}
+            VITE_DEMO_MODE: ${VITE_DEMO_MODE}
+            VITE_REGISTER_ENABLED: ${VITE_REGISTER_ENABLED}
 
     rabbitmq:
         image: rabbitmq:4.1.4-management

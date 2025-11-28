@@ -6,6 +6,9 @@ This file contains YouTube videos and Instagram reels for testing the video proc
 
 Add YouTube video URLs here:
 
+-   https://www.youtube.com/watch?v=rng_yUSwrgU // iPhone 17 Review: No Asterisks! // Marques Brownlee
+-   https://www.youtube.com/watch?v=TTBkme1KYi0 // Samsung Galaxy S26 Ultra - The 7-Year Wait Is Finally Over
+    // TechTalkTV
 -   https://www.youtube.com/watch?v=8kYyKpB4R0Y
 -   https://www.youtube.com/watch?v=yJbnqSf-Q_I
 -   https://www.youtube.com/watch?v=KV8RF-PcV8I

@@ -1,79 +1,149 @@
 <template>
-  <div
-    class="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-500 to-purple-700"
-  >
-    <div class="w-full max-w-md p-5">
-      <div class="bg-white p-10 rounded-xl shadow-lg">
-        <h1 class="text-center mb-8 text-gray-800 text-3xl font-bold">
-          {{ isLogin ? 'Login' : 'Register' }}
-        </h1>
+  <div class="bg-linear-to-bl from-primary via-secondary to-fourth overflow-visible min-h-screen">
+    <nav class="px-2 pt-5 pb-0">
+      <div class="max-w-full w-full mx-auto flex justify-between items-center">
+        <div
+          class="px-5 text-2xl cursor-pointer font-bold text-background"
+          @click="() => router.push({ name: 'home' })"
+        >
+          Sentimentator
+        </div>
+        <ThemeSwitcher class="mx-5" />
+      </div>
+    </nav>
+    <div class="flex items-center justify-center">
+      <div class="w-full max-w-md px-5 pt-7">
+        <div v-if="mode === 'login'" class="bg-background p-9 rounded-xl shadow-lg">
+          <h1 class="text-center mb-5 text-tertiary text-3xl font-bold">
+            {{ isLogin ? 'Login' : 'Register' }}
+          </h1>
 
-        <form @submit.prevent="handleSubmit">
-          <div class="mb-5">
-            <label for="email" class="block mb-1 text-gray-700 font-medium">Email</label>
+          <form @submit.prevent="handleSubmit">
+            <div class="mb-5">
+              <label for="email" class="block mb-1 text-tertiary font-medium">Email</label>
+              <input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="Enter your email"
+                required
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+              />
+            </div>
+
+            <div class="mb-2">
+              <label for="password" class="block mb-1 text-tertiary font-medium">Password</label>
+              <input
+                id="password"
+                v-model="form.password"
+                type="password"
+                placeholder="Enter your password"
+                required
+                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
+              />
+            </div>
+
+            <div v-if="isLogin" class="mb-2">
+              <a
+                @click="
+                  () => {
+                    mode = 'forgot';
+                  }
+                "
+                class="text-sm text-accent font-medium hover:underline cursor-pointer"
+                >Forgot Password?</a
+              >
+            </div>
+
+            <div v-if="!isLogin" class="mb-5">
+              <label for="confirmPassword" class="block mb-1 text-tertiary font-medium"
+                >Confirm Password</label
+              >
+              <input
+                id="confirmPassword"
+                v-model="form.confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                required
+                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+              />
+            </div>
+
+            <div
+              data-testid="error-message"
+              v-if="error"
+              class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm"
+            >
+              {{ error }}
+            </div>
+
+            <button
+              type="submit"
+              class="w-full cursor-pointer p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
+              :disabled="!isFormValid"
+            >
+              {{ isLogin ? 'Login' : 'Register' }}
+            </button>
+          </form>
+
+          <div class="text-center mt-6">
+            <p class="text-gray-600 text-sm">
+              {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+              <a
+                @click="toggleMode"
+                data-testid="mode-toggle"
+                class="text-accent font-semibold cursor-pointer hover:underline ml-1"
+              >
+                {{ isLogin ? 'Register' : 'Login' }}
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <div
+          v-else-if="mode === 'forgot'"
+          class="bg-background p-10 rounded-xl shadow-lg flex flex-col items-center"
+        >
+          <h1 class="text-center mb-4 text-tertiary text-3xl font-bold">Forgot Password</h1>
+          <p class="block mb-5 text-center text-tertiary font-medium">
+            Please enter your email address to receive password reset instructions.
+          </p>
+          <div class="mb-5 w-full">
             <input
               id="email"
               v-model="form.email"
               type="email"
               placeholder="Enter your email"
               required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
+              class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
             />
           </div>
-
-          <div class="mb-5">
-            <label for="password" class="block mb-1 text-gray-700 font-medium">Password</label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="Enter your password"
-              required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
-
-          <div v-if="!isLogin" class="mb-5">
-            <label for="confirmPassword" class="block mb-1 text-gray-700 font-medium"
-              >Confirm Password</label
-            >
-            <input
-              id="confirmPassword"
-              v-model="form.confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              required
-              class="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
-
           <div
-            data-testid="error-message"
-            v-if="error"
-            class="text-red-600 mb-4 p-2 bg-red-100 rounded text-sm"
+            v-if="isForgotSent"
+            class="text-primary mb-4 p-2 bg-primary/10 rounded text-center text-sm"
           >
-            {{ error }}
+            If an account with that email exists, a password reset link has been sent.
           </div>
-
           <button
-            type="submit"
-            class="w-full p-3 bg-indigo-500 text-white rounded-md text-lg font-semibold hover:bg-indigo-600 transition disabled:opacity-60"
-            :disabled="!isFormValid"
+            @click="forgotPassword()"
+            :disabled="!form.email.trim() || isForgotSent"
+            class="w-full cursor-pointer px-2 py-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60 disabled:cursor-default"
           >
-            {{ isLogin ? 'Login' : 'Register' }}
+            Reset Password
           </button>
-        </form>
-
-        <div class="text-center mt-6">
-          <p class="text-gray-600 text-sm">
-            {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+          <div class="text-center mt-6">
             <a
-              @click="toggleMode"
-              class="text-indigo-500 font-semibold cursor-pointer hover:underline ml-1"
+              @click="
+                () => {
+                  mode = 'login';
+                  isForgotSent = false;
+                }
+              "
+              class="text-primary font-semibold cursor-pointer hover:underline"
             >
-              {{ isLogin ? 'Register' : 'Login' }}
+              Back to Login
             </a>
-          </p>
+          </div>
         </div>
       </div>
     </div>
@@ -81,14 +151,20 @@
 </template>
 
 <script lang="ts" setup>
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
+import { useAuthStore } from '@/stores/authStore';
+import { forgotPassword as apiForgotPassword } from '@/api/account';
 
 const emit = defineEmits(['login', 'register']);
 const router = useRouter();
+const authStore = useAuthStore();
 
 const isLogin = ref(true);
+const isForgotSent = ref(false);
+const mode = ref<'login' | 'forgot' | '2fa'>('login');
 const form = ref<FormData>({
   email: '',
   password: '',
@@ -121,15 +197,22 @@ async function handleSubmit() {
 
   try {
     if (isLogin.value) {
-      // Implement login logic
       console.log('Logging in:', form.value.email);
+      try {
+        await authStore.loginUser(form.value.email, form.value.password, false, false);
+      } catch (e) {
+        error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
+      }
       emit('login', { email: form.value.email, password: form.value.password });
     } else {
-      // Implement registration logic
-      console.log('Registering:', form.value.email);
+      try {
+        await authStore.registerUser(form.value.email, form.value.password);
+      } catch (e) {
+        error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
+      }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    router.push({ name: 'list' });
+    await router.push({ name: 'list' });
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message;
@@ -139,5 +222,15 @@ async function handleSubmit() {
       error.value = 'An error occurred';
     }
   }
+}
+
+function forgotPassword() {
+  try {
+    apiForgotPassword(form.value.email);
+  } catch (err) {
+    alert('An error occurred while trying to reset the password.');
+    console.error(err);
+  }
+  isForgotSent.value = true;
 }
 </script>

@@ -21,8 +21,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-ARG http_port=80
-ENV ASPNETCORE_URLS=http://+:${http_port}
-EXPOSE ${http_port}
+EXPOSE 80
 
 ENTRYPOINT ["dotnet", "Sentimentator.Backend.Api.dll"]

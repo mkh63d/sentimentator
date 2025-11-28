@@ -85,3 +85,17 @@ func (p *Producer) PublishVideoReceived(ctx context.Context, event VideoTranscri
 	return nil
 
 }
+
+func (p *Producer) PublishVideoMetadata(ctx context.Context, event VideoMetadataCompletedEvent) error {
+	err := p.rabbitmq.Publish(ctx, ExchangeTopic, RoutingKeyVideoMetadataCompleted, event)
+	if err != nil {
+		return fmt.Errorf("failed to publish video metadata event: %w", err)
+	}
+
+	slog.Info("Published video metadata event",
+		slog.String("video_id", event.VideoID),
+		slog.String("platform", event.Platform),
+		slog.String("title", event.Title))
+
+	return nil
+}

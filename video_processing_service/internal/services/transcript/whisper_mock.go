@@ -25,8 +25,8 @@ func (m *MockWhisperStrategy) Name() string {
 
 // GetTranscript returns mock Lorem Ipsum transcript data without making API calls
 func (m *MockWhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
-	minSeconds := int64(15)
-	maxSeconds := int64(120)
+	minSeconds := int64(5)
+	maxSeconds := int64(15)
 
 	randomSeconds := minSeconds + rand.Int63n(maxSeconds-minSeconds+1)
 	randomDuration := time.Duration(randomSeconds) * time.Second

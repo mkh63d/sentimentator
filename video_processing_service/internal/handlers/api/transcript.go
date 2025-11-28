@@ -62,11 +62,12 @@ func (h *TranscriptHandler) GetTranscript(c *gin.Context) {
 	videoRecord, err := h.db.GetVideoByVideoID(ctx, metadata.VideoID, metadata.Platform)
 	if err != nil {
 		videoRecord = &models.Video{
-			VideoID:     metadata.VideoID,
-			Platform:    metadata.Platform,
-			OriginalURL: req.VideoURL,
-			Title:       metadata.Title,
-			Duration:    metadata.Duration,
+			VideoID:      metadata.VideoID,
+			Platform:     metadata.Platform,
+			OriginalURL:  req.VideoURL,
+			Title:        metadata.Title,
+			Duration:     metadata.Duration,
+			ThumbnailURL: metadata.ThumbnailURL,
 		}
 
 		if err := h.db.SaveVideo(ctx, videoRecord); err != nil {

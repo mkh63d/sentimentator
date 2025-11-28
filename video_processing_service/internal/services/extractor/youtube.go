@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -99,94 +98,65 @@ func (ytp *YouTubePlatform) GetMetadata(ctx context.Context, videoID string) (*V
 	slog.InfoContext(ctx, "Fetching YouTube video metadata", slog.String("video_id", videoID))
 	videoURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", videoURL, nil)
-	if err != nil {
-		return nil, err
+	args := []string{
+		"--dump-json",
+		"--skip-download",
+		"--no-playlist",
+		"--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+		"--no-check-certificates",
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-
-	resp, err := ytp.client.Do(req)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to fetch YouTube page", slog.String("error", err.Error()))
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		slog.ErrorContext(ctx, "YouTube returned non-200 status",
-			slog.Int("status_code", resp.StatusCode))
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	slog.InfoContext(ctx, "fetched YouTube page", slog.Int("body_size", len(body)))
-
-	patterns := []string{
-		`var ytInitialPlayerResponse = ({.+?});`,
-		`ytInitialPlayerResponse\s*=\s*({.+?});`,
-		`"playerResponse":"({.+?})"`,
-	}
-
-	var playerResponseJSON []byte
-	for _, pattern := range patterns {
-		re := regexp.MustCompile(pattern)
-		matches := re.FindSubmatch(body)
-		if len(matches) >= 2 {
-			playerResponseJSON = matches[1]
-			slog.InfoContext(ctx, "found player response with pattern", slog.String("pattern", pattern))
-			break
+	cookiesPath := os.Getenv("YOUTUBE_COOKIES_PATH")
+	if cookiesPath != "" {
+		if _, err := os.Stat(cookiesPath); err == nil {
+			slog.InfoContext(ctx, "using YouTube cookies for authentication", slog.String("path", cookiesPath))
+			args = append(args, "--cookies", cookiesPath)
+		} else {
+			slog.WarnContext(ctx, "YOUTUBE_COOKIES_PATH set but file not found",
+				slog.String("path", cookiesPath),
+				slog.String("error", err.Error()))
 		}
 	}
 
-	if playerResponseJSON == nil {
-		slog.ErrorContext(ctx, "could not find ytInitialPlayerResponse in page")
-		slog.DebugContext(ctx, "page preview", slog.String("preview", string(body[:min(500, len(body))])))
-		return nil, errors.New("could not extract player response from YouTube page")
+	args = append(args, videoURL)
+	cmd := exec.CommandContext(ctx, "yt-dlp", args...)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		slog.ErrorContext(ctx, "yt-dlp metadata fetch failed",
+			slog.String("stderr", stderr.String()))
+		return nil, fmt.Errorf("failed to fetch metadata via yt-dlp: %w", err)
 	}
 
-	var data struct {
-		VideoDetails struct {
-			VideoID       string `json:"videoId"`
-			Title         string `json:"title"`
-			LengthSeconds string `json:"lengthSeconds"`
-			Thumbnail     struct {
-				Thumbnails []struct {
-					URL string `json:"url"`
-				} `json:"thumbnails"`
-			} `json:"thumbnail"`
-		} `json:"videoDetails"`
-		Captions struct {
-			PlayerCaptionsTracklistRenderer struct {
-				CaptionTracks []struct {
-					BaseURL string `json:"baseUrl"`
-				} `json:"captionTracks"`
-			} `json:"playerCaptionsTracklistRenderer"`
-		} `json:"captions"`
+	var ytdlpData struct {
+		ID        string                 `json:"id"`
+		Title     string                 `json:"title"`
+		Duration  int                    `json:"duration"` // yt-dlp returns duration in seconds
+		Thumbnail string                 `json:"thumbnail"`
+		Subtitles map[string]interface{} `json:"subtitles"`
 	}
 
-	if err := json.Unmarshal(playerResponseJSON, &data); err != nil {
-		slog.ErrorContext(ctx, "failed to parse player response", slog.String("error", err.Error()))
-		return nil, fmt.Errorf("failed to parse video data: %w", err)
+	if err := json.Unmarshal(stdout.Bytes(), &ytdlpData); err != nil {
+		return nil, fmt.Errorf("failed to parse yt-dlp output: %w", err)
 	}
 
-	hasCaptions := len(data.Captions.PlayerCaptionsTracklistRenderer.CaptionTracks) > 0
+	hasCaptions := len(ytdlpData.Subtitles) > 0
 
-	slog.InfoContext(ctx, "successfully parsed metadata",
-		slog.String("title", data.VideoDetails.Title),
-		slog.Bool("has_captions", hasCaptions))
+	thumbnailURL := ytdlpData.Thumbnail
+	if strings.TrimSpace(thumbnailURL) == "" {
+		slog.WarnContext(ctx, "thumbnail URL is empty in yt-dlp metadata", slog.String("video_id", videoID))
+		thumbnailURL = fmt.Sprintf("https://i.ytimg.com/vi/%s/maxresdefault.jpg", videoID)
+	}
 
 	return &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ytp.Name(),
-		Title:                     data.VideoDetails.Title,
-		Duration:                  -1, //TODO: scrape for Duration
+		Title:                     ytdlpData.Title,
+		Duration:                  ytdlpData.Duration,
+		ThumbnailURL:              thumbnailURL,
 		HasCaptions:               hasCaptions,
 		AvailableCaptionLanguages: make([]string, 0),
 		OriginalURL:               videoURL,
@@ -210,9 +180,10 @@ func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*
 		"--referer", "https://www.youtube.com/",
 		"--add-header", "Accept-Language: en-US,en;q=0.9",
 		"--no-check-certificates",
-		"--extractor-args", "youtube:player_client=default,ios,web",
+		"--extractor-args", "youtube:player_client=default,web",
 		"--retries", "2",
 		"--fragment-retries", "3",
+		"--no-cache-dir",
 	}
 
 	// Check for YouTube cookies for authentication because when service is running in production, it for sure will be marked as a bot
@@ -229,7 +200,6 @@ func (ytp *YouTubePlatform) ExtractAudio(ctx context.Context, videoID string) (*
 	}
 
 	args = append(args, videoURL)
-
 	cmd := exec.CommandContext(ctx, "yt-dlp", args...)
 
 	var stderr bytes.Buffer

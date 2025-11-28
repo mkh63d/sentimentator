@@ -104,8 +104,12 @@ sequenceDiagram
     Exchange->>Q1: Route to video.processing
     Q1->>VideoProcessor: Consume message
 
-    VideoProcessor->>YouTube: Download audio via yt-dlp
-    YouTube-->>VideoProcessor: Audio stream/file
+    VideoProcessor->>YouTube: Fetch metadata + download audio via yt-dlp
+    YouTube-->>VideoProcessor: Metadata + audio stream/file
+    VideoProcessor->>Exchange: Publish video.metadata.completed
+    Exchange->>Q4: Route to video.metadata
+    Q4->>Orchestrator: Consume message
+    Orchestrator->>Database: Update analysis with video metadata
     VideoProcessor->>WhisperAPI: Request transcription
     WhisperAPI-->>VideoProcessor: Return transcript text
     VideoProcessor->>Database: Store video & transcript
@@ -148,6 +152,7 @@ graph TB
             Q1[📦 video.processing<br/>Bound: video.transcript.requested]
             Q2[📦 video.transcript<br/>Bound: video.transcript.completed]
             Q3[📦 video.analysis<br/>Bound: video.analysis.completed]
+            Q4[📦 video.metadata<br/>Bound: video.metadata.completed]
         end
     end
 
@@ -169,6 +174,10 @@ graph TB
     Exchange -->|"Route by key"| Q3
     Q3 --> OrchestratorConsumer
 
+    VideoProc -->|"Publish<br/>video.metadata.completed"| Exchange
+    Exchange -->|"Route by key"| Q4
+    Q4 --> OrchestratorConsumer
+
     style Exchange fill:#ff6600,color:#fff
     style Q1 fill:#00add8,color:#fff
     style Q2 fill:#3776ab,color:#fff
@@ -188,6 +197,7 @@ graph TB
 | **Transcript Requested** | `video.transcript.requested` | C# Orchestrator     | `video.processing` | Go Video Processor  | `{analysis_id, url, timestamp}`                                                |
 | **Transcript Completed** | `video.transcript.completed` | Go Video Processor  | `video.transcript` | Python NLP Analyzer | `{analysis_id, video_id, transcript_id, text, language, duration, created_at}` |
 | **Analysis Completed**   | `video.analysis.completed`   | Python NLP Analyzer | `video.analysis`   | C# Orchestrator     | `???`                                                                          |
+| **Metadata Completed**   | `video.metadata.completed`   | Go Video Processor  | `video.metadata`   | C# Orchestrator     | `{analysis_id, video_id, title, thumbnail_url, duration_seconds?, ???}`        |
 
 ## 🔄 Data Flow Diagram
 

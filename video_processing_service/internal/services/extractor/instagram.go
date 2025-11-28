@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -65,17 +66,30 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 
 	videoURL := fmt.Sprintf("https://www.instagram.com/reels/%s/", videoID)
 
-	cmd := exec.CommandContext(ctx, "yt-dlp", "-J", "--no-warning", "--skip-download", videoURL)
+	args := []string{"-J", "--no-warning", "--skip-download"}
+
+	cookiesPath := os.Getenv("INSTAGRAM_COOKIES_PATH")
+	if cookiesPath != "" {
+		if _, err := os.Stat(cookiesPath); err == nil {
+			args = append(args, "--cookies", cookiesPath)
+		}
+	}
+
+	args = append(args, videoURL)
+	cmd := exec.CommandContext(ctx, "yt-dlp", args...)
 
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return ip.getMetadataFromOEmbed(ctx, videoURL, videoID)
 	}
 
 	var obj map[string]interface{}
 	if err := json.Unmarshal(out, &obj); err != nil {
 		return nil, err
 	}
+
+	// Debug: Log available keys to understand the structure
+	slog.DebugContext(ctx, "Instagram metadata keys", slog.Any("keys", getKeys(obj)))
 
 	title := ""
 	if t, ok := obj["title"].(string); ok {
@@ -112,6 +126,33 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 		}
 	}
 
+	thumbnailURL := ""
+	if thumbnail, ok := obj["thumbnail"].(string); ok && thumbnail != "" {
+		thumbnailURL = thumbnail
+	}
+	if thumbnailURL == "" {
+		if thumbnails, ok := obj["thumbnails"].([]interface{}); ok && len(thumbnails) > 0 {
+			if lastThumb, ok := thumbnails[len(thumbnails)-1].(map[string]interface{}); ok {
+				if url, ok := lastThumb["url"].(string); ok {
+					thumbnailURL = url
+				}
+			}
+		}
+	}
+	if thumbnailURL == "" {
+		if thumbObj, ok := obj["thumbnail"].(map[string]interface{}); ok {
+			if url, ok := thumbObj["url"].(string); ok {
+				thumbnailURL = url
+			}
+		}
+	}
+
+	if thumbnailURL != "" {
+		slog.DebugContext(ctx, "Instagram thumbnail extracted", slog.String("url", thumbnailURL))
+	} else {
+		slog.WarnContext(ctx, "No Instagram thumbnail found in metadata")
+	}
+
 	metadata := &VideoMetadata{
 		VideoID:                   videoID,
 		Platform:                  ip.Name(),
@@ -120,9 +161,58 @@ func (ip *InstagramPlatform) GetMetadata(ctx context.Context, videoID string) (*
 		HasCaptions:               hasCaptions,
 		AvailableCaptionLanguages: availableLangs,
 		OriginalURL:               origURL,
+		ThumbnailURL:              thumbnailURL,
 	}
 
 	return metadata, nil
+}
+
+// getMetadataFromOEmbed fetches metadata from Instagram's oEmbed API as fallback
+func (ip *InstagramPlatform) getMetadataFromOEmbed(ctx context.Context, videoURL, videoID string) (*VideoMetadata, error) {
+	oembedURL := fmt.Sprintf("https://api.instagram.com/oembed/?url=%s", url.QueryEscape(videoURL))
+	req, err := http.NewRequestWithContext(ctx, "GET", oembedURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create oEmbed request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")
+
+	resp, err := ip.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch oEmbed data: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("oEmbed API returned status %d", resp.StatusCode)
+	}
+
+	//INFO: Docs https://developers.facebook.com/docs/instagram-platform/oembed/
+	var oembed struct {
+		Title        string `json:"title"`
+		AuthorName   string `json:"author_name"`
+		ThumbnailURL string `json:"thumbnail_url"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&oembed); err != nil {
+		return nil, fmt.Errorf("failed to decode oEmbed response: %w", err)
+	}
+
+	title := oembed.Title
+	if title == "" && oembed.AuthorName != "" {
+		title = fmt.Sprintf("Post by %s", oembed.AuthorName)
+	}
+
+	return &VideoMetadata{
+		VideoID:                   videoID,
+		Platform:                  ip.Name(),
+		Title:                     title,
+		Duration:                  -1,
+		HasCaptions:               false,
+		AvailableCaptionLanguages: make([]string, 0),
+		OriginalURL:               videoURL,
+		ThumbnailURL:              oembed.ThumbnailURL,
+	}, nil
 }
 
 func (ip *InstagramPlatform) GetCaptions(ctx context.Context, videoID, lang string) ([]Segment, error) {
@@ -142,6 +232,16 @@ func (ip *InstagramPlatform) ExtractAudio(ctx context.Context, videoID string) (
 		"--referer", "https://www.instagram.com/",
 		"--add-header", "Accept-Language: en-US,en;q=0.9",
 		"--geo-bypass",
+		"--retries", "2",
+		"--fragment-retries", "3",
+		"--no-cache-dir",
+	}
+
+	cookiesPath := os.Getenv("INSTAGRAM_COOKIES_PATH")
+	if cookiesPath != "" {
+		if _, err := os.Stat(cookiesPath); err == nil {
+			args = append(args, "--cookies", cookiesPath)
+		}
 	}
 
 	args = append(args, videoURL)
@@ -171,4 +271,13 @@ func (ip *InstagramPlatform) ExtractAudio(ctx context.Context, videoID string) (
 		FileSize: fileInfo.Size(),
 		Metadata: nil,
 	}, nil
+}
+
+// getKeys returns all keys from a map for debugging
+func getKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

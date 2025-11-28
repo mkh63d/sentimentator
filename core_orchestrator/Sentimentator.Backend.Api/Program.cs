@@ -138,7 +138,8 @@ builder.Services.AddTransient<IEmailSender, ResendSender>();
 builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
-builder.Services.AddHostedService<HostedRabbitConsumer>();
+builder.Services.AddHostedService<AnalysisRabbitConsumer>();
+builder.Services.AddHostedService<MetadataRabbitConsumer>();
 
 #endregion
 
@@ -180,6 +181,15 @@ if (!string.IsNullOrEmpty(adminPassword))
             
         }
         _ = await userManager.AddToRoleAsync(user, "Admin");
+        
+        var canRequestAnalysisRoleExists = await roleManager.RoleExistsAsync("CanRequestAnalysis");
+        if (!canRequestAnalysisRoleExists)
+        {
+            var canRequestAnalysisRole = new IdentityRole<Guid>("CanRequestAnalysis");
+            _ = await roleManager.CreateAsync(canRequestAnalysisRole);
+        }
+        _ = await userManager.AddToRoleAsync(user, "CanRequestAnalysis");
+        
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         _ = await userManager.ConfirmEmailAsync(user, token);
         app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.", adminPassword);

@@ -97,6 +97,32 @@ public class AnalysisService(
             return false;
         }
     }
+    
+    public async Task<bool> Update(Guid id, string platform, string title, string thumbnailUrl, DateTime updatedAt)
+    {
+        try
+        {
+            var a = await Get(id);
+            if (a is null)
+            {
+                logger.LogError("Failed to update analysis {AnalysisId}: not found", id);
+                return false;
+            }
+
+            a.Platform = platform;
+            a.Title = title;
+            a.ThumbnailUrl = thumbnailUrl;
+            a.UpdatedAt = updatedAt;
+            await context.SaveChangesAsync();
+            logger.LogInformation("Updated analysis {AnalysisId}", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to update analysis {AnalysisId}: {Exception}", id, ex.Message);
+            return false;
+        }
+    }
 
     public async Task<bool> Update(Uri uri, string transcription, string summary, DateTime updatedAt)
     {

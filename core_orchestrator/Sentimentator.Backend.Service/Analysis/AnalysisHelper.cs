@@ -12,6 +12,13 @@ public enum UrlResult
     UnsupportedDomain
 }
 
+public enum AnalysisResult
+{
+    Existing,
+    Added,
+    Failed
+}
+
 public static class AnalysisHelper
 {
     private static readonly List<string> SupportedYoutubeDomains =

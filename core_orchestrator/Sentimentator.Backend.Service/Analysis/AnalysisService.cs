@@ -28,15 +28,17 @@ public class AnalysisService(
         }
     }
 
-    public async Task<Model.Analysis?> Add(ClaimsPrincipal principal, Uri uri)
+    public async Task<(Model.Analysis? analysis, AnalysisResult result)> Add(ClaimsPrincipal principal, Uri uri)
     {
         try
         {
             var analysis = await Get(uri);
+            var result = AnalysisResult.Existing;
             if (analysis is null)
             {
                 analysis = await Add(uri);
                 if (analysis is null) throw new Exception();
+                result = AnalysisResult.Added;
             }
 
             var user = await userManager.GetUserAsync(principal);
@@ -44,12 +46,12 @@ public class AnalysisService(
             await userManager.UpdateAsync(user);
             logger.LogInformation("Added analysis {AnalysisId} for URL {URL} associated with user {UserId}",
                 analysis.Id, uri.ToString(), user.Id);
-            return analysis;
+            return (analysis, result);
         }
         catch (Exception ex)
         {
             logger.LogError("Failed to add analysis for URL {Url}: {Error}", uri.ToString(), ex.Message);
-            return null;
+            return (null, AnalysisResult.Failed);
         }
     }
 

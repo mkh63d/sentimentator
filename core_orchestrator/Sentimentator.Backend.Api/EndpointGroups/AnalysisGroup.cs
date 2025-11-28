@@ -98,19 +98,22 @@ public static class AnalysisGroup
                         if (a is { Summary: not null, Transcription: not null }) return Results.Ok(a);
 
                         var result = await service.Add(principal, uri.uri!);
-                        if (result is null) return Results.InternalServerError();
+                        if (result.analysis is null || result.result == AnalysisResult.Failed) 
+                            return Results.InternalServerError();
 
                         var downloadRequest = new TranscriptRequest
                         {
-                            AnalysisId = result.Id,
-                            Url = result.Url,
+                            AnalysisId = result.analysis.Id,
+                            Url = result.analysis.Url,
                             Timestamp = DateTime.UtcNow,
                             OpenAiUserKey = user.OpenAiApiKey
                         };
-                        await publisher.Send("video.processing", "video.transcript.requested",
-                            JsonSerializer.Serialize(downloadRequest));
-
-                        return Results.Accepted($"/analyses/{result.Id}", result);
+                        if (result.result == AnalysisResult.Added)
+                        {
+                            await publisher.Send("video.processing", "video.transcript.requested",
+                                JsonSerializer.Serialize(downloadRequest));
+                        }
+                        return Results.Accepted($"/analyses/{result.analysis.Id}", result);
                     })
                 .AddOperationBearerSecuritySchemeWithAuthorization("CanRequestAnalysis")
                 .Produces<Analysis>()

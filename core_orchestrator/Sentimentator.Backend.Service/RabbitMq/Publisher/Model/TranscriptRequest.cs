@@ -7,4 +7,5 @@ public class TranscriptRequest
     [JsonPropertyName("analysis_id")] public Guid AnalysisId { get; set; }
     [JsonPropertyName("url")] public required Uri Url { get; set; }
     [JsonPropertyName("timestamp")] public required DateTime Timestamp { get; set; }
+    [JsonPropertyName("open_ai_user_key")] public string? OpenAiUserKey { get; set; }
 }

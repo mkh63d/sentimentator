@@ -104,7 +104,8 @@ public static class AnalysisGroup
                         {
                             AnalysisId = result.Id,
                             Url = result.Url,
-                            Timestamp = DateTime.UtcNow
+                            Timestamp = DateTime.UtcNow,
+                            OpenAiUserKey = user.OpenAiApiKey
                         };
                         await publisher.Send("video.processing", "video.transcript.requested",
                             JsonSerializer.Serialize(downloadRequest));

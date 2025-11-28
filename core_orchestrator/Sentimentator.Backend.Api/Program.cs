@@ -168,7 +168,7 @@ if (!string.IsNullOrEmpty(adminPassword))
     {
         var user = new User();
         await userManager.SetUserNameAsync(user, "admin");
-        await userManager.SetEmailAsync(user, "admin@sentimentator");
+        await userManager.SetEmailAsync(user, "admin@sentimentator.com");
         _ = await userManager.CreateAsync(user, adminPassword);
         
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
@@ -180,7 +180,9 @@ if (!string.IsNullOrEmpty(adminPassword))
             
         }
         _ = await userManager.AddToRoleAsync(user, "Admin");
-        app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator' and the provided password.");
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        _ = await userManager.ConfirmEmailAsync(user, token);
+        app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.", adminPassword);
     }
 }
 
@@ -264,6 +266,11 @@ app.MapGroup("/users")
     .MapUser()
     .WithTags("Users")
     .AddOperationBearerSecuritySchemeWithAuthorization();
+
+app.MapGroup("/admin")
+    .MapAdmin()
+    .WithTags("Admin")
+    .RequireAuthorization("AdminOnly");
 
 #endregion
 

@@ -7,7 +7,10 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5190",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ORCHESTRATOR_POSTGRES_CONN_STRING": "Server=postgres;Port=5432;Database=orchestrator;User Id=postgres;Password=postgres;",
+        "ORCHESTRATOR_RABBITMQ_URI": "amqp://guest:guest@rabbitmq:5672/",
+        "ORCHESTRATOR_ADMIN_PASSWORD": "SuperSecretAdminPassword123!"
       }
     },
     "https": {

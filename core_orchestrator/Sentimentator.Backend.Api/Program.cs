@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging
 
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.AddConsole();
 
 #endregion
@@ -112,7 +112,7 @@ builder.Services.AddAuthorization(options =>
     
     options.AddPolicy("CanRequestAnalysis", policy =>
     {
-        policy.RequireClaim("CanRequestAnalysis", "true");
+        policy.RequireRole("CanRequestAnalysis");
     });
 
     options.FallbackPolicy = options.DefaultPolicy;
@@ -185,8 +185,6 @@ if (!string.IsNullOrEmpty(adminPassword))
         app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.", adminPassword);
     }
 }
-
-
 
 #endregion
 
@@ -270,7 +268,7 @@ app.MapGroup("/users")
 app.MapGroup("/admin")
     .MapAdmin()
     .WithTags("Admin")
-    .RequireAuthorization("AdminOnly");
+    .AddOperationBearerSecuritySchemeWithAuthorization("AdminOnly");
 
 #endregion
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Identity;
+using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
 using Sentimentator.Backend.Service.Analysis;
 using Sentimentator.Backend.Service.RabbitMq.Publisher;
@@ -110,6 +111,7 @@ public static class AnalysisGroup
 
                         return Results.Accepted($"/analyses/{result.Id}", result);
                     })
+                .AddOperationBearerSecuritySchemeWithAuthorization("CanRequestAnalysis")
                 .Produces<Analysis>()
                 .Produces<Analysis>(StatusCodes.Status202Accepted)
                 .Produces(StatusCodes.Status400BadRequest)

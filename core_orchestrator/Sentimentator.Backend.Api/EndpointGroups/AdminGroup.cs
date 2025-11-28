@@ -33,24 +33,33 @@ public static class AdminGroup
                 
                 var result = await userManager.AddToRoleAsync(user, roleDetails.RoleName);
                 return !result.Succeeded ? Results.InternalServerError(result.Errors) : Results.Ok();
-            });
+            })
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status500InternalServerError)
+            .Produces(StatusCodes.Status200OK);
             
             return group;
         }
         
         private RouteGroupBuilder AdminDeleteGroup()
         {
-            group.MapDelete("/role", async ([FromBody] RoleDetails roleDetails, UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager) =>
-            {
-                var user = await userManager.FindByEmailAsync(roleDetails.UserEmail);
-                if (user is null) return Results.NotFound("User not found");
-                
-                var roleExists = await roleManager.RoleExistsAsync(roleDetails.RoleName);
-                if (!roleExists) return Results.BadRequest("Role does not exist");
-                
-                var result = await userManager.RemoveFromRoleAsync(user, roleDetails.RoleName);
-                return !result.Succeeded ? Results.InternalServerError(result.Errors) : Results.Ok();
-            });
+            group.MapDelete("/role",
+                    async ([FromBody] RoleDetails roleDetails, UserManager<User> userManager,
+                        RoleManager<IdentityRole<Guid>> roleManager) =>
+                    {
+                        var user = await userManager.FindByEmailAsync(roleDetails.UserEmail);
+                        if (user is null) return Results.NotFound("User not found");
+
+                        var roleExists = await roleManager.RoleExistsAsync(roleDetails.RoleName);
+                        if (!roleExists) return Results.BadRequest("Role does not exist");
+
+                        var result = await userManager.RemoveFromRoleAsync(user, roleDetails.RoleName);
+                        return !result.Succeeded ? Results.InternalServerError(result.Errors) : Results.Ok();
+                    })
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status200OK);
             
             return group;
         }

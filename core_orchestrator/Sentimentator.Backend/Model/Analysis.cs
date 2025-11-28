@@ -13,5 +13,8 @@ public class Analysis
     [JsonPropertyName("thumbnail_url")] public string? ThumbnailUrl { get; set; }
     [JsonPropertyName("transcription")] public string? Transcription { get; set; }
     [JsonPropertyName("summary")] public string? Summary { get; set; }
-    [JsonIgnore] [JsonPropertyName("users")] public List<User> Users { get; } = [];
+
+    [JsonIgnore]
+    [JsonPropertyName("users")]
+    public List<User> Users { get; } = [];
 }

@@ -8,7 +8,10 @@ using static System.Text.Json.JsonSerializer;
 
 namespace Sentimentator.Backend.Service.RabbitMq.Consumer;
 
-public class MetadataRabbitConsumer(ILogger<MetadataRabbitConsumer> logger, IServiceScopeFactory serviceScopeFactory, IRabbitConsumer rabbitConsumer) : BackgroundService
+public class MetadataRabbitConsumer(
+    ILogger<MetadataRabbitConsumer> logger,
+    IServiceScopeFactory serviceScopeFactory,
+    IRabbitConsumer rabbitConsumer) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -17,7 +20,7 @@ public class MetadataRabbitConsumer(ILogger<MetadataRabbitConsumer> logger, ISer
 
         await rabbitConsumer.Receive(queueName, routingKey, HandleMessage);
     }
-    
+
     private async Task<bool> HandleMessage(string message)
     {
         MetadataComplete? data;
@@ -27,18 +30,20 @@ public class MetadataRabbitConsumer(ILogger<MetadataRabbitConsumer> logger, ISer
         }
         catch (JsonException e)
         {
-            logger.LogError("Exception occurred while deserializing message; LineNumber: {Line}; Path: {Path}", e.LineNumber, e.Path);
-            return false; 
+            logger.LogError("Exception occurred while deserializing message; LineNumber: {Line}; Path: {Path}",
+                e.LineNumber, e.Path);
+            return false;
         }
+
         if (data is null)
         {
             logger.LogError("Failed to deserialize message");
             return false;
         }
-        
+
         using var scope = serviceScopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<AnalysisService>();
-        
+
         return await service.Update(data.AnalysisId, data.Platform, data.Title, data.ThumbnailUrl, DateTime.UtcNow);
     }
 }

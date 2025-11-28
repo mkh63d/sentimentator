@@ -38,6 +38,7 @@ public class AnalysisService(
                 analysis = await Add(uri);
                 if (analysis is null) throw new Exception();
             }
+
             var user = await userManager.GetUserAsync(principal);
             user!.Analyses.Add(analysis);
             await userManager.UpdateAsync(user);
@@ -97,7 +98,7 @@ public class AnalysisService(
             return false;
         }
     }
-    
+
     public async Task<bool> Update(Guid id, string platform, string title, string thumbnailUrl, DateTime updatedAt)
     {
         try

@@ -30,20 +30,21 @@ public class ResendSender(ILogger<ResendSender> logger) : IEmailSender
         ResendResponse<Guid> response;
         try
         {
-            response = await resend.EmailSendAsync( new EmailMessage
+            response = await resend.EmailSendAsync(new EmailMessage
             {
                 From = "sentimentator@bdymek.com",
                 To = email,
                 Subject = subject,
                 HtmlBody = htmlMessage
-            } );
+            });
         }
         catch (ResendException e)
         {
             logger.LogError("Resend email failed: {Error}", e.Message);
             return;
         }
-        
-        logger.LogInformation("Sent email to {Email} with subject {Subject}. Successful: {Success}", email, subject, response.Success);
+
+        logger.LogInformation("Sent email to {Email} with subject {Subject}. Successful: {Success}", email, subject,
+            response.Success);
     }
 }

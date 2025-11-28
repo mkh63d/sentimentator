@@ -73,10 +73,7 @@ builder.Services.AddCors(options =>
         };
 
         var customOrigin = builder.Configuration["CORS_ALLOWED_ORIGIN"];
-        if (!string.IsNullOrWhiteSpace(customOrigin))
-        {
-            allowedOrigins.Add(customOrigin);
-        }
+        if (!string.IsNullOrWhiteSpace(customOrigin)) allowedOrigins.Add(customOrigin);
 
         policy.WithOrigins(allowedOrigins.ToArray())
             .AllowCredentials()
@@ -104,16 +101,10 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .AddAuthenticationSchemes(IdentityConstants.BearerScheme)
         .Build();
-    
-    options.AddPolicy("AdminOnly", policy =>
-    {
-        policy.RequireRole("Admin");
-    });
-    
-    options.AddPolicy("CanRequestAnalysis", policy =>
-    {
-        policy.RequireRole("CanRequestAnalysis");
-    });
+
+    options.AddPolicy("AdminOnly", policy => { policy.RequireRole("Admin"); });
+
+    options.AddPolicy("CanRequestAnalysis", policy => { policy.RequireRole("CanRequestAnalysis"); });
 
     options.FallbackPolicy = options.DefaultPolicy;
 });
@@ -171,28 +162,31 @@ if (!string.IsNullOrEmpty(adminPassword))
         await userManager.SetUserNameAsync(user, "admin");
         await userManager.SetEmailAsync(user, "admin@sentimentator.com");
         _ = await userManager.CreateAsync(user, adminPassword);
-        
+
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var adminRoleExists = await roleManager.RoleExistsAsync("Admin");
         if (!adminRoleExists)
         {
             var adminRole = new IdentityRole<Guid>("Admin");
             _ = await roleManager.CreateAsync(adminRole);
-            
         }
+
         _ = await userManager.AddToRoleAsync(user, "Admin");
-        
+
         var canRequestAnalysisRoleExists = await roleManager.RoleExistsAsync("CanRequestAnalysis");
         if (!canRequestAnalysisRoleExists)
         {
             var canRequestAnalysisRole = new IdentityRole<Guid>("CanRequestAnalysis");
             _ = await roleManager.CreateAsync(canRequestAnalysisRole);
         }
+
         _ = await userManager.AddToRoleAsync(user, "CanRequestAnalysis");
-        
+
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         _ = await userManager.ConfirmEmailAsync(user, token);
-        app.Logger.LogInformation("Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.", adminPassword);
+        app.Logger.LogInformation(
+            "Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.",
+            adminPassword);
     }
 }
 

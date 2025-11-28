@@ -27,7 +27,7 @@ builder.Logging.AddConsole();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -151,7 +151,6 @@ var app = builder.Build();
     var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
     await dbContext.Database.EnsureCreatedAsync();
 }
-
 
 #endregion
 

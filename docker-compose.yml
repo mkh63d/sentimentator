@@ -10,6 +10,7 @@ services:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
             - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ASPNETCORE_URLS=http://+/
         ports:
             - "8081:80"
 
@@ -48,12 +49,12 @@ services:
             - ANALYSIS_ROUTING_KEY=video.analysis.completed
             - LOG_LEVEL=info
 
-    # nlp-analyzer:
-    #     build: ./NLP_analyzer_service
-    #     depends_on:
-    #         - rabbitmq
-    #     environment:
-    #         - RABBITMQ_URL=${AMQP_URL}
+    nlp-analyzer:
+        build: ./NLP_analyzer_service
+        depends_on:
+            - rabbitmq
+        environment:
+            - RABBITMQ_URL=${AMQP_URL}
 
     frontend:
         image: ghcr.io/oskarowski/sentimentator/core_frontend:dev
@@ -65,6 +66,7 @@ services:
         environment:
             VITE_BACKEND_API: ${VITE_BACKEND_API}
             VITE_DEMO_MODE: ${VITE_DEMO_MODE}
+            VITE_REGISTER_ENABLED: true
 
     rabbitmq:
         image: rabbitmq:4.1.4-management
@@ -100,7 +102,7 @@ services:
             - postgres_data:/var/lib/postgresql
             - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            test: [ "CMD-SHELL", "pg_isready -U postgres" ]
             interval: 5s
             timeout: 5s
             retries: 5

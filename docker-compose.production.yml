@@ -50,15 +50,7 @@ services:
             # Apply Middlewares
             - "traefik.http.routers.orchestrator.middlewares=orchestrator-cors,orchestrator-security"
         healthcheck:
-            test:
-                [
-                    "CMD",
-                    "wget",
-                    "--quiet",
-                    "--tries=1",
-                    "--spider",
-                    "http://localhost:80/health",
-                ]
+            test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health" ]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -112,15 +104,7 @@ services:
             # Apply Middlewares
             - "traefik.http.routers.vps.middlewares=vps-security"
         healthcheck:
-            test:
-                [
-                    "CMD",
-                    "wget",
-                    "--quiet",
-                    "--tries=1",
-                    "--spider",
-                    "http://localhost:8080/health",
-                ]
+            test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health" ]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -240,7 +224,7 @@ services:
             - postgres_data:/var/lib/postgresql/data
             - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            test: [ "CMD-SHELL", "pg_isready -U postgres" ]
             interval: 5s
             timeout: 5s
             retries: 5

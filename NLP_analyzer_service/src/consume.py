@@ -7,9 +7,10 @@ import os
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
 RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
-EXCHANGE = "events"
-QUEUE = "video_transcript"
+EXCHANGE = "sentimentator.topic"
+QUEUE = "video.transcript"
 ROUTING_KEY = "video.transcript.completed"
+
 
 
 class RabbitConsumer:

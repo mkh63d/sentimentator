@@ -14,17 +14,23 @@ class RabbitPublisher:
         self._connect()
 
     def _connect(self):
-        """Establish connection with error handling"""
         try:
             self.params = pika.URLParameters(self.rabbit_url)
             self.connection = pika.BlockingConnection(self.params)
             self.channel = self.connection.channel()
             self.queue_name = "video.analysis"
+            self.channel.exchange_declare(exchange="sentimentator.topic", exchange_type="topic", durable=True)
             self.channel.queue_declare(queue=self.queue_name, durable=True)
+            self.channel.queue_bind(
+                queue=self.queue_name,
+                exchange="sentimentator.topic",
+                routing_key="video.analysis.completed"
+            )
             print("[*] RabbitMQ publisher connected")
         except Exception as e:
             print(f"[!] Failed to connect RabbitMQ publisher: {e}")
             raise
+
 
     def publish_analysis(self,
                          analysis_id: str,
@@ -74,7 +80,7 @@ class RabbitPublisher:
             try:
                 self._connect()
                 self.channel.basic_publish(
-                    exchange="events",
+                    exchange="sentimentator.topic",
                     routing_key="video.analysis.completed",
                     body=body,
                     properties=pika.BasicProperties(

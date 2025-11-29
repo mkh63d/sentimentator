@@ -70,17 +70,26 @@ class SentimentAnalysisService:
                 data = latest["data"]
                 # Prefer top-level fields, fall back to data.*
                 analysis_id = latest.get("analysis_id") or data.get("analysis_id")
-                transcript = latest.get("transcript") or data.get("transcript")
+                transcript = latest.get("transcript") or data.get("transcript") or latest.get("text")
                 video_id = latest.get("video_id") or data.get("video_id")
                 original_url = latest.get("original_url") or data.get("original_url")
             else:
                 analysis_id = latest.get("analysis_id")
-                transcript = latest.get("transcript")
+                transcript = latest.get("transcript") or latest.get("text")
                 video_id = latest.get("video_id")
                 original_url = latest.get("original_url")
 
             if not analysis_id or not transcript:
                 print("[!] Received invalid or incomplete message, skipping...")
+                print(f"    Full message: {json.dumps(latest, indent=2)}")
+                print(f"    analysis_id: {analysis_id!r}")
+                print(f"    transcript: {transcript!r}")
+                print(f"    video_id: {video_id!r}")
+                print(f"    original_url: {original_url!r}")
+
+                # If 'data' exists, log it separately
+                if "data" in latest and isinstance(latest["data"], dict):
+                    print(f"    Nested 'data' content: {json.dumps(latest['data'], indent=2)}")
                 continue
 
             print(f"[*] Analyzing text for video: {analysis_id}")

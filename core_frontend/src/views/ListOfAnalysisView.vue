@@ -126,7 +126,7 @@
                 <div class="flex items-center gap-3">
                   <!-- Thumbnail / video preview area -->
                   <div
-                    class="w-28 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 flex items-center justify-center"
+                    class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
                     :class="
                       analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
                     "

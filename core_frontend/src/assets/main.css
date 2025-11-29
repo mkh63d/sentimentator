@@ -12,7 +12,8 @@ html {
   --color-background: var(--theme-background);
   --color-textBase: var(--theme-textBase);
   --color-fourth: var(--theme-fourth);
-
+  --color-textBase-dark: var(--theme-textBase-dark);
+  --color-textBase-light: var(--theme-textBase-light);
 }
 
 [data-theme="light"] {
@@ -22,7 +23,7 @@ html {
     --color-accent: #CC2936;
     --color-textBase-dark: hsl(0, 0%, 9%);
     --color-textBase-light: hsl(0, 0%, 100%);
-    --color-background: #F0F3BD;
+    --color-background: #f1f2e7;
     --color-fourth: #011936;
 }
 
@@ -32,6 +33,7 @@ html {
     --color-tertiary: hsl(210, 30%, 80%);
     --color-accent:  hsl(92, 100%, 50%);
     --color-textBase-dark: hsl(0, 0%, 100%);
+    --color-textBase-light: hsl(0, 0%, 9%);
     --color-background: hsl(0, 0%, 9%);
     --color-fourth: #011936;
 }

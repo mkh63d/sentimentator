@@ -3,7 +3,7 @@
     <nav class="px-2 pt-5 pb-0">
       <div class="max-w-full w-full mx-auto flex justify-between items-center">
         <div
-          class="px-5 text-2xl cursor-pointer font-bold text-background"
+          class="px-5 text-2xl cursor-pointer font-bold text-textBase-light"
           @click="() => router.push({ name: 'home' })"
         >
           Sentimentator
@@ -27,7 +27,7 @@
                 type="email"
                 placeholder="Enter your email"
                 required
-                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+                class="w-full p-3 border border-gray-300 text-textBase-dark rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -39,7 +39,7 @@
                 type="password"
                 placeholder="Enter your password"
                 required
-                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
+                class="w-full text-textBase-dark p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -84,7 +84,7 @@
                 v-model="useCookies"
                 class="h-4 w-4 text-fourth focus:ring-fourth border-gray-300 rounded"
               />
-              <label for="rememberMe" class="ml-2">Remember me</label>
+              <label for="rememberMe" class="ml-2 text-textBase-dark">Remember me</label>
             </div>
 
             <button
@@ -97,7 +97,7 @@
           </form>
 
           <div class="text-center mt-6">
-            <p class="text-gray-600 text-sm">
+            <p class="text-textBase-dark border-gray-300 text-sm">
               {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
               <a
                 @click="toggleMode"

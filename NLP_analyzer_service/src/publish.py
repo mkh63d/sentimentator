@@ -3,10 +3,12 @@ import json
 import os
 import pika
 
+DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
+RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
 
 class RabbitPublisher:
     def __init__(self, rabbit_url=None):
-        self.rabbit_url = rabbit_url or os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
+        self.rabbit_url = rabbit_url or RABBITMQ_URL
         self.connection = None
         self.channel = None
         self._connect()
@@ -17,48 +19,63 @@ class RabbitPublisher:
             self.params = pika.URLParameters(self.rabbit_url)
             self.connection = pika.BlockingConnection(self.params)
             self.channel = self.connection.channel()
-            self.queue_name = "video.analysis.completed"
+            self.queue_name = "video.analysis"
             self.channel.queue_declare(queue=self.queue_name, durable=True)
             print("[*] RabbitMQ publisher connected")
         except Exception as e:
             print(f"[!] Failed to connect RabbitMQ publisher: {e}")
             raise
 
-    def publish_analysis(self, analysis_id: str, sentiment_results: dict):
+    def publish_analysis(self,
+                         analysis_id: str,
+                         original_url: str,
+                         video_id: str,
+                         transcript: str,
+                         sentiment_results: dict):
         """
-        Publish structured sentiment analysis result as JSON.
+        Publish AnalysisCompletedEvent:
+        {
+          analysis_id, original_url, video_id, transcript,
+          sentiment: { overall, features, confidence }
+        }
         """
-        # Reconnect if connection is lost
         if not self.connection or self.connection.is_closed:
             print("[!] Publisher connection lost, reconnecting...")
             self._connect()
 
+        # Ensure sentiment_results is already in the SentimentAnalysis shape:
+        # { "overall": float, "features": {...}, "confidence": float }
         message = {
             "event": "video.analysis.completed",
             "analysis_id": analysis_id,
-            "data": sentiment_results,
+            "original_url": original_url,
+            "video_id": video_id,
+            "transcript": transcript,
+            "sentiment": sentiment_results,
         }
 
         try:
             body = json.dumps(message)
+            # publish to exchange or direct queue depending on topology
+            # here: publish to EXCHANGE with routing key for subscribers
             self.channel.basic_publish(
-                exchange="",
-                routing_key=self.queue_name,
+                exchange="events",                  # or "" if you want default direct queue
+                routing_key="video.analysis.completed",
                 body=body,
                 properties=pika.BasicProperties(
-                    delivery_mode=2,  # make message persistent
+                    delivery_mode=2,
                     content_type="application/json"
                 ),
             )
-            print(f"[*] Published sentiment analysis for {analysis_id} to {self.queue_name}")
+            print(f"[*] Published sentiment analysis for {analysis_id}")
         except Exception as e:
             print(f"[*] Failed to publish message: {e}")
-            # Try to reconnect and retry once
+            # reconnect and retry once (same as before)
             try:
                 self._connect()
                 self.channel.basic_publish(
-                    exchange="",
-                    routing_key=self.queue_name,
+                    exchange="events",
+                    routing_key="video.analysis.completed",
                     body=body,
                     properties=pika.BasicProperties(
                         delivery_mode=2,

@@ -3,10 +3,12 @@ import json
 import pika
 import threading
 import time
+import os 
 
-RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"
+DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
+RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
 EXCHANGE = "events"
-QUEUE = "transcripts_queue"
+QUEUE = "video_transcript"
 ROUTING_KEY = "video.transcript.completed"
 
 
@@ -82,13 +84,28 @@ class RabbitConsumer:
             self._new_message_event.clear()
         return received
 
-    def get_analysis_id(self):
+    def get_latest_message(self):
+        """Return the full latest message dict (thread-safe)."""
         with self._lock:
-            return self._latest_message.get("analysis_id") if self._latest_message else None
+            return dict(self._latest_message) if self._latest_message else None
+
+    # optional: keep these but implemented from latest_message
+    def get_analysis_id(self):
+        msg = self.get_latest_message()
+        return msg.get("analysis_id") if msg else None
 
     def get_text(self):
-        with self._lock:
-            return self._latest_message.get("transcript") if self._latest_message else None
+        msg = self.get_latest_message()
+        # keep backward compatibility: some messages may nest transcript under 'data'
+        return msg.get("transcript") or (msg.get("data") or {}).get("transcript") if msg else None
+
+    def get_video_id(self):
+        msg = self.get_latest_message()
+        return msg.get("video_id") if msg else None
+
+    def get_original_url(self):
+        msg = self.get_latest_message()
+        return msg.get("original_url") if msg else None
 
     def stop(self):
         """Safely stop the consumer."""

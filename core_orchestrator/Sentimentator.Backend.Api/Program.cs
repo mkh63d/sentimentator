@@ -7,7 +7,6 @@ using Sentimentator.Backend;
 using Sentimentator.Backend.Api.EndpointGroups;
 using Sentimentator.Backend.Api.Transformers;
 using Sentimentator.Backend.Model;
-using Sentimentator.Backend.Service;
 using Sentimentator.Backend.Service.Analysis;
 using Sentimentator.Backend.Service.Email;
 using Sentimentator.Backend.Service.RabbitMq.Consumer;
@@ -18,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging
 
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.AddConsole();
 
 #endregion
@@ -28,7 +27,7 @@ builder.Logging.AddConsole();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -74,10 +73,7 @@ builder.Services.AddCors(options =>
         };
 
         var customOrigin = builder.Configuration["CORS_ALLOWED_ORIGIN"];
-        if (!string.IsNullOrWhiteSpace(customOrigin))
-        {
-            allowedOrigins.Add(customOrigin);
-        }
+        if (!string.IsNullOrWhiteSpace(customOrigin)) allowedOrigins.Add(customOrigin);
 
         policy.WithOrigins(allowedOrigins.ToArray())
             .AllowCredentials()
@@ -106,6 +102,10 @@ builder.Services.AddAuthorization(options =>
         .AddAuthenticationSchemes(IdentityConstants.BearerScheme)
         .Build();
 
+    options.AddPolicy("AdminOnly", policy => { policy.RequireRole("Admin"); });
+
+    options.AddPolicy("CanRequestAnalysis", policy => { policy.RequireRole("CanRequestAnalysis"); });
+
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
@@ -129,7 +129,8 @@ builder.Services.AddTransient<IEmailSender, ResendSender>();
 builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 builder.Services.AddScoped<AnalysisService>();
 builder.Services.AddSingleton<IRabbitConsumer, RabbitConsumer>();
-builder.Services.AddHostedService<HostedRabbitConsumer>();
+builder.Services.AddHostedService<AnalysisRabbitConsumer>();
+builder.Services.AddHostedService<MetadataRabbitConsumer>();
 
 #endregion
 
@@ -137,9 +138,57 @@ var app = builder.Build();
 
 #region Database Initialization
 
-await using var scope = app.Services.CreateAsyncScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
-await dbContext.Database.EnsureCreatedAsync();
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<SentimentatorContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
+#endregion
+
+#region Admin User Initialization
+
+const string adminPassEnvVar = "ORCHESTRATOR_ADMIN_PASSWORD";
+var adminPassword = Environment.GetEnvironmentVariable(adminPassEnvVar);
+
+if (!string.IsNullOrEmpty(adminPassword))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var adminUser = await userManager.FindByNameAsync("admin");
+    if (adminUser is null)
+    {
+        var user = new User();
+        await userManager.SetUserNameAsync(user, "admin");
+        await userManager.SetEmailAsync(user, "admin@sentimentator.com");
+        _ = await userManager.CreateAsync(user, adminPassword);
+
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var adminRoleExists = await roleManager.RoleExistsAsync("Admin");
+        if (!adminRoleExists)
+        {
+            var adminRole = new IdentityRole<Guid>("Admin");
+            _ = await roleManager.CreateAsync(adminRole);
+        }
+
+        _ = await userManager.AddToRoleAsync(user, "Admin");
+
+        var canRequestAnalysisRoleExists = await roleManager.RoleExistsAsync("CanRequestAnalysis");
+        if (!canRequestAnalysisRoleExists)
+        {
+            var canRequestAnalysisRole = new IdentityRole<Guid>("CanRequestAnalysis");
+            _ = await roleManager.CreateAsync(canRequestAnalysisRole);
+        }
+
+        _ = await userManager.AddToRoleAsync(user, "CanRequestAnalysis");
+
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        _ = await userManager.ConfirmEmailAsync(user, token);
+        app.Logger.LogInformation(
+            "Admin user created with username 'admin', email 'admin@sentimentator.com' and the password '{AdminPassword}'.",
+            adminPassword);
+    }
+}
 
 #endregion
 
@@ -219,6 +268,11 @@ app.MapGroup("/users")
     .MapUser()
     .WithTags("Users")
     .AddOperationBearerSecuritySchemeWithAuthorization();
+
+app.MapGroup("/admin")
+    .MapAdmin()
+    .WithTags("Admin")
+    .AddOperationBearerSecuritySchemeWithAuthorization("AdminOnly");
 
 #endregion
 

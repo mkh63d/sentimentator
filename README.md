@@ -193,11 +193,11 @@ graph TB
 ### Event Details
 
 | Event Name               | Routing Key                  | Publisher           | Queue              | Consumer            | Payload                                                                        |
-| ------------------------ | ---------------------------- | ------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------ |
-| **Transcript Requested** | `video.transcript.requested` | C# Orchestrator     | `video.processing` | Go Video Processor  | `{analysis_id, url, timestamp}`                                                |
+| ------------------------ | ---------------------------- | ------------------- | ------------------ | ------------------- |--------------------------------------------------------------------------------|
+| **Transcript Requested** | `video.transcript.requested` | C# Orchestrator     | `video.processing` | Go Video Processor  | `{analysis_id, url, timestamp, open_ai_user_key}`                              |
 | **Transcript Completed** | `video.transcript.completed` | Go Video Processor  | `video.transcript` | Python NLP Analyzer | `{analysis_id, video_id, transcript_id, text, language, duration, created_at}` |
 | **Analysis Completed**   | `video.analysis.completed`   | Python NLP Analyzer | `video.analysis`   | C# Orchestrator     | `???`                                                                          |
-| **Metadata Completed**   | `video.metadata.completed`   | Go Video Processor  | `video.metadata`   | C# Orchestrator     | `{analysis_id, video_id, title, thumbnail_url, duration_seconds?, ???}`        |
+| **Metadata Completed**   | `video.metadata.completed`   | Go Video Processor  | `video.metadata`   | C# Orchestrator     | `{analysis_id, platform, title, thumbnail_url}`                                |
 
 ## 🔄 Data Flow Diagram
 

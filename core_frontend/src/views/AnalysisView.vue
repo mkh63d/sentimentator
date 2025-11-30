@@ -106,42 +106,40 @@
             </div>
           </div>
 
-          <!-- Feature-Based Sentiment Analysis -->
-          <div class="p-6 mb-6 shadow-lg bg-fourth rounded-xl">
+          <!-- Feature-Based Sentiment Analysis (compact grid) -->
+          <div class="p-4 mb-6 bg-fourth rounded-xl">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Sentiment by Feature</h2>
-            <div class="space-y-4">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div
                 v-for="feature in analysisData.features"
                 :key="feature.name"
-                class="p-4 border border-gray-200 rounded-lg dark:border-gray-700"
+                class="p-3 bg-white/5 rounded-lg"
               >
-                <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-[#bdccdb]">{{ feature.name }}</h3>
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="text-sm font-semibold text-[#bdccdb] truncate">
+                    {{ feature.name }}
+                  </h3>
                   <span
                     :class="getSentimentBadgeClass(feature.sentiment)"
-                    class="px-3 py-1 text-sm font-semibold rounded-full"
+                    class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap"
                   >
                     {{ feature.sentiment }}
                   </span>
                 </div>
-                <div class="flex mb-2 space-x-2">
-                  <div
-                    class="h-3 bg-green-500 rounded"
-                    :style="{ width: `${feature.positive}%` }"
-                  ></div>
-                  <div
-                    class="h-3 bg-gray-300 rounded"
-                    :style="{ width: `${feature.neutral}%` }"
-                  ></div>
-                  <div
-                    class="h-3 bg-red-500 rounded"
-                    :style="{ width: `${feature.negative}%` }"
-                  ></div>
+
+                <div class="w-full h-3 bg-gray-700 rounded overflow-hidden mb-2 flex">
+                  <div class="h-full bg-green-500" :style="{ width: `${feature.positive}%` }"></div>
+                  <div class="h-full bg-gray-300" :style="{ width: `${feature.neutral}%` }"></div>
+                  <div class="h-full bg-red-500" :style="{ width: `${feature.negative}%` }"></div>
                 </div>
-                <div class="flex justify-between text-sm text-[#bdccdb] opacity-85">
-                  <span>Positive: {{ feature.positive }}%</span>
-                  <span>Neutral: {{ feature.neutral }}%</span>
-                  <span>Negative: {{ feature.negative }}%</span>
+
+                <div
+                  class="flex flex-col items-center text-center text-xs text-[#bdccdb] space-y-1"
+                >
+                  <span class="truncate">Positive: {{ feature.positive }}%</span>
+                  <span class="truncate">Neutral: {{ feature.neutral }}%</span>
+                  <span class="truncate">Negative: {{ feature.negative }}%</span>
                 </div>
               </div>
             </div>
@@ -365,7 +363,7 @@ async function fetchAnalysisData(id: string) {
 
   try {
     const response = await getAnalysisById(id);
-    const rawSummary = (response as any)?.summary ?? response;
+    const rawSummary = response?.summary ?? response;
     const parsedSummary = normalizeSummary(rawSummary) as ParsedSummary;
 
     const responseData = (response ?? {}) as Record<string, unknown>;

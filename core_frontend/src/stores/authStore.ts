@@ -7,8 +7,8 @@ import { getTokens, setTokens, clearTokens } from '@/lib/tokenStorage';
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(getTokens().accessToken);
   const refreshToken = ref<string | null>(getTokens().refreshToken);
-
-  const isAuthenticated = computed(() => !!accessToken.value);
+  const cookieAuthenticated = ref(false);
+  const isAuthenticated = computed(() => !!accessToken.value || cookieAuthenticated.value);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
         setTokens({ accessToken: access, refreshToken: refresh });
       } else {
         // clear if either token is missing
-        setTokens({ accessToken: '', refreshToken: '' });
+        clearTokens();
       }
     },
     { immediate: true },
@@ -40,6 +40,9 @@ export const useAuthStore = defineStore('auth', () => {
       if (result.authenticatedVia === 'token') {
         accessToken.value = result.accessToken ?? null;
         refreshToken.value = result.refreshToken ?? null;
+      } else if (result.authenticatedVia === 'cookie') {
+        // backend set httpOnly cookies; mark store as authenticated via cookie
+        cookieAuthenticated.value = true;
       }
 
       return result;
@@ -85,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       accessToken.value = result.accessToken;
       refreshToken.value = result.refreshToken;
+      cookieAuthenticated.value = false;
 
       return result;
     } catch (err) {
@@ -92,6 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = message || 'Token refresh failed';
       accessToken.value = null;
       refreshToken.value = null;
+      cookieAuthenticated.value = false;
       throw err;
     } finally {
       loading.value = false;
@@ -104,6 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null;
     refreshToken.value = null;
     clearTokens();
+    cookieAuthenticated.value = false;
   }
 
   return {

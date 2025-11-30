@@ -3,7 +3,7 @@
     <nav class="px-2 pt-5 pb-0">
       <div class="max-w-full w-full mx-auto flex justify-between items-center">
         <div
-          class="px-5 text-2xl cursor-pointer font-bold text-background"
+          class="px-5 text-2xl cursor-pointer font-bold text-textBase-light"
           @click="() => router.push({ name: 'home' })"
         >
           Sentimentator
@@ -27,7 +27,7 @@
                 type="email"
                 placeholder="Enter your email"
                 required
-                class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+                class="w-full p-3 border border-gray-300 text-textBase-dark rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -39,7 +39,7 @@
                 type="password"
                 placeholder="Enter your password"
                 required
-                class="w-full text-textBase p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
+                class="w-full text-textBase-dark p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-fourth transition"
               />
             </div>
 
@@ -77,6 +77,16 @@
               {{ error }}
             </div>
 
+            <div class="flex items-center mb-4">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                v-model="useCookies"
+                class="h-4 w-4 text-fourth focus:ring-fourth border-gray-300 rounded"
+              />
+              <label for="rememberMe" class="ml-2 text-textBase-dark">Remember me</label>
+            </div>
+
             <button
               type="submit"
               class="w-full cursor-pointer p-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60"
@@ -87,7 +97,7 @@
           </form>
 
           <div class="text-center mt-6">
-            <p class="text-gray-600 text-sm">
+            <p class="text-textBase-dark border-gray-300 text-sm">
               {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
               <a
                 @click="toggleMode"
@@ -157,10 +167,14 @@ import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
 import { useAuthStore } from '@/stores/authStore';
 import { forgotPassword as apiForgotPassword } from '@/api/account';
+import { fireTimedAlert } from '@/lib/sweetAlerts';
 
 const emit = defineEmits(['login', 'register']);
 const router = useRouter();
 const authStore = useAuthStore();
+
+const useCookies = ref(false);
+const useSessionCookies = ref(false);
 
 const isLogin = ref(true);
 const isForgotSent = ref(false);
@@ -192,27 +206,47 @@ async function handleSubmit() {
 
   if (!isLogin.value && form.value.password !== form.value.confirmPassword) {
     error.value = 'Passwords do not match';
+    fireTimedAlert('Registration Error', error.value, 1000);
+    error.value = '';
     return;
   }
 
   try {
+    let isSuccess = false;
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
-        await authStore.loginUser(form.value.email, form.value.password, false, false);
+        await authStore.loginUser(
+          form.value.email,
+          form.value.password,
+          useCookies.value,
+          useSessionCookies.value,
+        );
+        isSuccess = true;
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
+        const errTitle = 'Login failed';
+        const errMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+        fireTimedAlert(errTitle, errMessage, 1000);
+        return;
       }
       emit('login', { email: form.value.email, password: form.value.password });
     } else {
       try {
         await authStore.registerUser(form.value.email, form.value.password);
+        isSuccess = true;
       } catch (e) {
         error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
+        const errTitle = 'Registration failed';
+        const errMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+        fireTimedAlert(errTitle, errMessage, 1000);
+        return;
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    await router.push({ name: 'list' });
+    if (isSuccess) {
+      await router.push({ name: 'list' });
+    }
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message;
@@ -228,8 +262,12 @@ function forgotPassword() {
   try {
     apiForgotPassword(form.value.email);
   } catch (err) {
-    alert('An error occurred while trying to reset the password.');
-    console.error(err);
+    const errTitle = 'Password Reset Failed';
+    const errMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+    fireTimedAlert(errTitle, errMessage, 1000);
+    return;
+    // alert('An error occurred while trying to reset the password.');
+    // console.error(err);
   }
   isForgotSent.value = true;
 }

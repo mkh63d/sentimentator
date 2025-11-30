@@ -36,24 +36,26 @@
 
       <div class="px-4 sm:px-8 py-8 max-w-[1400px] mx-auto flex-1">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
-          <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">Analysis Library</h1>
+          <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">
+            Analysis Library
+          </h1>
           <div class="flex gap-2 sm:gap-3 items-center">
-        <button
-          @click="fetchAnalyses"
-          class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-          title="Refresh analyses"
-        >
-          <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
-          <span class="hidden sm:inline">Refresh</span>
-        </button>
-        <button
-          @click="createNew"
-          class="flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-          title="New Analysis"
-        >
-          <Plus class="pr-1 w-4 h-4 sm:w-5 sm:h-5" />
-          <span class="hidden sm:inline">New Analysis</span>
-        </button>
+            <button
+              @click="fetchAnalyses"
+              class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              title="Refresh analyses"
+            >
+              <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
+              <span class="hidden sm:inline">Refresh</span>
+            </button>
+            <button
+              @click="createNew"
+              class="flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              title="New Analysis"
+            >
+              <Plus class="pr-1 w-4 h-4 sm:w-5 sm:h-5" />
+              <span class="hidden sm:inline">New Analysis</span>
+            </button>
           </div>
         </div>
 
@@ -104,97 +106,85 @@
           </button>
         </div>
 
-        <!-- Desktop / Tablet: regular table -->
-        <div class="hidden md:block overflow-hidden rounded-lg shadow-md bg-background/80">
-          <div class="overflow-x-auto"> <!-- allow horizontal scroll if needed -->
-            <table class="w-full border-collapse">
-              <thead class="border-b border-gray-100 bg-background/90">
-                <tr>
-                  <th class="p-4 font-semibold text-left text-tertiary">Title</th>
-                  <th class="p-4 font-semibold text-left text-tertiary">Created</th>
-                  <th class="p-4 font-semibold text-left text-tertiary">Updated</th>
-                  <th class="p-4 font-semibold text-left text-tertiary">Status</th>
-                  <th class="p-4 font-semibold text-left text-tertiary">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="analysis in filteredAnalyses.filter(a => !filterStatus || ((a.summary === null ? 'processing' : 'completed') === filterStatus))"
-                  :key="analysis.id"
-                  @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                  :class="[
-                    analysis && analysis.transcription && analysis.id
-                      ? 'cursor-pointer transition hover:bg-background/10'
-                      : '',
-                    'bg-background/90 border-b border-gray-100',
-                  ]"
-                >
-                  <td class="flex flex-col p-4 text-tertiary">
-                    <strong class="block truncate max-w-[40ch]">{{ analysis.url }}</strong>
-                  </td>
-                  <td class="p-4 text-tertiary">{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</td>
-                  <td class="p-4 text-tertiary">{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</td>
-                  <td class="p-4">
-                    <span
-                      :class="[
-                        'px-3 py-1 rounded-full text-sm font-semibold',
-                        analysis.summary !== null && 'bg-green-100 text-green-800',
-                        analysis.summary === null && 'bg-yellow-100 text-yellow-800',
-                      ]"
-                    >
-                      {{ analysis.summary === null ? 'Processing' : 'Completed' }}
-                    </span>
-                  </td>
-                  <td class="flex items-center gap-2 p-4" @click.stop>
-                    <button
-                      @click="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                      :class="
-                        analysis.summary === null
-                          ? 'bg-transparent border-none text-xl p-1 opacity-50 cursor-not-allowed pointer-events-none'
-                          : 'bg-transparent border-none cursor-pointer text-xl p-1'
-                      "
-                      :disabled="analysis.summary === null"
-                      title="View"
-                    >
-                      <Eye class="inline w-5 h-5" color="var(--color-tertiary)" />
-                    </button>
-                    <button
-                      @click="analysis.id && eraseAnalysis(analysis.id)"
-                      class="p-1 text-xl bg-transparent border-none cursor-pointer hover:opacity-70"
-                      title="Delete"
-                    >
-                      <Trash2 class="inline w-5 h-5" color="var(--color-tertiary)" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Mobile: stacked cards -->
-        <div class="md:hidden space-y-3">
+        <!-- Use the mobile stacked cards layout on all screen sizes -->
+        <div class="space-y-3">
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
             class="border rounded-lg p-3 flex flex-col gap-2"
             :class="[
-              // color the whole card based on status on small screens so the status badge can be hidden
-              analysis.summary !== null ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200',
-              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/10' : '',
+              analysis.summary
+                ? 'bg-green-50 border-green-200 cursor-pointer'
+                : 'bg-yellow-50 border-yellow-200 cursor-default',
+              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
             ]"
+            @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
           >
             <div class="flex justify-between items-start gap-3">
-              <div class="min-w-0">
+              <div>
+                <div class="flex items-center gap-3">
+                  <!-- Thumbnail / video preview area -->
+                  <div
+                    class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
+                    :class="
+                      analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
+                    "
+                    @click.stop="
+                      analysis.summary !== null && analysis.id && openAnalysis(analysis.id)
+                    "
+                    role="button"
+                    :aria-disabled="analysis.summary === null"
+                    :title="analysis.summary !== null ? 'Open analysis' : 'Summary not ready'"
+                  >
+                    <!-- image if provided by API -->
+                    <img
+                      v-if="analysis.thumbnail_url"
+                      :src="analysis.thumbnail_url"
+                      alt="analysis thumbnail"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+
+                    <!-- fallback placeholder -->
+                    <template v-else>
+                      <div
+                        class="flex flex-col items-center justify-center text-xs text-tertiary/60 px-2 text-center"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-6 h-6 mb-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
+                          />
+                        </svg>
+                        <div class="text-xs">No thumbnail</div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="min-w-0 flex-1">
                 <div
-                  class="text-sm font-semibold text-tertiary truncate max-w-[60%] sm:max-w-[70%]"
-                  :title="analysis.url"
+                  class="text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
+                  :title="analysis.title ?? analysis.url"
                 >
-                  {{ analysis.url }}
+                  {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
                 </div>
                 <div class="text-xs text-tertiary/70 mt-1">
-                  <div>Created: {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</div>
-                  <div>Updated: {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</div>
+                  <div>
+                    Created: {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
+                  </div>
+                  <div>
+                    Updated: {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
+                  </div>
                 </div>
               </div>
 
@@ -202,7 +192,11 @@
                 <!-- hide the compact badge on very small screens to save space; color indicates status -->
                 <span
                   class="hidden sm:inline-block px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                  :class="analysis.summary !== null ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                  :class="
+                    analysis.summary !== null
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  "
                 >
                   {{ analysis.summary === null ? 'Processing' : 'Completed' }}
                 </span>
@@ -218,7 +212,7 @@
                     title="View"
                     aria-label="View analysis"
                   >
-                    <Eye class="w-5 h-5" color="var(--color-tertiary)" />
+                    <Eye class="w-5 h-5 cursor-pointer" color="var(--color-tertiary)" />
                   </button>
 
                   <button
@@ -231,10 +225,6 @@
                   </button>
                 </div>
               </div>
-            </div>
-
-            <div v-if="analysis.summary === null" class="text-xs text-tertiary/60">
-              Summary is not ready yet.
             </div>
           </div>
         </div>
@@ -300,17 +290,6 @@ const fetchAnalyses = async () => {
     const response = await getAnalyses();
     console.log('Fetched analyses response:', response);
 
-    // TODO: Adjust mapping for description, createdAt, status, sentiment based on real response structure
-    // Waiting for backend API to provide these fields
-    analyses.value = await response.map((a) => ({
-      id: a.id,
-      title: a.url,
-      description: '',
-      createdAt: new Date().toISOString(),
-      status: 'processing',
-      sentiment: { positive: 33, negative: 33, neutral: 34 },
-      transcription: a.transcription,
-    }));
     realAnalyses.value = response;
     console.log('Real analyses set:', realAnalyses.value);
   } catch (err) {
@@ -333,7 +312,7 @@ const createNew = () => {
 const eraseAnalysis = async (id: string) => {
   // Use SweetAlert2 for confirmation
   // Make sure to install sweetalert2 and import it
-  const result = await Swal.fire({
+  await Swal.fire({
     title: 'Are you sure?',
     text: 'Do you really want to delete this analysis?',
     icon: 'warning',
@@ -345,7 +324,7 @@ const eraseAnalysis = async (id: string) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const response = await deleteAnalysis(id);
+        await deleteAnalysis(id);
         analyses.value = analyses.value.filter((a) => a.id !== id);
         Swal.fire({
           title: 'Deleted!',
@@ -354,10 +333,10 @@ const eraseAnalysis = async (id: string) => {
           timer: 2000,
           showConfirmButton: false,
         });
-      } catch (err) {
+      } catch (e) {
         Swal.fire({
           title: 'Error!',
-          text: 'Failed to delete analysis.',
+          text: 'Failed to delete analysis:' + (e instanceof Error ? e.message : ''),
           icon: 'error',
           timer: 2000,
           showConfirmButton: false,

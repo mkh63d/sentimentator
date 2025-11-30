@@ -1,6 +1,11 @@
 <template>
   <div class="min-h-screen bg-background">
-    <nav class="fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-transparent backdrop-blur-xs">
+    <nav
+      :class="[
+        'fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-transparent backdrop-blur-xs transition-transform duration-300',
+        showNavbar ? 'translate-y-0' : '-translate-y-full',
+      ]"
+    >
       <div class="flex items-center justify-between mx-auto max-w-7xl">
         <div
           class="text-2xl font-bold cursor-pointer text-background"
@@ -62,10 +67,13 @@
       </div>
     </nav>
     <!-- Hero Section -->
-    <section class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth -mt-14 pt-14">
-      <div class="px-4 py-20 mx-auto text-center max-w-7xl md:py-32 text-background">
+    <section
+      id="hero"
+      class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth pt-10 pb-20 md:pt-32 md:pb-40"
+    >
+      <div class="px-4 py-20 max-h-full mx-auto text-center max-w-7xl md:py-32 text-background">
         <h1 class="mb-5 text-5xl font-extrabold md:text-6xl">Analyze Video Reviews in Seconds</h1>
-        <p class="mb-10 text-xl opacity-90">
+        <p class="mb-20 text-xl opacity-90">
           Transform your favourite video reviews into actionable sentiment insights with ease.
         </p>
         <div class="flex flex-col justify-center gap-5 sm:flex-row">
@@ -239,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent, onUnmounted } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
@@ -252,6 +260,8 @@ const authStore = useAuthStore();
 const teamSectionRef = ref<HTMLElement | null>(null);
 const shouldRenderTeamCarousel = ref(false);
 let teamObserver: IntersectionObserver | null = null;
+const showNavbar = ref(false);
+const lastScroll = ref(0);
 
 onMounted(() => {
   if (!('IntersectionObserver' in window)) {
@@ -276,6 +286,33 @@ onMounted(() => {
   if (teamSectionRef.value) {
     teamObserver.observe(teamSectionRef.value);
   }
+
+  const hero = document.getElementById('hero');
+
+  if (!hero) return;
+
+  const heroBottom = hero.offsetTop + hero.offsetHeight;
+
+  // Show only if:
+  // 1. scrolling DOWN
+  // 2. below the hero section
+  const onScroll = () => {
+    const current = window.scrollY;
+
+    if (current > lastScroll.value && current > heroBottom) {
+      showNavbar.value = true;
+    } else {
+      showNavbar.value = false;
+    }
+
+    lastScroll.value = current;
+  };
+
+  window.addEventListener("scroll", onScroll);
+
+  onUnmounted(() => {
+    window.removeEventListener("scroll", onScroll);
+  });
 });
 
 onBeforeUnmount(() => {

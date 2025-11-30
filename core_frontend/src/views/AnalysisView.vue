@@ -363,7 +363,7 @@ async function fetchAnalysisData(id: string) {
 
   try {
     const response = await getAnalysisById(id);
-    const rawSummary = (response as any)?.summary ?? response;
+    const rawSummary = response?.summary ?? response;
     const parsedSummary = normalizeSummary(rawSummary) as ParsedSummary;
 
     const responseData = (response ?? {}) as Record<string, unknown>;

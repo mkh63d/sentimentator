@@ -111,12 +111,11 @@
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-lg p-3 flex flex-col gap-2 cursor-pointer"
+            class="border rounded-lg p-3 flex flex-col gap-2"
             :class="[
-              // color the whole card based on status so the status badge can be hidden
-              analysis.summary !== null
-                ? 'bg-green-50 border-green-200'
-                : 'bg-yellow-50 border-yellow-200',
+              analysis.summary
+                ? 'bg-green-50 border-green-200 cursor-pointer'
+                : 'bg-yellow-50 border-yellow-200 cursor-default',
               analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
             ]"
             @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
@@ -175,9 +174,9 @@
               <div class="min-w-0 flex-1">
                 <div
                   class="text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
-                  :title="analysis.url"
+                  :title="analysis.title ?? analysis.url"
                 >
-                  {{ analysis.url }}
+                  {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
                 </div>
                 <div class="text-xs text-tertiary/70 mt-1">
                   <div>
@@ -226,10 +225,6 @@
                   </button>
                 </div>
               </div>
-            </div>
-
-            <div v-if="analysis.summary === null" class="text-xs text-tertiary/60">
-              Summary is not ready yet.
             </div>
           </div>
         </div>

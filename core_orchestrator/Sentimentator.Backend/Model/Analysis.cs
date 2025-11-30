@@ -11,6 +11,7 @@ public class Analysis
     [JsonPropertyName("platform")] public string? Platform { get; set; }
     [JsonPropertyName("title")] public string? Title { get; set; }
     [JsonPropertyName("thumbnail_url")] public string? ThumbnailUrl { get; set; }
+    [JsonPropertyName("duration")] public int? Duration { get; set; }
     [JsonPropertyName("transcription")] public string? Transcription { get; set; }
     [JsonPropertyName("summary")] public string? Summary { get; set; }
 

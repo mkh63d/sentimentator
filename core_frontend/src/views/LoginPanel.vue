@@ -212,7 +212,7 @@ async function handleSubmit() {
   }
 
   try {
-    let isSuccess = false;
+    let pushToList = false;
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
@@ -222,7 +222,7 @@ async function handleSubmit() {
           useCookies.value,
           useSessionCookies.value,
         );
-        isSuccess = true;
+        pushToList = true;
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Login failed';
@@ -234,7 +234,11 @@ async function handleSubmit() {
     } else {
       try {
         await authStore.registerUser(form.value.email, form.value.password);
-        isSuccess = true;
+        fireTimedAlert(
+          'Success',
+          'Registration successful! Confirm your email before logging in.',
+          3000,
+        );
       } catch (e) {
         error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Registration failed';
@@ -244,7 +248,7 @@ async function handleSubmit() {
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    if (isSuccess) {
+    if (pushToList) {
       await router.push({ name: 'list' });
     }
   } catch (err) {

@@ -21,14 +21,30 @@ public static class UserGroup
         private RouteGroupBuilder UserPutGroup()
         {
             group.MapPut("/openai-api-key",
-                async (UserApiKey apiKey, UserManager<User> userManager, ClaimsPrincipal principal) =>
+                async (UserApiKey apiKey, UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, ClaimsPrincipal principal) =>
                 {
                     if (string.IsNullOrWhiteSpace(apiKey.ApiKey)) return Results.BadRequest("API key cannot be empty");
                     var user = await userManager.GetUserAsync(principal);
                     user!.OpenAiApiKey = apiKey.ApiKey;
                     var result = await userManager.UpdateAsync(user);
-                    return result.Succeeded ? Results.Ok() : Results.InternalServerError();
-                });
+                    if (!result.Succeeded)
+                    {
+                        return Results.InternalServerError(result.Errors);
+                    }
+                    
+                    var canRequestAnalysisRoleExists = await roleManager.RoleExistsAsync("CanRequestAnalysis");
+                    if (!canRequestAnalysisRoleExists)
+                    {
+                        var canRequestAnalysisRole = new IdentityRole<Guid>("CanRequestAnalysis");
+                        _ = await roleManager.CreateAsync(canRequestAnalysisRole);
+                    }
+                    result = await userManager.AddToRoleAsync(user, "CanRequestAnalysis");
+                    
+                    return result.Succeeded ? Results.Ok() : Results.InternalServerError(result.Errors);
+                })
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status500InternalServerError);
+            
             return group;
         }
     }

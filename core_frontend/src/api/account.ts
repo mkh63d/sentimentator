@@ -195,7 +195,7 @@ export async function forgotPassword(email: string) {
       const firstKey = Object.keys(errorsObj)[0];
       const errorMessage = firstKey
         ? errorsObj[firstKey][0]
-        : 'Failed to register user (Http error)';
+        : 'Failed to send password reset email (Http error)';
       throw new Error(errorMessage);
     } else if (fetchError) {
       throw new Error(fetchError.title ?? 'Failed to send password reset email');

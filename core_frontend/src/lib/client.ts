@@ -15,18 +15,29 @@ function getBaseUrl(): string {
 // Single-flight refresh lock
 let refreshing: Promise<boolean> | null = null;
 
-async function doRefresh(refreshToken: string): Promise<boolean> {
-  if (!refreshToken) return false;
+async function doRefresh(refreshToken?: string | null): Promise<boolean> {
+  // If refreshToken is provided, prefer token-based refresh.
+  // Otherwise, attempt cookie-based refresh (server should use httpOnly cookie).
   if (refreshing) return refreshing;
-
   refreshing = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/account/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
+      let res: Response;
+
+      if (refreshToken) {
+        res = await fetch(`${getBaseUrl()}/account/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+      } else {
+        // Attempt cookie-based refresh: no body, server should read httpOnly cookie
+        res = await fetch(`${getBaseUrl()}/account/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       if (!res.ok) {
         clearTokens();
@@ -63,9 +74,8 @@ const authMiddleware: Middleware = {
   async onResponse({ request, response }) {
     if (response.status === 401) {
       const { refreshToken } = getTokens();
-      if (!refreshToken) return response;
-
-      const refreshed = await doRefresh(refreshToken);
+      // attempt refresh even when no refresh token is stored (cookie-based refresh)
+      const refreshed = await doRefresh(refreshToken ?? null);
       if (!refreshed) return response;
 
       // retry the original request with updated token

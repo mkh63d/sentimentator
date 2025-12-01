@@ -380,6 +380,7 @@ onMounted(() => {
   if (!hero) return;
 
   const heroBottom = hero.offsetTop + hero.offsetHeight;
+  const methodsElements = document.querySelectorAll('#methods .opacity-40');
 
   // Show navbar only if below the hero section
   //
@@ -392,6 +393,19 @@ onMounted(() => {
       showNavbar.value = false;
       showPhoneMenu.value = false;
     }
+
+    for (let i = 0; i < methodsElements.length; i++) {
+      let method = methodsElements[i] as HTMLElement;
+      if (
+        current >
+        method.getBoundingClientRect().top + window.scrollY - window.innerHeight + 100
+      ) {
+        method.classList.remove('opacity-40');
+        method.classList.add('opacity-100');
+      } else {
+        method.classList.remove('opacity-100');
+        method.classList.add('opacity-40');
+      }
     }
 
     lastScroll.value = current;

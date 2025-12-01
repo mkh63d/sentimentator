@@ -8,7 +8,7 @@
         >
           Sentimentator
         </div>
-        <ThemeSwitcher class="mx-5" />
+        <ThemeSwitcher class="mx-5" :changeOnTheme="true" />
       </div>
     </nav>
     <div class="flex items-center justify-center">

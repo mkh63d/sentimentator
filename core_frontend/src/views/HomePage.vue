@@ -153,7 +153,7 @@
     <!-- Hero Section -->
     <section
       id="hero"
-      class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth md:pt-32 md:pb-40"
+      class="relative z-0 bg-linear-to-br from-primary via-fourth to-secondary dark:via-secondary dark:to-fourth md:pt-32 md:pb-40"
     >
       <div class="px-4 py-20 max-h-full mx-auto text-center max-w-7xl md:py-32 text-background">
         <div class="absolute md:top-10 md:right-10 hidden md:block">
@@ -181,10 +181,10 @@
     </section>
 
     <section id="compatible">
-      <div class="px-1 py-1 mx-auto bg-white max-w-12xl">
+      <div class="px-1 py-1 mx-auto bg-background max-w-12xl">
         <ul class="flex items-center justify-center gap-5 md:gap-15">
           <li>
-            <h3 class="text-md md:text-md font-bold p-5 md:px-20 text-[#3d4d5c] border-r-2">
+            <h3 class="text-lg md:text-md font-bold p-5 md:px-20 text-tertiary border-r-2">
               Compatible with <br />
               Popular Platforms
             </h3>
@@ -214,40 +214,38 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-2 bg-tertiary">
+    <section id="features" class="py-2 bg-secondary border-b border-primary">
       <div
         class="flex flex-wrap justify-center px-0 mx-0 divide-x divide-y max-w-8xl divide-primary"
       >
         <div class="w-[50%] text-center p-12 col-1">
-          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">Available non-stop</h3>
+          <h3 class="mb-1 text-xl font-bold text-tertiary text-align-left">Available non-stop</h3>
           <h2 class="mb-1 text-2xl font-extrabold text-primary text-align-left">
             24/7 - on demand,
           </h2>
-          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">
-            whenever you need it
-          </h3>
+          <h3 class="mb-1 text-xl font-bold text-tertiary text-align-left">whenever you need it</h3>
         </div>
         <div class="text-center w-[30%] p-12 col-1 border-r-0">
           <h2 class="mb-4 text-2xl font-bold text-primary">Accurate Results</h2>
-          <p class="text-textBase">
+          <p class="text-tertiary">
             Our advanced algorithms ensure you get the most accurate sentiment insights.
           </p>
         </div>
         <div class="text-center w-[40%] p-6 col-2">
           <h2 class="mb-4 text-2xl font-bold text-primary">User-Friendly</h2>
-          <p class="text-textBase">
+          <p class="text-tertiary">
             An intuitive interface makes it easy for anyone to analyze video reviews.
           </p>
         </div>
         <div class="text-center p-6 col-2 w-[60%] border-r-0">
           <h2 class="mb-4 text-2xl font-bold text-primary">In One Place</h2>
-          <p class="text-textBase">
+          <p class="text-tertiary">
             All your data for your next better consumer choice in one place.
           </p>
         </div>
         <div class="w-full p-6 text-center col-1">
           <h2 class="mb-4 text-2xl font-bold text-primary">Be a Conscious Customer</h2>
-          <p class="text-textBase">
+          <p class="text-tertiary">
             Make informed decisions based on a comprehensive sentiment analysis.
           </p>
         </div>
@@ -262,7 +260,7 @@
         </p>
         <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-primary"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">Natural Language Processing (NLP)</h3>
             <p class="text-tertiary">
@@ -271,7 +269,7 @@
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-primary"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">
               Transcript and highlight extraction
@@ -282,7 +280,7 @@
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-primary"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">Sentiment Scoring</h3>
             <p class="text-tertiary">
@@ -325,7 +323,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-10 text-center bg-background text-primary">
+    <footer
+      class="py-10 mt-15 text-center text-primary bg-secondary blurry-border-top border-primary"
+    >
       <div class="px-4 mx-auto max-w-7xl">
         <p>&copy; 2025 Sentimentator. All rights reserved.</p>
       </div>

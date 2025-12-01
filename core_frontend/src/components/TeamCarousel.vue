@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-[90%] rounded-3xl mx-auto px-4 py-10 bg-[radial-gradient(circle_at_top_left,var(--color-tertiary),var(--color-primary),transparent_70%),radial-gradient(circle_at_bottom_right,var(--color-primary),var(--color-tertiary),transparent_80%)] bg-blend-overlay"
+    class="w-[90%] rounded-3xl mx-auto px-4 py-10 bg-[radial-gradient(circle_at_top_left,var(--color-secondary),var(--color-primary),transparent_70%),radial-gradient(circle_at_bottom_right,var(--color-primary),var(--color-secondary),transparent_80%)] bg-blend-overlay"
   >
     <div class="relative w-full translate-y-80 z-50">
       <button

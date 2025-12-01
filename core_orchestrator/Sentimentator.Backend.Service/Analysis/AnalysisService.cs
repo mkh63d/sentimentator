@@ -28,29 +28,36 @@ public class AnalysisService(
         }
     }
 
-    public async Task<Model.Analysis?> Add(ClaimsPrincipal principal, Uri uri)
+    public async Task<(Model.Analysis? analysis, AnalysisResult result)> Add(ClaimsPrincipal principal, Uri uri)
     {
         try
         {
-            var analysis = await Add(uri);
-            if (analysis is null) throw new Exception();
+            var analysis = await Get(uri);
+            var result = AnalysisResult.Existing;
+            if (analysis is null)
+            {
+                analysis = await Add(uri);
+                if (analysis is null) throw new Exception();
+                result = AnalysisResult.Added;
+            }
+
             var user = await userManager.GetUserAsync(principal);
             user!.Analyses.Add(analysis);
             await userManager.UpdateAsync(user);
             logger.LogInformation("Added analysis {AnalysisId} for URL {URL} associated with user {UserId}",
                 analysis.Id, uri.ToString(), user.Id);
-            return analysis;
+            return (analysis, result);
         }
         catch (Exception ex)
         {
             logger.LogError("Failed to add analysis for URL {Url}: {Error}", uri.ToString(), ex.Message);
-            return null;
+            return (null, AnalysisResult.Failed);
         }
     }
 
     public async Task<Model.Analysis?> Get(Guid id)
     {
-        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Id == id);
+        var a = await context.Analyses.Include(x => x.Users).FirstOrDefaultAsync(x => x.Id == id);
         if (a is null) logger.LogWarning("Analysis with ID {AnalysisId} not found", id);
         else logger.LogInformation("Retrieved analysis {AnalysisId}", id);
         return a;
@@ -58,7 +65,7 @@ public class AnalysisService(
 
     public async Task<Model.Analysis?> Get(Uri uri)
     {
-        var a = await context.Analyses.FirstOrDefaultAsync(x => x.Url.Equals(uri));
+        var a = await context.Analyses.Include(x => x.Users).FirstOrDefaultAsync(x => x.Url.Equals(uri));
         if (a is null) logger.LogWarning("Analysis with URL {Url} not found", uri.ToString());
         else logger.LogInformation("Retrieved analysis {AnalysisId} for URL {Url}", a.Id, uri.ToString());
         return a;
@@ -66,7 +73,7 @@ public class AnalysisService(
 
     public async Task<List<Model.Analysis>> Get()
     {
-        return await context.Analyses.ToListAsync();
+        return await context.Analyses.Include(x => x.Users).ToListAsync();
     }
 
     public async Task<bool> Update(Guid id, string transcription, string summary, DateTime updatedAt)
@@ -82,6 +89,33 @@ public class AnalysisService(
 
             a.Transcription = transcription;
             a.Summary = summary;
+            a.UpdatedAt = updatedAt;
+            await context.SaveChangesAsync();
+            logger.LogInformation("Updated analysis {AnalysisId}", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to update analysis {AnalysisId}: {Exception}", id, ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Update(Guid id, string? platform, string? title, string? thumbnailUrl, int? duration, DateTime updatedAt)
+    {
+        try
+        {
+            var a = await Get(id);
+            if (a is null)
+            {
+                logger.LogError("Failed to update analysis {AnalysisId}: not found", id);
+                return false;
+            }
+
+            a.Platform = platform;
+            a.Title = title;
+            a.ThumbnailUrl = thumbnailUrl;
+            a.Duration = duration;
             a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
             logger.LogInformation("Updated analysis {AnalysisId}", id);

@@ -1,7 +1,15 @@
 import { api } from '@/lib/client';
 import { setTokens, clearTokens } from '@/lib/tokenStorage';
+import { getConfig } from '@/lib/runtimeConfig';
 
-const registerEnabled = import.meta.env.VITE_REGISTER_ENABLED === 'true';
+function isRegisterEnabled(): boolean {
+  try {
+    const cfg = getConfig();
+    return cfg.VITE_REGISTER_ENABLED === 'true';
+  } catch {
+    return import.meta.env.VITE_REGISTER_ENABLED === 'true';
+  }
+}
 
 export interface InfoRequest {
   newEmail?: string | null;
@@ -65,7 +73,7 @@ export async function logout() {
  * @param password - The user's password
  */
 export async function register(email: string, password: string) {
-  if (!registerEnabled) {
+  if (!isRegisterEnabled()) {
     throw new Error('Registration is disabled');
   }
 

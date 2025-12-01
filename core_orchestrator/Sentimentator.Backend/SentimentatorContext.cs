@@ -12,7 +12,7 @@ public class SentimentatorContext
     private const string PostgresDefaultConnString = "Host=localhost;Database=orchestrator";
 
     private static readonly string PostgresConnString = Environment.GetEnvironmentVariable(PostgresConnStringEnvVar)
-                                                               ?? PostgresDefaultConnString;
+                                                        ?? PostgresDefaultConnString;
 
     public DbSet<Analysis> Analyses { get; set; }
 
@@ -23,6 +23,7 @@ public class SentimentatorContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(PostgresConnString);
+        optionsBuilder
+            .UseNpgsql(PostgresConnString);
     }
 }

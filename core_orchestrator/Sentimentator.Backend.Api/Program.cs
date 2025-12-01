@@ -170,6 +170,7 @@ if (!string.IsNullOrEmpty(adminPassword))
             var adminRole = new IdentityRole<Guid>("Admin");
             _ = await roleManager.CreateAsync(adminRole);
         }
+
         _ = await userManager.AddToRoleAsync(user, "Admin");
 
         var canRequestAnalysisRoleExists = await roleManager.RoleExistsAsync("CanRequestAnalysis");
@@ -178,6 +179,7 @@ if (!string.IsNullOrEmpty(adminPassword))
             var canRequestAnalysisRole = new IdentityRole<Guid>("CanRequestAnalysis");
             _ = await roleManager.CreateAsync(canRequestAnalysisRole);
         }
+
         _ = await userManager.AddToRoleAsync(user, "CanRequestAnalysis");
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);

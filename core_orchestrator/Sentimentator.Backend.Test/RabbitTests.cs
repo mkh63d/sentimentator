@@ -7,13 +7,12 @@ namespace Sentimentator.Backend.Test;
 
 public class RabbitTests
 {
-
     [Fact]
     public async Task ShouldCompleteWhenPublishingCorrectRequest()
     {
         var consumer = new RabbitConsumer(new Logger<RabbitConsumer>(new NullLoggerFactory()));
         var publisher = new RabbitPublisher(new Logger<RabbitPublisher>(new NullLoggerFactory()));
-        
+
         var message = "";
         var exception = await Record.ExceptionAsync(async () =>
         {
@@ -23,7 +22,7 @@ public class RabbitTests
                 return await Task.FromResult(true);
             });
         });
-        
+
         var publishException = await Record.ExceptionAsync(async () =>
         {
             await publisher.Send("test-queue", "test.key", "Hello, RabbitMQ!");

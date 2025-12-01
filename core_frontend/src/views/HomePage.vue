@@ -262,7 +262,7 @@
         </p>
         <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">Natural Language Processing (NLP)</h3>
             <p class="text-tertiary">
@@ -271,7 +271,7 @@
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">
               Transcript and highlight extraction
@@ -282,7 +282,7 @@
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 md:opacity-40 md:hover:opacity-100 border-accent"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">Sentiment Scoring</h3>
             <p class="text-tertiary">

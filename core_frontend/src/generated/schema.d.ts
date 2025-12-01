@@ -83,6 +83,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/hello/with-upload-auth': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': string;
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/problem+json': components['schemas']['ProblemDetails'];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/analyses/{id}': {
     parameters: {
       query?: never;
@@ -353,6 +404,13 @@ export interface paths {
           content: {
             'application/problem+json': components['schemas']['ProblemDetails'];
           };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
         /** @description Internal Server Error */
         500: {
@@ -851,6 +909,13 @@ export interface paths {
         };
       };
       responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
         /** @description Unauthorized */
         401: {
           headers: {
@@ -859,6 +924,13 @@ export interface paths {
           content: {
             'application/problem+json': components['schemas']['ProblemDetails'];
           };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
@@ -1003,6 +1075,8 @@ export interface components {
       platform?: null | string;
       title?: null | string;
       thumbnail_url?: null | string;
+      /** Format: int32 */
+      duration?: null | number | string;
       transcription?: null | string;
       summary?: null | string;
     };

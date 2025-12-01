@@ -128,6 +128,36 @@
               class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
             />
           </div>
+          <div class="mb-5 w-full">
+            <input
+              id="newPassword"
+              v-model="form.password"
+              type="password"
+              placeholder="Enter your new password"
+              required
+              class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+            />
+          </div>
+          <div class="mb-5 w-full">
+            <input
+              id="confirmNewPassword"
+              v-model="form.confirmPassword"
+              type="password"
+              placeholder="Confirm your new password"
+              required
+              class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+            />
+          </div>
+          <div class="mb-5 w-full">
+            <input
+              id="confirmationCode"
+              v-model="confirmationCode"
+              type="text"
+              placeholder="Enter your confirmation code"
+              required
+              class="w-full p-3 border border-gray-300 text-textBase rounded-md text-sm focus:outline-none focus:border-fourth transition"
+            />
+          </div>
           <div
             v-if="isForgotSent"
             class="text-primary mb-4 p-2 bg-primary/10 rounded text-center text-sm"
@@ -137,9 +167,21 @@
           <button
             @click="forgotPassword()"
             :disabled="!form.email.trim() || isForgotSent"
+            class="w-full cursor-pointer px-2 py-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60 disabled:cursor-default mb-4"
+          >
+            Send Verification Email
+          </button>
+          <button
+            @click="handleResetPassword()"
+            :disabled="
+              !form.email.trim() ||
+              !form.password.trim() ||
+              form.password !== form.confirmPassword ||
+              !confirmationCode.trim()
+            "
             class="w-full cursor-pointer px-2 py-3 bg-fourth text-white rounded-md text-lg font-semibold hover:bg-fourth transition disabled:opacity-60 disabled:cursor-default"
           >
-            Reset Password
+            Change Password
           </button>
           <div class="text-center mt-6">
             <a
@@ -167,6 +209,7 @@ import { useRouter } from 'vue-router';
 import { FormData } from '@/types/FormData';
 import { useAuthStore } from '@/stores/authStore';
 import { forgotPassword as apiForgotPassword } from '@/api/account';
+import { resetPassword } from '@/api/account';
 import { fireTimedAlert } from '@/lib/sweetAlerts';
 
 const emit = defineEmits(['login', 'register']);
@@ -184,6 +227,7 @@ const form = ref<FormData>({
   password: '',
   confirmPassword: '',
 });
+const confirmationCode = ref('');
 const error = ref('');
 
 const isFormValid = computed(() => {
@@ -212,7 +256,7 @@ async function handleSubmit() {
   }
 
   try {
-    let isSuccess = false;
+    let pushToList = false;
     if (isLogin.value) {
       console.log('Logging in:', form.value.email);
       try {
@@ -222,7 +266,7 @@ async function handleSubmit() {
           useCookies.value,
           useSessionCookies.value,
         );
-        isSuccess = true;
+        pushToList = true;
       } catch (e) {
         error.value = 'Login failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Login failed';
@@ -234,7 +278,11 @@ async function handleSubmit() {
     } else {
       try {
         await authStore.registerUser(form.value.email, form.value.password);
-        isSuccess = true;
+        fireTimedAlert(
+          'Success',
+          'Registration successful! Confirm your email before logging in.',
+          3000,
+        );
       } catch (e) {
         error.value = 'Registration failed: ' + (e instanceof Error ? e.message : '');
         const errTitle = 'Registration failed';
@@ -244,7 +292,7 @@ async function handleSubmit() {
       }
       emit('register', { email: form.value.email, password: form.value.password });
     }
-    if (isSuccess) {
+    if (pushToList) {
       await router.push({ name: 'list' });
     }
   } catch (err) {
@@ -270,5 +318,31 @@ function forgotPassword() {
     // console.error(err);
   }
   isForgotSent.value = true;
+}
+
+async function handleResetPassword() {
+  error.value = '';
+
+  if (form.value.password !== form.value.confirmPassword) {
+    error.value = 'Passwords do not match';
+    fireTimedAlert('Error', error.value, 1000);
+    error.value = '';
+    return;
+  }
+
+  try {
+    await resetPassword(form.value.email, confirmationCode.value, form.value.password);
+    fireTimedAlert('Success', 'Password has been reset successfully!', 2000);
+    mode.value = 'login';
+    isForgotSent.value = false;
+    form.value.password = '';
+    form.value.confirmPassword = '';
+    confirmationCode.value = '';
+  } catch (err) {
+    error.value = 'Password reset failed: ' + (err instanceof Error ? err.message : '');
+    const errTitle = 'Password Reset Failed';
+    const errMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+    fireTimedAlert(errTitle, errMessage, 1000);
+  }
 }
 </script>

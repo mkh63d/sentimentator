@@ -55,22 +55,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function registerUser(
-    email: string,
-    password: string,
-    useCookies = false,
-    useSessionCookies = false,
-  ) {
+  async function registerUser(email: string, password: string) {
     try {
       await register(email, password);
     } catch (err) {
       error.value = 'Registration failed: ' + (err instanceof Error ? err.message : '');
-      throw err;
-    }
-    try {
-      await loginUser(email, password, useCookies, useSessionCookies);
-    } catch (err) {
-      error.value = 'Login failed: ' + (err instanceof Error ? err.message : '');
       throw err;
     }
   }

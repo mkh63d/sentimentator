@@ -100,25 +100,26 @@ public static class AnalysisGroup
                         var result = await service.Add(principal, uri.uri!);
                         if (result.analysis is null || result.result == AnalysisResult.Failed) 
                             return Results.InternalServerError();
-
-                        var downloadRequest = new TranscriptRequest
-                        {
-                            AnalysisId = result.analysis.Id,
-                            Url = result.analysis.Url,
-                            Timestamp = DateTime.UtcNow,
-                            OpenAiUserKey = user.OpenAiApiKey
-                        };
+                        
                         if (result.result == AnalysisResult.Added)
                         {
+                            var downloadRequest = new TranscriptRequest
+                            {
+                                AnalysisId = result.analysis.Id,
+                                Url = result.analysis.Url,
+                                Timestamp = DateTime.UtcNow,
+                                OpenAiUserKey = user.OpenAiApiKey
+                            };
                             await publisher.Send("video.processing", "video.transcript.requested",
                                 JsonSerializer.Serialize(downloadRequest));
                         }
-                        return Results.Accepted($"/analyses/{result.analysis.Id}", result);
+                        return Results.Accepted($"/analyses/{result.analysis.Id}", result.analysis);
                     })
                 .AddOperationBearerSecuritySchemeWithAuthorization("CanRequestAnalysis")
                 .Produces<Analysis>()
                 .Produces<Analysis>(StatusCodes.Status202Accepted)
                 .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status500InternalServerError);
 
             return group;

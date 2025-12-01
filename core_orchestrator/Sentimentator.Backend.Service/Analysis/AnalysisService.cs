@@ -101,7 +101,7 @@ public class AnalysisService(
         }
     }
 
-    public async Task<bool> Update(Guid id, string platform, string title, string thumbnailUrl, DateTime updatedAt)
+    public async Task<bool> Update(Guid id, string? platform, string? title, string? thumbnailUrl, int? duration, DateTime updatedAt)
     {
         try
         {
@@ -115,6 +115,7 @@ public class AnalysisService(
             a.Platform = platform;
             a.Title = title;
             a.ThumbnailUrl = thumbnailUrl;
+            a.Duration = duration;
             a.UpdatedAt = updatedAt;
             await context.SaveChangesAsync();
             logger.LogInformation("Updated analysis {AnalysisId}", id);

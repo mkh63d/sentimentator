@@ -2,14 +2,19 @@
   <div class="min-h-screen bg-background">
     <nav
       :class="[
-        'fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-transparent backdrop-blur-xs transition-transform duration-300',
+        'fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-white/ backdrop-blur-md transition-transform duration-300',
         showNavbar ? 'translate-y-0' : '-translate-y-full',
       ]"
     >
-      <div class="flex items-center justify-between mx-auto max-w-7xl">
+      <div class="flex flex-wrap md:flex-no-wrap items-center justify-between mx-auto max-w-7xl">
         <div
           class="text-2xl font-bold cursor-pointer text-background"
-          @click="() => router.push({ name: 'home' })"
+          @click="
+            () => {
+              router.push({ name: 'home' });
+              showPhoneMenu = false;
+            }
+          "
         >
           Sentimentator
         </div>
@@ -61,17 +66,99 @@
             </button>
           </li>
           <li>
-            <ThemeSwitcher class="mx-5 ml-0" />
+            <ThemeSwitcher class="mx-5 ml-0" :changeOnTheme="true" />
           </li>
         </ul>
+        <button class="md:hidden mr-2" @click="togglePhoneMenu">
+          <svg
+            class="w-6 h-6 scale-[130%]"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            v-if="!showPhoneMenu"
+          >
+            <path
+              d="M4 6H20M4 12H20M4 18H20"
+              stroke="var(--color-secondary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+          <svg
+            class="w-6 h-6 scale-[130%]"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            v-else
+          >
+            <path
+              d="M6 18L18 6M6 6L18 18"
+              stroke="var(--color-secondary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div v-show="showPhoneMenu" class="md:hidden relative w-full h-full">
+          <div class="flex flex-col justify-between items-center text-center h-[90vh] pt-5 z-10">
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-gray-900"
+            >
+              <router-link :to="{ hash: '#features' }" class="z-10 px-4">Features</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-gray-900"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#methods' }" class="z-10 px-4">Methods</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-gray-900"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#about' }" class="z-10 px-4">About</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-gray-900"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#team' }" class="z-10 px-4">Team</router-link>
+            </div>
+            <div class="flex space-x-5 m-5 justify-center">
+              <button
+                class="px-4 py-3 font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
+                @click="hasTokens ? goToDashboard() : goToLogin()"
+              >
+                Try for Free
+              </button>
+
+              <button
+                class="px-6 py-2 font-semibold transition bg-transparent rounded-lg cursor-pointer text-background border-3 border-background"
+                @click="goToLogin"
+              >
+                Login
+              </button>
+            </div>
+
+            <ThemeSwitcher class="mx-5 mb-10" :changeOnTheme="true" />
+          </div>
+        </div>
       </div>
     </nav>
     <!-- Hero Section -->
     <section
       id="hero"
-      class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth pt-10 pb-20 md:pt-32 md:pb-40"
+      class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth md:pt-32 md:pb-40"
     >
       <div class="px-4 py-20 max-h-full mx-auto text-center max-w-7xl md:py-32 text-background">
+        <div class="absolute md:top-10 md:right-10 hidden md:block">
+          <ThemeSwitcher :changeOnTheme="true" />
+        </div>
         <h1 class="mb-5 text-5xl font-extrabold md:text-6xl">Analyze Video Reviews in Seconds</h1>
         <p class="mb-20 text-xl opacity-90">
           Transform your favourite video reviews into actionable sentiment insights with ease.
@@ -95,21 +182,21 @@
 
     <section id="compatible">
       <div class="px-1 py-1 mx-auto bg-white max-w-12xl">
-        <ul class="flex flex-wrap items-center justify-center gap-15">
+        <ul class="flex items-center justify-center gap-5 md:gap-15">
           <li>
-            <h3 class="text-md md:text-md font-bold px-20 text-[#3d4d5c] border-r-2">
+            <h3 class="text-md md:text-md font-bold p-5 md:px-20 text-[#3d4d5c] border-r-2">
               Compatible with <br />
               Popular Platforms
             </h3>
           </li>
           <li>
-            <svg viewBox="0 0 100 70" role="img" aria-label="YouTube" class="w-30 md:w-40">
+            <svg viewBox="0 0 100 70" role="img" aria-label="YouTube" class="w-20 md:w-40">
               <rect width="100" height="70" rx="12" fill="#ff0000" />
               <polygon points="40,20 70,35 40,50" fill="#fff" />
             </svg>
           </li>
           <li>
-            <svg viewBox="0 0 100 100" role="img" aria-label="Instagram" class="w-30 md:w-40">
+            <svg viewBox="0 0 100 100" role="img" aria-label="Instagram" class="w-20 md:w-40">
               <defs>
                 <linearGradient id="instaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#f58529" />
@@ -262,6 +349,7 @@ const shouldRenderTeamCarousel = ref(false);
 let teamObserver: IntersectionObserver | null = null;
 const showNavbar = ref(false);
 const lastScroll = ref(0);
+const showPhoneMenu = ref(false);
 
 onMounted(() => {
   if (!('IntersectionObserver' in window)) {
@@ -293,25 +381,26 @@ onMounted(() => {
 
   const heroBottom = hero.offsetTop + hero.offsetHeight;
 
-  // Show only if:
-  // 1. scrolling DOWN
-  // 2. below the hero section
+  // Show navbar only if below the hero section
+  //
   const onScroll = () => {
     const current = window.scrollY;
 
-    if (current > lastScroll.value && current > heroBottom) {
+    if (current > heroBottom) {
       showNavbar.value = true;
     } else {
       showNavbar.value = false;
+      showPhoneMenu.value = false;
+    }
     }
 
     lastScroll.value = current;
   };
 
-  window.addEventListener("scroll", onScroll);
+  window.addEventListener('scroll', onScroll);
 
   onUnmounted(() => {
-    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener('scroll', onScroll);
   });
 });
 
@@ -328,5 +417,9 @@ const goToLogin = () => {
 
 const goToDashboard = () => {
   router.push({ name: 'list' });
+};
+
+const togglePhoneMenu = () => {
+  showPhoneMenu.value = !showPhoneMenu.value;
 };
 </script>

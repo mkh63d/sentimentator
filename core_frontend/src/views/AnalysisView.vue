@@ -147,7 +147,7 @@
 
           <!-- Feature Summary Statistics -->
           <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
-            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
+            <div class="p-6 bg-fourth shadow-lg rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Features Detected</h3>
               <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.features.length }}
@@ -155,7 +155,7 @@
               <p class="text-sm text-[#bdccdb]/80">Features identified</p>
             </div>
 
-            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
+            <div class="p-6 bg-fourth shadow-lg rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Sentences Analyzed</h3>
               <div class="text-4xl font-bold text-[#bdccdb] mb-2">
                 {{ analysisData.statistics.sentencesAnalyzed ?? '—' }}
@@ -163,7 +163,7 @@
               <p class="text-sm text-[#bdccdb]/80">Total sentences processed</p>
             </div>
 
-            <div class="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
+            <div class="p-6 bg-fourth shadow-lg rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Confidence</h3>
               <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.statistics.confidence }}%
@@ -173,13 +173,13 @@
           </div>
 
           <!-- Extracted Keywords -->
-          <div class="p-6 mb-6 bg-white shadow-lg dark:bg-gray-800 rounded-xl">
+          <div class="p-6 bg-fourth shadow-lg rounded-xl mb-6">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Extracted Keywords</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="keyword in analysisData.keywords"
                 :key="keyword"
-                class="px-3 py-1 text-sm text-white rounded-full bg-fourth"
+                class="px-3 py-1 text-sm text-white rounded-full bg-primary"
               >
                 {{ keyword }}
               </span>

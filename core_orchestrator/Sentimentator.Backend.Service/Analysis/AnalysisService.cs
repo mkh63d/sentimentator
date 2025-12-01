@@ -101,7 +101,8 @@ public class AnalysisService(
         }
     }
 
-    public async Task<bool> Update(Guid id, string? platform, string? title, string? thumbnailUrl, int? duration, DateTime updatedAt)
+    public async Task<bool> Update(Guid id, string? platform, string? title, string? thumbnailUrl, int? duration,
+        DateTime updatedAt)
     {
         try
         {

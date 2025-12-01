@@ -98,9 +98,9 @@ public static class AnalysisGroup
                         if (a is { Summary: not null, Transcription: not null }) return Results.Ok(a);
 
                         var result = await service.Add(principal, uri.uri!);
-                        if (result.analysis is null || result.result == AnalysisResult.Failed) 
+                        if (result.analysis is null || result.result == AnalysisResult.Failed)
                             return Results.InternalServerError();
-                        
+
                         if (result.result == AnalysisResult.Added)
                         {
                             var downloadRequest = new TranscriptRequest
@@ -113,6 +113,7 @@ public static class AnalysisGroup
                             await publisher.Send("video.processing", "video.transcript.requested",
                                 JsonSerializer.Serialize(downloadRequest));
                         }
+
                         return Results.Accepted($"/analyses/{result.analysis.Id}", result.analysis);
                     })
                 .AddOperationBearerSecuritySchemeWithAuthorization("CanRequestAnalysis")

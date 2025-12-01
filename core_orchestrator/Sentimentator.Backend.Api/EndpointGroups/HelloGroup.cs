@@ -21,7 +21,7 @@ public static class HelloGroup
             group.MapGet("/with-auth", () => Results.Ok("Hello World! You're authenticated!"))
                 .Produces<string>()
                 .AddOperationBearerSecuritySchemeWithAuthorization();
-            
+
             group.MapGet("/with-upload-auth", () => Results.Ok("Hello World! You can request analyses!"))
                 .Produces<string>()
                 .Produces(StatusCodes.Status403Forbidden)

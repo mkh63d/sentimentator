@@ -44,6 +44,7 @@ public class MetadataRabbitConsumer(
         using var scope = serviceScopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<AnalysisService>();
 
-        return await service.Update(data.AnalysisId, data.Platform, data.Title, data.ThumbnailUrl, data.Duration, DateTime.UtcNow);
+        return await service.Update(data.AnalysisId, data.Platform, data.Title, data.ThumbnailUrl, data.Duration,
+            DateTime.UtcNow);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-secondary">
+  <div class="min-h-screen bg-secondary overflow-hidden">
     <NavbarComponent
       :isSidebarOpen="isSidebarOpen"
       @update:isSidebarOpen="isSidebarOpen = $event"
@@ -50,16 +50,23 @@
             </button>
             <button
               @click="createNew"
-              class="flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
               title="New Analysis"
             >
-              <Plus class="pr-1 w-4 h-4 sm:w-5 sm:h-5" />
+              <Plus class="w-4 h-4 sm:w-5 sm:h-5" />
               <span class="hidden sm:inline">New Analysis</span>
+            </button>
+            <button
+              @click="mobileFilterWindow = true"
+              class="flex sm:hidden items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              title="Filter Analyses (Mobile)"
+            >
+              <Filter class="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        <div class="flex gap-3 mb-6">
+        <div class="gap-3 mb-6 hidden sm:flex">
           <input
             v-model="searchQuery"
             type="text"
@@ -111,20 +118,20 @@
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-lg p-3 flex flex-col gap-2"
+            class="border rounded-lg p-3 flex flex-col gap-2 bg-background"
             :class="[
               analysis.summary
-                ? 'bg-green-50 border-green-200 cursor-pointer'
-                : 'bg-yellow-50 border-yellow-200 cursor-default',
-              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
+                ? 'bg-green-50 dark:bg-green-700 border-green-200 cursor-pointer'
+                : 'bg-yellow-50 dark:bg-yellow-400 border-yellow-200 cursor-default',
+              analysis && analysis.transcription && analysis.id ? 'hover:opacity-50' : '',
             ]"
             @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
           >
-            <div class="flex justify-between items-start gap-3">
+            <div class="sm:flex sm:flex-row flex-col justify-between items-start gap-3">
               <div class="flex items-center gap-3">
                 <!-- Thumbnail / video preview area -->
                 <div
-                  class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
+                  class="w-full aspect-video sm:w-28 sm:h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
                   :class="
                     analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
                   "
@@ -169,7 +176,7 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-3">
+              <div class="hidden sm:flex items-center gap-3">
                 <!--Display the logo from which the analysis originated-->
                 <div
                   class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
@@ -186,7 +193,7 @@
 
               <div class="min-w-0 flex-1">
                 <div
-                  class="text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
+                  class="sm:p-0 pt-2 text-xl sm:text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
                   :title="analysis.title ?? analysis.url"
                 >
                   {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
@@ -225,7 +232,10 @@
                     title="View"
                     aria-label="View analysis"
                   >
-                    <Eye class="w-5 h-5 cursor-pointer" color="var(--color-tertiary)" />
+                    <Eye
+                      class="w-7 h-7 sm:w-5 sm:h-5 cursor-pointer"
+                      color="var(--color-tertiary)"
+                    />
                   </button>
 
                   <button
@@ -234,7 +244,7 @@
                     title="Delete"
                     aria-label="Delete analysis"
                   >
-                    <Trash2 class="w-5 h-5" color="var(--color-tertiary)" />
+                    <Trash2 class="w-7 h-7 sm:w-5 sm:h-5" color="var(--color-tertiary)" />
                   </button>
                 </div>
               </div>
@@ -244,17 +254,23 @@
       </div>
     </div>
     <SearchModal v-model="searchStore.visible" @analyze="fetchAnalyses" />
+    <MobileFilterModal
+      v-model="mobileFilterWindow"
+      v-model:searchQuery="searchQuery"
+      v-model:filterStatus="filterStatus"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, Eye, Trash2, RotateCcw } from 'lucide-vue-next';
+import { Plus, Eye, Trash2, RotateCcw, Filter } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
+import MobileFilterModal from '@/components/MobileFilterModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalyses, deleteAnalysis } from '@/api/analyses';
 import { components } from '@/generated/schema';
@@ -292,6 +308,7 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const searchQuery = ref('');
 const filterStatus = ref('');
+const mobileFilterWindow = ref(false);
 
 const filteredAnalyses = computed(() => {
   return realAnalyses.value.filter((analysis) => {

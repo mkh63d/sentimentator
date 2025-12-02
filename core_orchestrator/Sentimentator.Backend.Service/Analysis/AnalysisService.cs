@@ -171,4 +171,26 @@ public class AnalysisService(
             return false;
         }
     }
+    
+    public async Task<bool> Remove(ClaimsPrincipal principal, Guid id)
+    {
+        try
+        {
+            var analysis = await Get(id);
+            if (analysis is null) throw new Exception("Could not find analysis.");
+            
+            var user = await userManager.GetUserAsync(principal);
+            if (!user!.Analyses.Contains(analysis)) throw new Exception("User does not have analysis.");
+            user.Analyses.Remove(analysis);
+            
+            await context.SaveChangesAsync();
+            logger.LogInformation("Removed analysis {AnalysisId}", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to remove analysis {AnalysisId}: {Exception}", id, ex.Message);
+            return false;
+        }
+    }
 }

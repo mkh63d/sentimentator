@@ -53,3 +53,34 @@ mindmap
 | **Documentation** | OpenAPI            | API documentation           |
 | **Testing**       | xUnit              | Unit/Integration tests      |
 | **Monitoring**    | C# built-in Logger | Logging and monitoring      |
+
+## Analysis Role Workflow (CanRequestAnalysis)
+
+### Adding role
+
+#### By adding OpenAI key
+
+- Add a key using the `/users/openai-api-key` POST endpoint
+- User is added to role
+- Use `/account/login` or `/account/refresh` endpoint to get new token
+- `/analyses` POST endpoint will now be available
+
+#### By using the admin user
+
+- Log in as the admin user
+- Use `/admin/role` POST endpoint to add user to role
+- Log in as target user
+
+### Removing role
+
+#### By removing OpenAI key
+
+- Remove the key using the `/users/openai-api-key` DELETE endpoint
+- User is removed from role
+- Use `/account/login` or `/account/refresh` endpoint to get new token
+
+#### By using the admin user
+
+- Log in as the admin user
+- Use `/admin/role` DELETE endpoint to remove user from role
+- Log in as target user

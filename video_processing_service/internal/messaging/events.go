@@ -7,11 +7,13 @@ const (
 	EventTypeVideoTranscriptStarted   = "video.transcript.started"
 	EventTypeVideoTranscriptCompleted = "video.transcript.completed"
 	EventTypeVideoTranscriptFailed    = "video.transcript.failed"
+	EventTypeVideoMetadataCompleted   = "video.metadata.completed"
 )
 
 const (
 	QueueVideoProcessing = "video.processing"
 	QueueTranscript      = "video.transcript"
+	QueueVideoMetadata   = "video.metadata"
 )
 
 const (
@@ -23,6 +25,7 @@ const (
 	RoutingKeyVideoTranscriptStarted   = "video.transcript.started"
 	RoutingKeyVideoTranscriptCompleted = "video.transcript.completed"
 	RoutingKeyVideoTranscriptFailed    = "video.transcript.failed"
+	RoutingKeyVideoMetadataCompleted   = "video.metadata.completed"
 )
 
 // VideoTranscriptRequestedEvent represents a new video URL that needs processing to get a transcript
@@ -60,4 +63,16 @@ type VideoTranscriptFailedEvent struct {
 	Error      string    `json:"error"`
 	Attempts   int       `json:"attempts"`
 	FailedAt   time.Time `json:"failed_at"`
+}
+
+// VideoMetadataCompletedEvent represents basic metadata for a video that has been processed.
+type VideoMetadataCompletedEvent struct {
+	AnalysisID   string    `json:"analysis_id"`
+	VideoID      string    `json:"video_id"`
+	Platform     string    `json:"platform"`
+	Title        string    `json:"title"`
+	ThumbnailURL string    `json:"thumbnail_url"`
+	OriginalURL  string    `json:"original_url,omitempty"`
+	Duration     int       `json:"duration,omitempty"`
+	CompletedAt  time.Time `json:"completed_at"`
 }

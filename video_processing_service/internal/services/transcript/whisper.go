@@ -45,7 +45,8 @@ func (w *WhisperStrategy) Name() string {
 func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
 	totalStart := time.Now()
 
-	slog.Info("Starting audio extraction",
+	slog.Info("Transcript job started",
+		slog.String("strategy", w.Name()),
 		slog.String("platform", platformName),
 		slog.String("video_id", videoID))
 
@@ -59,15 +60,13 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 
 	audioExtractionDuration := time.Since(extractStart).Seconds()
 
-	slog.Info("Audio extracted successfully",
+	slog.Info("Audio extracted",
 		slog.String("video_id", videoID),
-		slog.String("file_path", audioPath),
 		slog.Int64("file_size_bytes", audioResult.FileSize),
 		slog.Int64("duration_seconds", int64(audioExtractionDuration)))
 
-	slog.Info("Starting Whisper transcription",
-		slog.String("video_id", videoID),
-		slog.Int64("file_size_mb", audioResult.FileSize/(1024*1024)))
+	slog.Info("Whisper transcription started",
+		slog.String("video_id", videoID))
 
 	transcribeStart := time.Now()
 	transcript, err := w.transcribeWithWhisper(ctx, audioPath)
@@ -80,8 +79,6 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 
 	slog.Info("Whisper transcription completed",
 		slog.String("video_id", videoID),
-		slog.Int("text_length", len(transcript.Text)),
-		slog.Int("segments_count", len(transcript.Segments)),
 		slog.Int64("transcription_duration_seconds", int64(transcriptionDuration)),
 		slog.Int64("total_duration_seconds", int64(totalDuration)))
 
@@ -106,7 +103,7 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 	}
 
 	slog.Info("Preparing audio file for Whisper API",
-		slog.String("file_path", audioPath),
+		slog.String("audio_path", audioPath),
 		slog.Int64("file_size_mb", fileInfo.Size()/(1024*1024)))
 
 	file, err := os.Open(audioPath)
@@ -134,9 +131,6 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 		return nil, fmt.Errorf("failed to close writer: %w", err)
 	}
 
-	slog.Info("Sending request to Whisper API",
-		slog.Int("request_size_mb", body.Len()/(1024*1024)))
-
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.openai.com/v1/audio/transcriptions", body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
@@ -158,9 +152,9 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		slog.Error("Whisper API error response",
+		slog.Error("Whisper API error",
 			slog.Int("status_code", resp.StatusCode),
-			slog.String("response_body", string(bodyBytes)))
+			slog.String("error_body", string(bodyBytes)))
 		return nil, fmt.Errorf("whisper API error (status %d): %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -187,7 +181,7 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 		}
 	}
 
-	slog.Info("Whisper API response decoded successfully",
+	slog.Debug("Whisper API response decoded",
 		slog.Int("text_chars", len(response.Text)),
 		slog.Int("segments", len(segments)))
 

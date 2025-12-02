@@ -114,6 +114,7 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 	queues := []string{
 		messaging.QueueVideoProcessing,
 		messaging.QueueTranscript,
+		messaging.QueueVideoMetadata,
 	}
 
 	for _, queueName := range queues {
@@ -129,6 +130,7 @@ func setupRabbitMQTopology(rabbitmq *messaging.RabbitMQ) error {
 	bindings := map[string]string{
 		messaging.QueueVideoProcessing: messaging.RoutingKeyVideoTranscriptRequested,
 		messaging.QueueTranscript:      messaging.RoutingKeyVideoTranscriptCompleted,
+		messaging.QueueVideoMetadata:   messaging.RoutingKeyVideoMetadataCompleted,
 	}
 
 	for queueName, routingKey := range bindings {

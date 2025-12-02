@@ -1,6 +1,7 @@
 FROM golang:1.25-alpine AS build
-RUN apk add --no-cache curl libstdc++ libgcc python3 py3-pip ffmpeg && \
-    pip3 install --break-system-packages yt-dlp
+RUN apk add --no-cache curl libstdc++ libgcc python3 py3-pip ffmpeg nodejs npm && \
+    pip3 install --break-system-packages yt-dlp && \
+    yt-dlp --version
 
 WORKDIR /app
 
@@ -18,11 +19,13 @@ RUN go install github.com/a-h/templ/cmd/templ@latest && \
 RUN go build -o main cmd/api/main.go
 
 FROM alpine:latest AS prod
-RUN apk add --no-cache python3 py3-pip ffmpeg && \
+RUN apk add --no-cache python3 py3-pip ffmpeg nodejs npm && \
     pip3 install --break-system-packages yt-dlp && \
     command -v ffmpeg >/dev/null 2>&1 || (echo "ffmpeg missing" && exit 1) && \
     command -v ffprobe >/dev/null 2>&1 || (echo "ffprobe missing" && exit 1) && \
-    python3 -c "import yt_dlp" >/dev/null 2>&1 || (echo "yt-dlp python package missing" && exit 1)
+    command -v node >/dev/null 2>&1 || (echo "node missing" && exit 1) && \
+    python3 -c "import yt_dlp" >/dev/null 2>&1 || (echo "yt-dlp python package missing" && exit 1) && \
+    yt-dlp --version
 
 WORKDIR /app
 COPY --from=build /app/main /app/main

@@ -22,6 +22,21 @@ namespace Sentimentator.Backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AnalysisUser", b =>
+                {
+                    b.Property<Guid>("AnalysesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UsersId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AnalysesId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("AnalysisUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
@@ -156,24 +171,31 @@ namespace Sentimentator.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasJsonPropertyName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasJsonPropertyName("created_at");
 
                     b.Property<string>("Summary")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasJsonPropertyName("summary");
 
                     b.Property<string>("Transcription")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasJsonPropertyName("transcription");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasJsonPropertyName("updated_at");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("text")
+                        .HasJsonPropertyName("url");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Analyses");
                 });
@@ -246,6 +268,21 @@ namespace Sentimentator.Backend.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("AnalysisUser", b =>
+                {
+                    b.HasOne("Sentimentator.Backend.Model.Analysis", null)
+                        .WithMany()
+                        .HasForeignKey("AnalysesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sentimentator.Backend.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -295,18 +332,6 @@ namespace Sentimentator.Backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Sentimentator.Backend.Model.Analysis", b =>
-                {
-                    b.HasOne("Sentimentator.Backend.Model.User", null)
-                        .WithMany("Analyses")
-                        .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("Sentimentator.Backend.Model.User", b =>
-                {
-                    b.Navigation("Analyses");
                 });
 #pragma warning restore 612, 618
         }

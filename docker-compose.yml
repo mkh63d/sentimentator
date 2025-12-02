@@ -10,6 +10,7 @@ services:
             - ORCHESTRATOR_POSTGRES_CONN_STRING=Server=postgres;Port=5432;Database=orchestrator_db;User Id=${ORCHESTRATOR_DB_USER};Password=${ORCHESTRATOR_DB_PASS};
             - ORCHESTRATOR_RABBITMQ_URI=${AMQP_URL}
             - ORCHESTRATOR_RESEND_API_KEY=${ORCHESTRATOR_RESEND_API_KEY}
+            - ORCHESTRATOR_ADMIN_PASSWORD=${ORCHESTRATOR_ADMIN_PASSWORD}
             - ASPNETCORE_URLS=http://+:80
         ports:
             - "8081:80"

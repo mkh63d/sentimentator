@@ -65,12 +65,12 @@
                   placeholder="Enter current password"
                 />
                 <input
-                  type="password"
+                  type="text"
                   class="w-full text-tertiary px-3 py-2 my-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#10a20b] focus:border-transparent"
                   placeholder="Enter new password"
                 />
                 <button
-                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-default transition"
+                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 disabled:opacity-50 transition"
                   :disabled="!currentPassword || !newPassword || currentPassword === newPassword"
                 >
                   Update Password
@@ -163,7 +163,7 @@ async function updateAPIKey() {
 }
 
 async function resetAPIKey() {
-  await changeAPIKey('a')
+  await resetAPIKey()
     .then(() => {
       fireTimedAlert('Success', 'API key has been reset to default.', 2000);
     })

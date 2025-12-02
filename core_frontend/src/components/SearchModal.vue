@@ -74,7 +74,7 @@
         <button
           class="px-5 py-2 transition-colors rounded-lg cursor-pointer bg-primary text-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
           @click="submit"
-          :disabled="!links.length"
+          :disabled="!links.length || isLoading"
         >
           {{ t('common.analyse') }}
         </button>
@@ -173,23 +173,45 @@ const invalidCount = computed(() => {
 });
 
 const submit = async () => {
-  if (!links.value.length) return;
+  if (!links.value.length || isLoading.value) return;
 
-  // Mock Loading
-  loadingMessage.value = t('modal.creatingAnalyses');
   isLoading.value = true;
+  loadingMessage.value = t('modal.creatingAnalyses');
+
+  const failures = [];
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
-    for (const link of links.value) {
-      await createAnalysis(link);
+    for (let i = 0; i < links.value.length; i++) {
+      const link = links.value[i];
+      loadingMessage.value = t('modal.creatingAnalyses') + ` (${i + 1}/${links.value.length})`;
+      try {
+        await createAnalysis(link);
+      } catch (err) {
+        failures.push({ link, error: err });
+        console.error('createAnalysis failed for', link, err);
+      }
     }
-  } catch (error) {
-    console.error('Error during analysis creation:', error);
+
+    if (failures.length === 0) {
+      // all succeeded
+      fireTimedAlert(t('modal.createdSuccess'), '', 1800, false);
+      searchStore.hide();
+      clearAll();
+      emit('analyze');
+    } else {
+      // show error summary and keep failed links in the list for retry
+      const first = failures[0];
+      const msg =
+        (first.error && first.error.message) || String(first.error ?? t('modal.unknownError'));
+      fireTimedAlert(t('modal.createdFailed'), msg, 4000, true);
+      // keep only failed links so user can retry them
+      links.value = failures.map((f) => f.link);
+    }
+  } catch (err) {
+    console.error('Unexpected error in submit:', err);
+    fireTimedAlert(t('modal.createdFailed'), String(err ?? t('modal.unknownError')), 4000, true);
+  } finally {
+    isLoading.value = false;
+    loadingMessage.value = '';
   }
-  isLoading.value = false;
-  loadingMessage.value = '';
-  searchStore.hide();
-  clearAll();
-  emit('analyze');
 };
 </script>

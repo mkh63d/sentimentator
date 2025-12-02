@@ -124,7 +124,10 @@
     "premiumFeature": "Dodawanie większej liczby jest funkcją premium",
     "creatingAnalyses": "Tworzenie analiz...",
     "filterTitle": "Filtruj analizy",
-    "status": "Status"
+    "status": "Status",
+    "createdPartial": "Utworzono z pewnymi błędami",
+    "createdFailed": "Utworzenie nie powiodło się",
+    "unknownError": "Wystąpił nieznany błąd"
   },
   "auth": {
     "login": "Zaloguj się",

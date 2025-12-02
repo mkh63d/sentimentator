@@ -4,7 +4,7 @@ import pl from './locales/pl.json';
 
 const messages = {
   en,
-  pl
+  pl,
 };
 
 const savedLocale = localStorage.getItem('locale') || 'en';
@@ -14,7 +14,7 @@ const i18n = createI18n({
   locale: savedLocale,
   fallbackLocale: 'en',
   messages,
-  globalInjection: true
+  globalInjection: true,
 });
 
 export default i18n;

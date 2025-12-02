@@ -23,7 +23,9 @@
 
           <form @submit.prevent="handleSubmit">
             <div class="mb-5">
-              <label for="email" class="block mb-1 text-tertiary font-medium">{{ t('auth.email') }}</label>
+              <label for="email" class="block mb-1 text-tertiary font-medium">{{
+                t('auth.email')
+              }}</label>
               <input
                 id="email"
                 v-model="form.email"
@@ -35,7 +37,9 @@
             </div>
 
             <div class="mb-2">
-              <label for="password" class="block mb-1 text-tertiary font-medium">{{ t('auth.password') }}</label>
+              <label for="password" class="block mb-1 text-tertiary font-medium">{{
+                t('auth.password')
+              }}</label>
               <input
                 id="password"
                 v-model="form.password"
@@ -59,9 +63,9 @@
             </div>
 
             <div v-if="!isLogin" class="mb-5">
-              <label for="confirmPassword" class="block mb-1 text-tertiary font-medium"
-                >{{ t('auth.confirmPassword') }}</label
-              >
+              <label for="confirmPassword" class="block mb-1 text-tertiary font-medium">{{
+                t('auth.confirmPassword')
+              }}</label>
               <input
                 id="confirmPassword"
                 v-model="form.confirmPassword"
@@ -87,7 +91,9 @@
                 v-model="useCookies"
                 class="h-4 w-4 text-fourth focus:ring-fourth border-gray-300 rounded"
               />
-              <label for="rememberMe" class="ml-2 text-textBase-dark">{{ t('auth.rememberMe') }}</label>
+              <label for="rememberMe" class="ml-2 text-textBase-dark">{{
+                t('auth.rememberMe')
+              }}</label>
             </div>
 
             <button
@@ -117,7 +123,9 @@
           v-else-if="mode === 'forgot'"
           class="bg-background p-10 rounded-xl shadow-lg flex flex-col items-center"
         >
-          <h1 class="text-center mb-4 text-tertiary text-3xl font-bold">{{ t('auth.forgotPasswordTitle') }}</h1>
+          <h1 class="text-center mb-4 text-tertiary text-3xl font-bold">
+            {{ t('auth.forgotPasswordTitle') }}
+          </h1>
           <p class="block mb-5 text-center text-tertiary font-medium">
             {{ t('auth.passwordResetInstructions') }}
           </p>
@@ -284,11 +292,7 @@ async function handleSubmit() {
     } else {
       try {
         await authStore.registerUser(form.value.email, form.value.password);
-        fireTimedAlert(
-          t('auth.success'),
-          t('auth.registrationSuccess'),
-          3000,
-        );
+        fireTimedAlert(t('auth.success'), t('auth.registrationSuccess'), 3000);
       } catch (e) {
         error.value = t('auth.registrationFailed') + ': ' + (e instanceof Error ? e.message : '');
         const errTitle = t('auth.registrationFailed');

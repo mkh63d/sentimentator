@@ -334,10 +334,8 @@ const filteredAnalyses = computed(() => {
   }
 
   return realAnalyses.value.filter((analysis) => {
-    const url = String(analysis.url ?? '').toLowerCase();
     const title = String(analysis.title ?? '').toLowerCase();
-    const matchesSearch =
-      !query || url.includes(query) || title.includes(query);
+    const matchesSearch = !query || title.includes(query);
 
     const status = inferStatus(analysis);
     const matchesStatus = !filterStatus.value || filterStatus.value === status;

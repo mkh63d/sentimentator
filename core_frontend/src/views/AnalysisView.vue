@@ -48,7 +48,7 @@
           <div class="mb-8">
             <h1 class="m-0 text-3xl font-extrabold text-tertiary">Sentiment Analysis Results</h1>
             <a
-              :href="analysisData.title"
+              :href="analysisData.url"
               target="_blank"
               rel="noopener noreferrer"
               class="mt-1 text-xl text-tertiary/90 hover:font-semibold"
@@ -238,6 +238,7 @@ interface Feature {
 interface AnalysisData {
   id: string;
   title?: string;
+  url?: string;
   overallSentiment: {
     positive: number;
     neutral: number;
@@ -447,6 +448,7 @@ async function fetchAnalysisData(id: string) {
 
     analysisData.value = {
       id: resolvedId,
+      url: typeof response.url === 'string' ? response.url : undefined,
       title: resolvedTitle,
       overallSentiment,
       transcription: response.transcription || '',

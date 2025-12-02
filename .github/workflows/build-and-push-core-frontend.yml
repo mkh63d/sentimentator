@@ -36,11 +36,11 @@ jobs:
                   node-version: ${{ env.NODE_VERSION }}
 
             - name: Install dependencies
-              working-directory: ./core_frontend/sentimentator_frontend
+              working-directory: ./core_frontend
               run: npm ci
 
             - name: Build application
-              working-directory: ./core_frontend/sentimentator_frontend
+              working-directory: ./core_frontend
               run: npm run build
 
             - name: Set up Docker Buildx
@@ -66,8 +66,8 @@ jobs:
             - name: Build and push Docker image
               uses: docker/build-push-action@v5
               with:
-                  context: ./core_frontend/sentimentator_frontend
-                  file: ./core_frontend/sentimentator_frontend/Dockerfile
+                  context: ./core_frontend
+                  file: ./core_frontend/Dockerfile
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}

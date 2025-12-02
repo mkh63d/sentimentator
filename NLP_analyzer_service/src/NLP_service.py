@@ -1,7 +1,6 @@
 # NLP_service.py
 import json
 import os
-import pika
 import sys
 import threading
 import time

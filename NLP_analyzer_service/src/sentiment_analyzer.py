@@ -82,49 +82,7 @@ class SentimentAnalyzer:
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
-    review = {
-        'updates': [
-            "And that's not all, there are some pretty interesting updates on the phone too so let's get into it.",
-            "Anyway, there are even more camera features coming to the Galaxy S26 Ultra plus a couple of really good updates you'll want to see."
-        ],
-        'charging': [
-            "What's up guys, Sal here so we already know Samsung is bumping the S26 Ultra's charging speed from 45W to 60W which is nice but what about wireless charging?",
-            'Apparently, every phone in the Galaxy S26 lineup will get faster wireless charging but not all at the same level.',
-            'The S26 Ultra is getting a big jump from 15W to 25W wireless charging.',
-            'So basically, wireless charging the S26 Ultra fully takes around 60 minutes compared to 100 minutes that 15W charging took.',
-            'That unlocks true Cheeto charging and lets you use proper magnetic accessories.',
-            'I love wireless charging and MagSafe-style accessories just make life easier.',
-            "And no, it's not  a smart cloth, not a charging pouch, not even a case."
-        ],
-        'accessories': [
-            'That unlocks true Cheeto charging and lets you use proper magnetic accessories.',
-            'I love wireless charging and MagSafe-style accessories just make life easier.'
-        ],
-        'camera': [
-            'The front camera cutout on the S26 Ultra is getting bigger.',
-            "The front camera's field of view is getting wider.",
-            "But despite this wider field of view, Ice Universe says the camera specs themselves remain the same as last year's model.",
-            "And just to clarify, this isn't the actual S26 Ultra camera sample, they are just visual references to show the difference in  focal length.",
-            "And it's not just the front camera getting tweaked, the main and periscope zoom lenses are also seeing focal length changes.",
-            "Anyway, there are even more camera features coming to the Galaxy S26 Ultra plus a couple of really good updates you'll want to see."
-        ],
-        'zoom': [
-            "And it's not just the front camera getting tweaked, the main and periscope zoom lenses are also seeing focal length changes.",
-            'But in the opposite direction, they are getting slightly more zoomed in.',
-            'The main lens goes from 23mm to 24mm and the 5x zoom lens from 115mm to 120mm.'
-        ],
-        'os': ['But in the opposite direction, they are getting slightly more zoomed in.'],
-        'thickness': [
-            "The display size remains 6.7 inches and the thickness sets at 7.3mm making it the only phone in the lineup that didn't slim down this year."
-        ],
-        'display': [
-            "The display size remains 6.7 inches and the thickness sets at 7.3mm making it the only phone in  the lineup that didn't slim down this year."
-        ],
-        'design': [
-            "That's intentional, Samsung wants all three models to share the same corner design for a more unified look."
-        ]
-    }
-
+    review = {'camera': ['You took a photo, it looked bad and you posted it anyway.', 'And one last time when I tested the camera, I noticed that the phone does use HDR.', 'And a picture of my dad, I love my dad.', 'But still, the photos come out looking more real.', "I was then looking at the back of the phone, and I thought, There's no way that tiny camera is still good.", 'And whoa, the selfie camera is so shaky.', "I didn't even know this, but even back then, you could just adjust the brightness of the torch, and on camera, the selfie looks like a Terminator.", 'What shocked me even more was when I actually tested the camera.', 'This is a picture that I took on the S25.', 'And damn, that selfie camera looks so much better on Samsung.', 'They take incredible photos, they never lag, and somehow, they feel soulless.'], 'performance': ['The scrolling was a little bit laggy.', 'And Google Maps was so slow that it would actually help you get more lost than you were before.', 'No lag whatsoever.', 'They take incredible photos, they never lag, and somehow, they feel soulless.'], 'design': ['A beloved design, now with more love, whatever that means.', 'The design is crazy, the rose gold is gorgeous.'], 'speaker': ["The bottom has the fattest speaker grills I have ever seen, and in case there wasn't enough holes, there's also the headphone jack."], 'screen': ['But then I made it to the home screen, and ah, the sweet memories, iOS 15.', "I didn't even know this, but even back then, you could just adjust the brightness of the torch, and on camera, the selfie looks like a Terminator."], 'battery': ["And I don't wanna spoil too much, but that's literally the first thing that I did after a full charge.", 'But I was pretty concerned to see only 9% of my battery left after just one mission.', 'The night before, I made sure to charge my phone with the good old lightning cable, and... That sounds dusty.', 'And so was the battery.', "Of course, at this point, iPhones didn't even have wireless charging yet.", 'Anyway, as good as the phone was, the battery died way too quickly before I could play any games or even listen to some music.'], 'charging': ["Of course, at this point, iPhones didn't even have wireless charging yet."]}
     sa = SentimentAnalyzer()
     sentiments = sa.analyze_feature_sentiments(review)
 

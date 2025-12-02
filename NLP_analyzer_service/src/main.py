@@ -6,7 +6,7 @@ import pika
 from NLP_service import SentimentAnalysisService
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
-RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
 EXCHANGE = "events"
 ROUTING_KEY = "video.transcript.completed"
 

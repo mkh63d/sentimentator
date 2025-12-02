@@ -14,7 +14,7 @@ from feature_detection import FeatureDetector
 from sentiment_analyzer import SentimentAnalyzer
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
-RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
 
 class SentimentAnalysisService:
     """
@@ -26,10 +26,10 @@ class SentimentAnalysisService:
         self._running = False
         self._service_thread = None
         
-        self.consumer = RabbitConsumer(rabbit_url)
+        self.consumer = RabbitConsumer(self.rabbit_url)
         self.features = FeatureDetector()
         self.sentiments = SentimentAnalyzer()
-        self.publisher = RabbitPublisher(rabbit_url)
+        self.publisher = RabbitPublisher(self.rabbit_url)
         
     def analyze_and_publish(self):
         """Complete pipeline: analyze text and publish results."""

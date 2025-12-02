@@ -4,16 +4,20 @@
     :class="sidebarStore.visible ? 'w-64' : 'w-0 overflow-hidden p-0'"
   >
     <div v-if="sidebarStore.visible" class="relative h-full">
+      <!-- close button remains available immediately -->
       <button
         class="cursor-pointer absolute mt-1 mr-3 scale-200 top-2 right-2 text-background hover:text-secondary transition"
         @click="sidebarStore.hide()"
       >
         <X size="16" />
       </button>
-      <div class="p-4 pt-12">
+
+      <!-- content is shown with a delay when sidebar opens -->
+      <div v-if="showContent" class="p-4 pt-12">
         <slot></slot>
       </div>
-      <div>
+
+      <div v-if="showContent">
         <button
           class="cursor-pointer w-full mt-4 py-2 px-4 bg-secondary text-tertiary font-bold rounded hover:bg-secondary/80 transition"
           @click="
@@ -38,8 +42,38 @@ import { X } from 'lucide-vue-next';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
+import { ref, watch, onUnmounted } from 'vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const sidebarStore = useSidebarStore();
+
+const showContent = ref(false);
+const OPEN_DELAY = 300; // match CSS duration-300
+let openTimer = null;
+
+watch(
+  () => sidebarStore.visible,
+  (visible) => {
+    if (visible) {
+      // delay showing inner content until after the width transition
+      openTimer = setTimeout(() => {
+        showContent.value = true;
+        openTimer = null;
+      }, OPEN_DELAY);
+    } else {
+      // hide immediately when closing and clear any pending timer
+      if (openTimer) {
+        clearTimeout(openTimer);
+        openTimer = null;
+      }
+      showContent.value = false;
+    }
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (openTimer) clearTimeout(openTimer);
+});
 </script>

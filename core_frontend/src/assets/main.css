@@ -16,13 +16,13 @@ html {
 }
 
 [data-theme="light"] {
-    --color-primary: #10a20b;
-    --color-secondary: #bdccdb;
-    --color-tertiary: #08415C;
-    --color-accent: #CC2936;
+    --color-primary:#CC2936;
+    --color-secondary: hsl(210, 30%, 80%);
+    --color-tertiary: hsl(210, 20%, 30%);
+    --color-accent:  hsl(92, 100%, 50%);
     --color-textBase-dark: hsl(0, 0%, 9%);
-    --color-textBase-light: hsl(0, 0%, 100%);
-    --color-background: #fefff8;
+    --color-textBase-light:hsl(0, 0%, 100%);
+    --color-background: hsl(0, 0%, 100%);
     --color-fourth: #011936;
 }
 

@@ -124,7 +124,10 @@
     "premiumFeature": "Adding more is a premium feature",
     "creatingAnalyses": "Creating analyses...",
     "filterTitle": "Filter Analyses",
-    "status": "Status"
+    "status": "Status",
+    "createdPartial": "Created with some errors",
+    "createdFailed": "Creation Failed",
+    "unknownError": "Unknown error occurred"
   },
   "auth": {
     "login": "Login",

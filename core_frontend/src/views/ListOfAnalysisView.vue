@@ -107,7 +107,7 @@
           <p>{{ t('analysis.noAnalyses') }}</p>
           <button
             @click="createNew"
-            class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200"
+            class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
           >
             {{ t('analysis.createFirst') }}
           </button>

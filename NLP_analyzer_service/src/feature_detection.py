@@ -17,7 +17,7 @@ class FeatureDetector:
         # Software & Performance
         "app_compatibility", "updates",
         # Audio
-        "microphone", "headphone_jack", "speaker_volume", "audio_clarity",
+        "microphone", "headphone_jack",
         # Connectivity
         "wifi", "bluetooth", "cellular", "gps", "nfc",
         # Practical & User Experience
@@ -25,14 +25,19 @@ class FeatureDetector:
     ]
 
     DEFAULT_KEYWORD_MAPPING = {
-        "camera": ["photo", "photos", "picture", "selfie", "photograph",
-                   "stabilization", "video_recording", "color_accuracy", "zoom"],
-        "battery": ["charge", "charging", "power", "battery life", "battery_health"],
-        "screen": ["display", "screen", "resolution", "brightness",
-                   "screen_protection", "contrast", "refresh_rate"],
-        "speaker": ["audio", "speaker", "sound", "speaker_volume", "audio_clarity"],
-        "performance": ["speed", "lag", "slow", "fast", "lag", "laggy", "gaming"],
-        "storage": ["space"]
+        "camera": ["photo", "photos", "picture", "pictures", "selfie", "photograph",
+                   "stabilization", "video_recording", "color_accuracy", "zoom",
+                   "lens", "portrait_mode", "image quality", "hdr"],
+        "battery": ["power", "battery life", "battery_health"],
+        "screen": ["display", "resolution", "brightness", "oled", "lcd", "amoled"
+                   "screen_protection", "contrast", "refresh_rate", "colors"],
+        "speaker": ["audio", "sound", "speaker_volume", "audio_clarity", "bass"],
+        "performance": ["speed", "lag", "slow", "fast", "lag", "laggy", "gaming",
+                        "stutter", "frame drops", "fps", "responsive", "snappy"],
+        "durability": ["sturdy", "fragile", "scratch", "drop", "crack", "bend"],
+        "build_quality": ["hot", "overheat", "overheating", "temperature"],
+        "storage": ["space", "capacity"],
+        "charging":["charge"]
     }
 
     def __init__(self, custom_features: List[str] = None, keyword_mapping: Dict[str, List[str]] = None):
@@ -95,8 +100,8 @@ if __name__ == "__main__":
 
     print(results)
 
-    #print("Detected features:")
-    #for feature, sentences in results.items():
-        #print(f"\nFeature: {feature}")
-        #for sentence in sentences:
-            #print(f"  - {sentence}")
+    print("Detected features:")
+    for feature, sentences in results.items():
+        print(f"\nFeature: {feature}")
+        for sentence in sentences:
+            print(f"  - {sentence}")

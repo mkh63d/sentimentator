@@ -140,7 +140,11 @@
                   "
                   role="button"
                   :aria-disabled="analysis.summary === null"
-                  :title="analysis.summary !== null ? t('analysis.openAnalysis') : t('analysis.summaryNotReady')"
+                  :title="
+                    analysis.summary !== null
+                      ? t('analysis.openAnalysis')
+                      : t('analysis.summaryNotReady')
+                  "
                 >
                   <!-- image if provided by API -->
                   <img
@@ -193,17 +197,19 @@
 
               <div class="min-w-0 flex-1">
                 <div
-                  class="sm:p-0 pt-2 text-xl sm:text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
+                  class="sm:p-0 pt-2 text-xl sm:text-sm font-semibold text-[#bdccdb] truncate max-w-full sm:max-w-full"
                   :title="analysis.title ?? analysis.url"
                 >
                   {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
                 </div>
-                <div class="text-xs text-tertiary/70 mt-1">
+                <div class="text-xs text-[#bdccdb] mt-1">
                   <div>
-                    {{ t('analysis.created') }} {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
+                    {{ t('analysis.created') }}
+                    {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
                   </div>
                   <div>
-                    {{ t('analysis.updated') }} {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
+                    {{ t('analysis.updated') }}
+                    {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
                   </div>
                 </div>
               </div>
@@ -218,7 +224,9 @@
                       : 'bg-yellow-100 text-yellow-800'
                   "
                 >
-                  {{ analysis.summary === null ? t('analysis.processing') : t('analysis.completed') }}
+                  {{
+                    analysis.summary === null ? t('analysis.processing') : t('analysis.completed')
+                  }}
                 </span>
 
                 <div class="flex items-center gap-2">
@@ -313,16 +321,27 @@ const filterStatus = ref('');
 const mobileFilterWindow = ref(false);
 
 const filteredAnalyses = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+
+  function inferStatus(
+    analysis: components['schemas']['Analysis'],
+  ): 'completed' | 'processing' | 'failed' {
+    const s = analysis?.summary;
+    if (s === null || typeof s === 'undefined') return 'processing';
+    // treat an explicit empty string or empty object as failed
+    if (s === '' || (typeof s === 'object' && Object.keys(s).length === 0)) return 'failed';
+    return 'completed';
+  }
+
   return realAnalyses.value.filter((analysis) => {
-    const matchesSearch = analysis.url.toLowerCase().includes(searchQuery.value.toLowerCase());
-    // const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-    return matchesSearch;
+    const title = String(analysis.title ?? '').toLowerCase();
+    const matchesSearch = !query || title.includes(query);
+
+    const status = inferStatus(analysis);
+    const matchesStatus = !filterStatus.value || filterStatus.value === status;
+
+    return matchesSearch && matchesStatus;
   });
-  // return analyses.value.filter((analysis) => {
-  //   const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-  //   const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-  //   return matchesSearch && matchesStatus;
-  // });
 });
 
 const fetchAnalyses = async () => {

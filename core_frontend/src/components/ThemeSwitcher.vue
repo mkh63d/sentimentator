@@ -42,8 +42,8 @@ import { ref, onMounted, watchEffect } from 'vue';
 const props = defineProps({
   changeOnTheme: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 const themes = ['light', 'dark'];

@@ -23,7 +23,7 @@
     >
       <div
         v-if="modelValue"
-        class="fixed bottom-0 left-0 right-0 z-[60] w-full bg-background rounded-t-3xl shadow-xl p-6 max-h-[85vh] overflow-y-auto"
+        class="fixed bottom-0 left-0 right-0 z-60 w-full bg-background rounded-t-3xl shadow-xl p-6 max-h-[85vh] overflow-y-auto"
         @click.stop
       >
         <div class="flex items-center justify-between mb-6">

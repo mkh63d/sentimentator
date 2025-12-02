@@ -9,3 +9,11 @@ export async function changeAPIKey(newApiKey: string) {
   }
   return data;
 }
+
+export async function resetAPIKey() {
+  const { data, error } = await api.DELETE('/users/openai-api-key');
+  if (error) {
+    throw new Error(error.title ?? 'Failed to reset API key');
+  }
+  return data;
+}

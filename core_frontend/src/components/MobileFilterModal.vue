@@ -27,11 +27,11 @@
         @click.stop
       >
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-tertiary">Filter Analyses</h2>
+          <h2 class="text-2xl font-bold text-tertiary">{{ t('modal.filterTitle') }}</h2>
           <button
             @click="close"
             class="p-2 rounded-full hover:bg-secondary transition"
-            aria-label="Close filter modal"
+            :aria-label="t('common.close')"
           >
             <X class="w-6 h-6 text-tertiary" />
           </button>
@@ -40,30 +40,30 @@
         <div class="space-y-4">
           <div>
             <label for="mobile-search" class="block text-sm font-medium text-tertiary mb-2">
-              Search
+              {{ t('common.search') }}
             </label>
             <input
               id="mobile-search"
               v-model="localSearchQuery"
               type="text"
-              placeholder="Search analyses..."
+              :placeholder="t('analysis.searchAnalyses')"
               class="w-full px-4 py-3 text-base border rounded-lg border-tertiary bg-background text-tertiary focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div>
             <label for="mobile-status" class="block text-sm font-medium text-tertiary mb-2">
-              Status
+              {{ t('modal.status') }}
             </label>
             <select
               id="mobile-status"
               v-model="localFilterStatus"
               class="w-full px-4 py-3 text-base border rounded-lg cursor-pointer border-tertiary bg-background text-tertiary focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Statuses</option>
-              <option value="completed">Completed</option>
-              <option value="processing">Processing</option>
-              <option value="failed">Failed</option>
+              <option value="">{{ t('analysis.allStatuses') }}</option>
+              <option value="completed">{{ t('analysis.completed') }}</option>
+              <option value="processing">{{ t('analysis.processing') }}</option>
+              <option value="failed">{{ t('analysis.failed') }}</option>
             </select>
           </div>
         </div>
@@ -73,13 +73,13 @@
             @click="clearFilters"
             class="flex-1 px-4 py-3 text-base font-semibold transition rounded-lg bg-secondary text-tertiary hover:opacity-80"
           >
-            Clear
+            {{ t('common.clear') }}
           </button>
           <button
             @click="applyFilters"
             class="flex-1 px-4 py-3 text-base font-semibold transition rounded-lg bg-primary text-background hover:opacity-80"
           >
-            Apply
+            {{ t('common.apply') }}
           </button>
         </div>
       </div>
@@ -90,12 +90,15 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { X } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
   modelValue: boolean;
   searchQuery: string;
   filterStatus: string;
 }
+
+const { t } = useI18n();
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void;

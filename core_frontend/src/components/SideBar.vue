@@ -17,7 +17,7 @@
         <slot></slot>
       </div>
 
-      <div v-if="showContent">
+      <div v-if="showContent" class="flex flex-col gap-3">
         <button
           class="cursor-pointer w-full mt-4 py-2 px-4 bg-secondary text-tertiary font-bold rounded hover:bg-secondary/80 transition"
           @click="
@@ -28,8 +28,9 @@
             }
           "
         >
-          Logout
+          {{ t('nav.logout') }}
         </button>
+        <LanguageSwitcher class="sm:hidden block self-center" />
       </div>
     </div>
   </aside>
@@ -39,14 +40,17 @@
 defineOptions({ name: 'SideBar' });
 
 import { X } from 'lucide-vue-next';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 import { ref, watch, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const sidebarStore = useSidebarStore();
+const { t } = useI18n();
 
 const showContent = ref(false);
 const OPEN_DELAY = 300; // match CSS duration-300
@@ -70,7 +74,7 @@ watch(
       showContent.value = false;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onUnmounted(() => {

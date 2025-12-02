@@ -12,7 +12,7 @@
               @click="router.push({ name: 'home' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Home
+              {{ t('home.title') }}
             </button>
           </li>
           <li>
@@ -20,7 +20,7 @@
               @click="router.push({ name: 'list' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Analysis Library
+              {{ t('analysis.library') }}
             </button>
           </li>
           <li class="self-bottom">
@@ -28,7 +28,7 @@
               @click="router.push({ name: 'settings' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Settings
+              {{ t('settings.title') }}
             </button>
           </li>
         </ul>
@@ -37,29 +37,29 @@
       <div class="px-4 sm:px-8 py-8 max-w-[1400px] mx-auto flex-1">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
           <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">
-            Analysis Library
+            {{ t('analysis.library') }}
           </h1>
           <div class="flex gap-2 sm:gap-3 items-center">
             <button
               @click="fetchAnalyses"
               class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="Refresh analyses"
+              :title="t('analysis.refresh')"
             >
               <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
-              <span class="hidden sm:inline">Refresh</span>
+              <span class="hidden sm:inline">{{ t('analysis.refresh') }}</span>
             </button>
             <button
               @click="createNew"
               class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="New Analysis"
+              :title="t('analysis.newAnalysis')"
             >
               <Plus class="w-4 h-4 sm:w-5 sm:h-5" />
-              <span class="hidden sm:inline">New Analysis</span>
+              <span class="hidden sm:inline">{{ t('analysis.newAnalysis') }}</span>
             </button>
             <button
               @click="mobileFilterWindow = true"
               class="flex sm:hidden items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="Filter Analyses (Mobile)"
+              :title="t('analysis.filterAnalyses')"
             >
               <Filter class="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -70,17 +70,17 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search analyses..."
+            :placeholder="t('analysis.searchAnalyses')"
             class="flex-1 px-3 py-2 text-sm sm:text-base border rounded-lg border-background"
           />
           <select
             v-model="filterStatus"
             class="px-3 py-3 text-base border rounded-lg cursor-pointer border-background"
           >
-            <option value="">All Statuses</option>
-            <option value="completed">Completed</option>
-            <option value="processing">Processing</option>
-            <option value="failed">Failed</option>
+            <option value="">{{ t('analysis.allStatuses') }}</option>
+            <option value="completed">{{ t('analysis.completed') }}</option>
+            <option value="processing">{{ t('analysis.processing') }}</option>
+            <option value="failed">{{ t('analysis.failed') }}</option>
           </select>
         </div>
 
@@ -88,28 +88,28 @@
           <span
             class="inline-block w-5 h-5 border-4 border-gray-200 rounded-full border-t-blue-500 animate-spin"
           ></span>
-          Loading library...
+          {{ t('analysis.loadingLibrary') }}
         </div>
 
         <div v-else-if="error" class="py-12 text-center">
           <p>
-            Error fetching library: <br /><code>{{ error }}</code>
+            {{ t('analysis.errorFetching') }} <br /><code>{{ error }}</code>
           </p>
           <button
             @click="fetchAnalyses"
             class="px-4 py-2 transition bg-gray-200 rounded hover:bg-gray-300"
           >
-            Retry
+            {{ t('analysis.retry') }}
           </button>
         </div>
 
         <div v-else-if="filteredAnalyses.length === 0" class="py-12 text-center">
-          <p>No analyses found in your library.</p>
+          <p>{{ t('analysis.noAnalyses') }}</p>
           <button
             @click="createNew"
             class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200"
           >
-            Create your first analysis
+            {{ t('analysis.createFirst') }}
           </button>
         </div>
 
@@ -140,7 +140,7 @@
                   "
                   role="button"
                   :aria-disabled="analysis.summary === null"
-                  :title="analysis.summary !== null ? 'Open analysis' : 'Summary not ready'"
+                  :title="analysis.summary !== null ? t('analysis.openAnalysis') : t('analysis.summaryNotReady')"
                 >
                   <!-- image if provided by API -->
                   <img
@@ -170,7 +170,7 @@
                           d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
                         />
                       </svg>
-                      <div class="text-xs">No thumbnail</div>
+                      <div class="text-xs">{{ t('analysis.noThumbnail') }}</div>
                     </div>
                   </template>
                 </div>
@@ -200,10 +200,10 @@
                 </div>
                 <div class="text-xs text-tertiary/70 mt-1">
                   <div>
-                    Created: {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
+                    {{ t('analysis.created') }} {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
                   </div>
                   <div>
-                    Updated: {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
+                    {{ t('analysis.updated') }} {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
                   </div>
                 </div>
               </div>
@@ -218,7 +218,7 @@
                       : 'bg-yellow-100 text-yellow-800'
                   "
                 >
-                  {{ analysis.summary === null ? 'Processing' : 'Completed' }}
+                  {{ analysis.summary === null ? t('analysis.processing') : t('analysis.completed') }}
                 </span>
 
                 <div class="flex items-center gap-2">
@@ -229,8 +229,8 @@
                       'p-1 rounded shrink-0 inline-flex items-center justify-center',
                       analysis.summary === null ? 'opacity-50 cursor-not-allowed' : '',
                     ]"
-                    title="View"
-                    aria-label="View analysis"
+                    :title="t('analysis.view')"
+                    :aria-label="t('analysis.view')"
                   >
                     <Eye
                       class="w-7 h-7 sm:w-5 sm:h-5 cursor-pointer"
@@ -241,8 +241,8 @@
                   <button
                     @click.stop="analysis.id && eraseAnalysis(analysis.id)"
                     class="p-1 rounded hover:opacity-75 shrink-0 inline-flex items-center justify-center"
-                    title="Delete"
-                    aria-label="Delete analysis"
+                    :title="t('analysis.delete')"
+                    :aria-label="t('analysis.delete')"
                   >
                     <Trash2 class="w-7 h-7 sm:w-5 sm:h-5" color="var(--color-tertiary)" />
                   </button>
@@ -265,6 +265,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { Plus, Eye, Trash2, RotateCcw, Filter } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/SideBar.vue';
@@ -302,6 +303,7 @@ interface Analysis {
 }
 
 const router = useRouter();
+const { t } = useI18n();
 const analyses = ref<Analysis[]>([]);
 const realAnalyses = ref<components['schemas']['Analysis'][]>([]);
 const loading = ref(true);
@@ -353,30 +355,30 @@ const eraseAnalysis = async (id: string) => {
   // Use SweetAlert2 for confirmation
   // Make sure to install sweetalert2 and import it
   await Swal.fire({
-    title: 'Are you sure?',
-    text: 'Do you really want to delete this analysis?',
+    title: t('analysis.deleteConfirmTitle'),
+    text: t('analysis.deleteConfirmText'),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel',
+    confirmButtonText: t('analysis.deleteConfirmButton'),
+    cancelButtonText: t('common.cancel'),
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
         await deleteAnalysis(id);
         analyses.value = analyses.value.filter((a) => a.id !== id);
         Swal.fire({
-          title: 'Deleted!',
-          text: 'This analysis has been deleted.',
+          title: t('analysis.deletedTitle'),
+          text: t('analysis.deletedText'),
           icon: 'success',
           timer: 2000,
           showConfirmButton: false,
         });
       } catch (e) {
         Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete analysis:' + (e instanceof Error ? e.message : ''),
+          title: t('analysis.deleteErrorTitle'),
+          text: t('analysis.deleteErrorText') + ' ' + (e instanceof Error ? e.message : ''),
           icon: 'error',
           timer: 2000,
           showConfirmButton: false,

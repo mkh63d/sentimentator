@@ -11,7 +11,7 @@ class FeatureDetector:
 
     DEFAULT_FEATURES = [
         # Core features
-        "camera", "battery", "display", "speaker", "performance", "screen", "charging", "design",
+        "camera", "battery", "speaker", "performance", "screen", "charging", "design",
         # Hardware & Build
         "build_quality", "weight", "thickness", "water_resistance", "durability",
         # Software & Performance

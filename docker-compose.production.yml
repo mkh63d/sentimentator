@@ -51,6 +51,7 @@ services:
             - YOUTUBE_COOKIES_PATH=/app/files/youtube_cookies.txt
             - INSTAGRAM_COOKIES_PATH=/app/files/instagram_cookies.txt
             - YT_DLP_ENABLE_EJS=1
+            - WEB_ADMIN_TOKEN=${VPS_WEB_ADMIN_TOKEN}
         volumes:
             - ../files:/app/files
         networks:

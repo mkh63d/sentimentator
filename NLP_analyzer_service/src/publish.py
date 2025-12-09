@@ -8,10 +8,17 @@ RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
 
 class RabbitPublisher:
     def __init__(self, rabbit_url=None):
-        self.rabbit_url = rabbit_url or RABBITMQ_URL
+        self.rabbit_url = self._clean_url(rabbit_url or RABBITMQ_URL)
         self.connection = None
         self.channel = None
         self._connect()
+
+    def _clean_url(self, url):
+        """Clean up URL to handle double slashes (e.g., ending with //)."""
+        # If URL ends with //, replace with single /
+        if url.endswith('//'):
+            url = url[:-1]
+        return url
 
     def _connect(self):
         try:

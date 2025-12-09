@@ -3,7 +3,7 @@ import json
 import pika
 import threading
 import time
-import os 
+import os
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
@@ -17,7 +17,7 @@ class RabbitConsumer:
     """Consumes transcript messages from RabbitMQ and stores the latest one."""
 
     def __init__(self, rabbit_url=RABBITMQ_URL):
-        self.rabbit_url = rabbit_url
+        self.rabbit_url = self._clean_url(rabbit_url)
         self.connection = None
         self.channel = None
         self._latest_message = None
@@ -25,6 +25,13 @@ class RabbitConsumer:
         self._new_message_event = threading.Event()
         self._consuming = False
         self._consumer_thread = None
+
+    def _clean_url(self, url):
+        """Clean up URL to handle double slashes (e.g., ending with //)."""
+        # If URL ends with //, replace with single /
+        if url.endswith('//'):
+            url = url[:-1]
+        return url
 
     def connect(self):
         """Establish connection with error handling"""
@@ -44,13 +51,13 @@ class RabbitConsumer:
         try:
             data = json.loads(body)
             print(f"[*] Received message for video: {data.get('analysis_id', 'unknown')}")
-            
+
             with self._lock:
                 self._latest_message = data
                 self._new_message_event.set()
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            
+
         except json.JSONDecodeError:
             print("[!] Received invalid JSON")
             ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -62,7 +69,7 @@ class RabbitConsumer:
         """Start consuming in a background thread."""
         if not self.connect():
             return False
-            
+
         def _consume():
             print("[*] Waiting for 'video.transcript.completed' messages...")
             try:
@@ -111,7 +118,7 @@ class RabbitConsumer:
     def stop(self):
         """Safely stop the consumer."""
         print("[*] Stopping RabbitMQ consumer...")
-        
+
         # Stop consuming first
         if self.channel and self.channel.is_open and self._consuming:
             try:
@@ -119,7 +126,7 @@ class RabbitConsumer:
                 print("[*] Stopped consuming messages")
             except Exception as e:
                 print(f"[*] Error stopping consumption: {e}")
-        
+
         # Close channel
         if self.channel and self.channel.is_open:
             try:
@@ -127,7 +134,7 @@ class RabbitConsumer:
                 print("[*] Closed channel")
             except Exception as e:
                 print(f"[*] Error closing channel: {e}")
-        
+
         # Close connection
         if self.connection and self.connection.is_open:
             try:
@@ -135,6 +142,6 @@ class RabbitConsumer:
                 print("[*] Closed connection")
             except Exception as e:
                 print(f"[*] Error closing connection: {e}")
-        
+
         self._consuming = False
         print("[*] RabbitMQ consumer stopped.")

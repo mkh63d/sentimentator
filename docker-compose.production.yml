@@ -20,10 +20,13 @@ services:
             - internal-net
         labels:
             - "traefik.enable=true"
+            - "traefik.docker.network=dokploy-network"
             - "traefik.http.routers.sentimentator-api.rule=Host(`sentimentator.api.jdex.pl`)"
             - "traefik.http.routers.sentimentator-api.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-api.tls=true"
             - "traefik.http.routers.sentimentator-api.tls.certresolver=letsencrypt"
-            - "traefik.http.services.sentimentator-api.loadbalancer.server.port=80"
+            - "traefik.http.routers.sentimentator-api.service=sentimentator-api-svc"
+            - "traefik.http.services.sentimentator-api-svc.loadbalancer.server.port=80"
 
     video-processing-service:
         image: ghcr.io/oskarowski/sentimentator/video_processing_service:dev
@@ -59,10 +62,13 @@ services:
             - internal-net
         labels:
             - "traefik.enable=true"
+            - "traefik.docker.network=dokploy-network"
             - "traefik.http.routers.sentimentator-vps.rule=Host(`sentimentator.vps.jdex.pl`)"
             - "traefik.http.routers.sentimentator-vps.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-vps.tls=true"
             - "traefik.http.routers.sentimentator-vps.tls.certresolver=letsencrypt"
-            - "traefik.http.services.sentimentator-vps.loadbalancer.server.port=8080"
+            - "traefik.http.routers.sentimentator-vps.service=sentimentator-vps-svc"
+            - "traefik.http.services.sentimentator-vps-svc.loadbalancer.server.port=8080"
 
     sentiment-analyzer:
         image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer:dev
@@ -93,9 +99,12 @@ services:
             - dokploy-network
         labels:
             - "traefik.enable=true"
+            - "traefik.docker.network=dokploy-network"
             - "traefik.http.routers.sentimentator-front.rule=Host(`sentimentator.jdex.pl`)"
             - "traefik.http.routers.sentimentator-front.entrypoints=websecure"
+            - "traefik.http.routers.sentimentator-front.tls=true"
             - "traefik.http.routers.sentimentator-front.tls.certresolver=letsencrypt"
+            - "traefik.http.routers.sentimentator-front.service=sentimentator-front-svc"
             - "traefik.http.services.sentimentator-front.loadbalancer.server.port=8000"
 
     rabbitmq:

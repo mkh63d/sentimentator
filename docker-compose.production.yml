@@ -105,7 +105,7 @@ services:
             - "traefik.http.routers.sentimentator-front.tls=true"
             - "traefik.http.routers.sentimentator-front.tls.certresolver=letsencrypt"
             - "traefik.http.routers.sentimentator-front.service=sentimentator-front-svc"
-            - "traefik.http.services.sentimentator-front.loadbalancer.server.port=8000"
+            - "traefik.http.services.sentimentator-front-svc.loadbalancer.server.port=8000"
 
     rabbitmq:
         image: rabbitmq:4.1.4-management

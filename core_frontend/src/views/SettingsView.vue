@@ -7,7 +7,7 @@
           <li>
             <button
               @click="router.push({ name: 'home' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Home
             </button>
@@ -15,7 +15,7 @@
           <li>
             <button
               @click="router.push({ name: 'list' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Analysis Library
             </button>
@@ -23,7 +23,7 @@
           <li class="self-bottom">
             <button
               @click="router.push({ name: 'settings' })"
-              class="cursor-pointer text-background font-medium hover:text-indigo-100 transition text-left"
+              class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
               Settings
             </button>
@@ -31,15 +31,15 @@
         </ul>
       </SideBar>
       <div class="px-8 py-8 max-w-[1400px] mx-auto flex-1">
-        <div class="flex flex-1 justify-center items-center mb-8">
+        <div class="flex items-center justify-center flex-1 mb-8">
           <h1 class="m-0 text-3xl font-extrabold text-tertiary">Settings</h1>
         </div>
         <div class="flex flex-col mb-8">
-          <div class="bg-background rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-tertiary mb-4">Account Settings</h2>
+          <div class="p-6 mb-6 rounded-lg shadow-md bg-background">
+            <h2 class="mb-4 text-xl font-semibold text-tertiary">Account Settings</h2>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-tertiary mb-2">
+                <label class="block mb-2 text-sm font-medium text-tertiary">
                   Change Email Address
                 </label>
                 <input
@@ -50,13 +50,13 @@
                 />
                 <button
                   :disabled="!email"
-                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition disabled:opacity-50"
+                  class="px-4 py-2 mt-2 text-white transition rounded-md cursor-pointer disabled:cursor-default bg-primary hover:bg-primary/80 disabled:opacity-50"
                 >
                   Update Email
                 </button>
               </div>
               <div>
-                <label class="block text-sm font-medium text-tertiary mb-2">
+                <label class="block mb-2 text-sm font-medium text-tertiary">
                   Change password
                 </label>
                 <input
@@ -70,7 +70,7 @@
                   placeholder="Enter new password"
                 />
                 <button
-                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 disabled:opacity-50 transition"
+                  class="px-4 py-2 mt-2 text-white transition rounded-md cursor-pointer disabled:cursor-default bg-primary hover:bg-primary/80 disabled:opacity-50"
                   :disabled="!currentPassword || !newPassword || currentPassword === newPassword"
                 >
                   Update Password
@@ -79,27 +79,27 @@
             </div>
           </div>
 
-          <div class="bg-background rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Preferences</h2>
+          <div class="p-6 mb-6 rounded-lg shadow-md bg-background">
+            <h2 class="mb-4 text-xl font-semibold text-gray-700">Preferences</h2>
             <div class="space-y-4">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-700">Enable Notifications</span>
                 <button
-                  class="cursor-pointer bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full"
+                  class="relative inline-flex items-center h-6 bg-gray-200 rounded-full cursor-pointer w-11"
                 >
                   <span
-                    class="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition"
+                    class="inline-block w-4 h-4 transition transform translate-x-1 bg-white rounded-full"
                   ></span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div class="bg-background rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">API settings</h2>
+          <div class="p-6 rounded-lg shadow-md bg-background">
+            <h2 class="mb-4 text-xl font-semibold text-gray-700">API settings</h2>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-tertiary mb-2">
+                <label class="block mb-2 text-sm font-medium text-tertiary">
                   Provide custom API key
                 </label>
                 <input
@@ -110,7 +110,7 @@
                 />
                 <button
                   type="button"
-                  class="cursor-pointer disabled:cursor-default mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 transition mr-2"
+                  class="px-4 py-2 mt-2 mr-2 text-white transition bg-green-600 rounded-md cursor-pointer disabled:cursor-default hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50"
                   :disabled="!apiKey"
                   @click="updateAPIKey"
                 >
@@ -118,7 +118,7 @@
                 </button>
                 <button
                   type="button"
-                  class="cursor-pointer mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50 transition"
+                  class="px-4 py-2 mt-2 text-white transition bg-red-600 rounded-md cursor-pointer hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50"
                   @click="resetAPIKey"
                 >
                   Reset API Key
@@ -136,12 +136,14 @@
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SideBar from '@/components/SideBar.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
+import { useAuthStore } from '@/stores/authStore';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { changeAPIKey } from '@/api/users';
+import { changeAPIKey, resetAPIKey as resetAPIKeyAPI } from '@/api/users';
 import { fireTimedAlert } from '@/lib/sweetAlerts';
 
 const sidebarStore = useSidebarStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const email = ref('');
@@ -151,25 +153,33 @@ const apiKey = ref('');
 
 async function updateAPIKey() {
   if (apiKey.value) {
-    await changeAPIKey(apiKey.value)
-      .then(() => {
-        fireTimedAlert('Success', 'API key has been updated.', 2000);
-      })
-      .catch((error) => {
-        console.error('Error updating API key:', error);
-        fireTimedAlert('Error', 'Failed to update API key', 2000);
-      });
+    try {
+      await changeAPIKey(apiKey.value);
+
+      // Refresh the token to get updated permissions
+      await authStore.refreshAccountTokens();
+
+      fireTimedAlert('Success', 'API key has been updated.', 2000);
+      apiKey.value = ''; // Clear the input
+    } catch (error) {
+      console.error('Error updating API key:', error);
+      fireTimedAlert('Error', 'Failed to update API key', 2000);
+    }
   }
 }
 
 async function resetAPIKey() {
-  await resetAPIKey()
-    .then(() => {
-      fireTimedAlert('Success', 'API key has been reset to default.', 2000);
-    })
-    .catch((error) => {
-      console.error('Error resetting API key:', error);
-      fireTimedAlert('Error', 'Failed to reset API key', 2000);
-    });
+  try {
+    await resetAPIKeyAPI();
+
+    // Refresh the token to get updated permissions
+    await authStore.refreshAccountTokens();
+
+    fireTimedAlert('Success', 'API key has been reset to default.', 2000);
+    apiKey.value = ''; // Clear the input
+  } catch (error) {
+    console.error('Error resetting API key:', error);
+    fireTimedAlert('Error', 'Failed to reset API key', 2000);
+  }
 }
 </script>

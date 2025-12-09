@@ -110,11 +110,11 @@
           <div class="p-4 mb-6 bg-fourth rounded-xl">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Sentiment by Feature</h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               <div
                 v-for="feature in analysisData.features"
                 :key="feature.name"
-                class="p-3 bg-white/5 rounded-lg"
+                class="p-3 rounded-lg bg-white/5"
               >
                 <div class="flex items-start justify-between mb-2">
                   <h3 class="text-sm font-semibold text-[#bdccdb] truncate">
@@ -128,7 +128,7 @@
                   </span>
                 </div>
 
-                <div class="w-full h-3 bg-gray-700 rounded overflow-hidden mb-2 flex">
+                <div class="flex w-full h-3 mb-2 overflow-hidden bg-gray-700 rounded">
                   <div class="h-full bg-green-500" :style="{ width: `${feature.positive}%` }"></div>
                   <div class="h-full bg-gray-300" :style="{ width: `${feature.neutral}%` }"></div>
                   <div class="h-full bg-red-500" :style="{ width: `${feature.negative}%` }"></div>
@@ -146,8 +146,8 @@
           </div>
 
           <!-- Feature Summary Statistics -->
-          <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
-            <div class="p-6 bg-fourth shadow-lg rounded-xl">
+          <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
+            <div class="p-6 shadow-lg bg-fourth rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Features Detected</h3>
               <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.features.length }}
@@ -155,15 +155,7 @@
               <p class="text-sm text-[#bdccdb]/80">Features identified</p>
             </div>
 
-            <div class="p-6 bg-fourth shadow-lg rounded-xl">
-              <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Sentences Analyzed</h3>
-              <div class="text-4xl font-bold text-[#bdccdb] mb-2">
-                {{ analysisData.statistics.sentencesAnalyzed ?? '—' }}
-              </div>
-              <p class="text-sm text-[#bdccdb]/80">Total sentences processed</p>
-            </div>
-
-            <div class="p-6 bg-fourth shadow-lg rounded-xl">
+            <div class="p-6 shadow-lg bg-fourth rounded-xl">
               <h3 class="text-lg font-semibold text-[#bdccdb] mb-3">Confidence</h3>
               <div class="mb-2 text-4xl font-bold text-primary">
                 {{ analysisData.statistics.confidence }}%
@@ -173,7 +165,7 @@
           </div>
 
           <!-- Extracted Keywords -->
-          <div class="p-6 bg-fourth shadow-lg rounded-xl mb-6">
+          <div class="p-6 mb-6 shadow-lg bg-fourth rounded-xl">
             <h2 class="text-xl font-semibold text-[#bdccdb] mb-4">Extracted Keywords</h2>
             <div class="flex flex-wrap gap-2">
               <span
@@ -247,7 +239,6 @@ interface AnalysisData {
   transcription: string;
   features: Feature[];
   statistics: {
-    sentencesAnalyzed: number | null;
     confidence: number;
   };
   keywords: string[];
@@ -317,12 +308,6 @@ function coerceNumber(value: unknown, fallback = 0): number {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function optionalNumber(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function formatFeatureName(name: string): string {
@@ -442,10 +427,6 @@ async function fetchAnalysisData(id: string) {
             negative: Math.max(0, 100 - fallbackPositive),
           };
 
-    const rawSentences =
-      parsedSummary?.statistics?.sentencesAnalyzed ?? parsedSummary?.sentencesAnalyzed ?? null;
-    const normalizedSentences = optionalNumber(rawSentences);
-
     analysisData.value = {
       id: resolvedId,
       url: typeof response.url === 'string' ? response.url : undefined,
@@ -454,7 +435,6 @@ async function fetchAnalysisData(id: string) {
       transcription: response.transcription || '',
       features,
       statistics: {
-        sentencesAnalyzed: normalizedSentences,
         confidence: toPercent(coerceNumber(parsedSummary.confidence)),
       },
       keywords: features.map((feature) => feature.name),
@@ -488,7 +468,6 @@ function exportResults() {
       .join('\n\n'),
     '### Statistics',
     `- Features Detected: ${data.features.length}`,
-    `- Sentences Analyzed: ${data.statistics.sentencesAnalyzed ?? 'N/A'}`,
     `- Average Confidence: ${data.statistics.confidence}%`,
     '### Extracted Keywords',
     data.keywords.length ? data.keywords.join(', ') : 'None provided',

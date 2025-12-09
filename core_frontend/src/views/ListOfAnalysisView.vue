@@ -113,28 +113,28 @@
           </button>
         </div>
 
-        <!-- Use the mobile stacked cards layout on all screen sizes -->
-        <div class="space-y-3">
+        <!-- Redesigned analysis cards -->
+        <div class="space-y-4">
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-lg p-3 flex flex-col gap-2 bg-background"
+            class="border rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-200"
             :class="[
               analysis.summary
-                ? 'bg-green-50 dark:bg-green-700 border-green-200 cursor-pointer'
-                : 'bg-yellow-50 dark:bg-yellow-400 border-yellow-200 cursor-default',
-              analysis && analysis.transcription && analysis.id ? 'hover:opacity-50' : '',
+                ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-primary'
+                : 'bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 cursor-default opacity-90',
             ]"
             @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
           >
-            <div class="sm:flex sm:flex-row flex-col justify-between items-start gap-3">
-              <div class="flex items-center gap-3">
-                <!-- Thumbnail / video preview area -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <!-- Thumbnail Section with Platform Border -->
+              <div class="relative shrink-0">
                 <div
-                  class="w-full aspect-video sm:w-28 sm:h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
-                  :class="
-                    analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
-                  "
+                  class="w-full sm:w-48 h-full min-h-[120px] bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center group border-4 transition-all"
+                  :class="[
+                    analysis.summary !== null ? 'cursor-pointer' : 'opacity-60',
+                    getPlatformBorderClass(analysis.platform),
+                  ]"
                   @click.stop="
                     analysis.summary !== null && analysis.id && openAnalysis(analysis.id)
                   "
@@ -146,23 +146,23 @@
                       : t('analysis.summaryNotReady')
                   "
                 >
-                  <!-- image if provided by API -->
+                  <!-- Thumbnail image -->
                   <img
                     v-if="analysis.thumbnail_url"
                     :src="analysis.thumbnail_url"
                     alt="analysis thumbnail"
-                    class="w-full h-full object-cover"
+                    class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                     loading="lazy"
                   />
 
-                  <!-- fallback placeholder -->
+                  <!-- Fallback placeholder -->
                   <template v-else>
                     <div
-                      class="flex flex-col items-center justify-center text-xs text-tertiary/60 px-2 text-center"
+                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 px-2 text-center"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="w-6 h-6 mb-1"
+                        class="w-8 h-8 mb-1"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -178,81 +178,85 @@
                     </div>
                   </template>
                 </div>
-              </div>
-
-              <div class="hidden sm:flex items-center gap-3">
-                <!--Display the logo from which the analysis originated-->
+                
+                <!-- Platform indicator pill -->
                 <div
-                  class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
+                  v-if="analysis.platform"
+                  class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                  :class="getPlatformPillClass(analysis.platform)"
+                  :title="analysis.platform"
                 >
-                  <img
-                    v-if="analysis.platform"
-                    :src="LogoSource[analysis.platform]"
-                    :alt="analysis.platform"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+                  {{ getPlatformName(analysis.platform) }}
                 </div>
               </div>
 
-              <div class="min-w-0 flex-1">
-                <div
-                  class="sm:p-0 pt-2 text-xl sm:text-sm font-semibold text-[#bdccdb] truncate max-w-full sm:max-w-full"
-                  :title="analysis.title ?? analysis.url"
-                >
-                  {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
-                </div>
-                <div class="text-xs text-[#bdccdb] mt-1">
-                  <div>
-                    {{ t('analysis.created') }}
-                    {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
+              <!-- Content Section -->
+              <div class="flex-1 min-w-0 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-start justify-between gap-3 mb-2">
+                    <h3
+                      class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 line-clamp-2"
+                      :title="analysis.title ?? analysis.url"
+                    >
+                      {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
+                    </h3>
+                    
+                    <!-- Status badge -->
+                    <span
+                      class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shrink-0"
+                      :class="
+                        analysis.summary !== null
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                      "
+                    >
+                      {{
+                        analysis.summary === null
+                          ? t('analysis.processing')
+                          : t('analysis.completed')
+                      }}
+                    </span>
                   </div>
-                  <div>
-                    {{ t('analysis.updated') }}
-                    {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
+                  
+                  <!-- Metadata -->
+                  <div class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium">{{ t('analysis.created') }}</span>
+                      <span>{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium">{{ t('analysis.updated') }}</span>
+                      <span>{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="flex flex-col items-end gap-2">
-                <!-- hide the compact badge on very small screens to save space; color indicates status -->
-                <span
-                  class="hidden sm:inline-block px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                  :class="
-                    analysis.summary !== null
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  "
-                >
-                  {{
-                    analysis.summary === null ? t('analysis.processing') : t('analysis.completed')
-                  }}
-                </span>
-
-                <div class="flex items-center gap-2">
+                <!-- Action buttons -->
+                <div class="flex items-center justify-between gap-2 mt-3">
                   <button
                     @click.stop="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
                     :disabled="analysis.summary === null"
                     :class="[
-                      'p-1 rounded shrink-0 inline-flex items-center justify-center',
-                      analysis.summary === null ? 'opacity-50 cursor-not-allowed' : '',
+                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm',
+                      analysis.summary === null
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
+                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 hover:shadow-md cursor-pointer',
                     ]"
                     :title="t('analysis.view')"
                     :aria-label="t('analysis.view')"
                   >
-                    <Eye
-                      class="w-7 h-7 sm:w-5 sm:h-5 cursor-pointer"
-                      color="var(--color-tertiary)"
-                    />
+                    <Eye class="w-4 h-4" />
+                    <span class="hidden sm:inline">{{ t('analysis.view') }}</span>
                   </button>
 
                   <button
                     @click.stop="analysis.id && eraseAnalysis(analysis.id)"
-                    class="p-1 rounded hover:opacity-75 shrink-0 inline-flex items-center justify-center"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 cursor-pointer"
                     :title="t('analysis.delete')"
                     :aria-label="t('analysis.delete')"
                   >
-                    <Trash2 class="w-7 h-7 sm:w-5 sm:h-5" color="var(--color-tertiary)" />
+                    <Trash2 class="w-4 h-4" />
+                    <span class="hidden sm:inline">{{ t('analysis.delete') }}</span>
                   </button>
                 </div>
               </div>
@@ -283,16 +287,6 @@ import MobileFilterModal from '@/components/MobileFilterModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalyses, deleteAnalysis } from '@/api/analyses';
 import { components } from '@/generated/schema';
-
-import youtubeLogo from '@/assets/logos/youtube-logo.jpg';
-import tiktokLogo from '@/assets/logos/tiktok-logo.png';
-import instagramLogo from '@/assets/logos/instagram-logo.png';
-
-const LogoSource: Record<string, string> = {
-  youtube_platform: youtubeLogo,
-  tiktok_platform: tiktokLogo,
-  instagram_platform: instagramLogo,
-};
 
 interface Sentiment {
   positive: number;
@@ -416,6 +410,42 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+const getPlatformBorderClass = (platform?: string): string => {
+  if (!platform) return 'border-gray-300 dark:border-gray-600';
+  
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'border-red-500 dark:border-red-400',
+    tiktok_platform: 'border-black dark:border-white',
+    instagram_platform: 'border-pink-500 dark:border-pink-400',
+  };
+  
+  return platformMap[platform] || 'border-gray-300 dark:border-gray-600';
+};
+
+const getPlatformPillClass = (platform?: string): string => {
+  if (!platform) return 'bg-gray-500 text-white';
+  
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'bg-red-600 text-white',
+    tiktok_platform: 'bg-black text-white dark:bg-white dark:text-black',
+    instagram_platform: 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white',
+  };
+  
+  return platformMap[platform] || 'bg-gray-500 text-white';
+};
+
+const getPlatformName = (platform?: string): string => {
+  if (!platform) return '';
+  
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'YOUTUBE',
+    tiktok_platform: 'TIKTOK',
+    instagram_platform: 'INSTAGRAM',
+  };
+  
+  return platformMap[platform] || platform;
 };
 
 onMounted(() => {

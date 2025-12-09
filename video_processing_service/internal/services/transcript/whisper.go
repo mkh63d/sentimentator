@@ -18,19 +18,16 @@ import (
 )
 
 type WhisperStrategy struct {
-	apiKey    string
-	client    *http.Client
-	extractor extractor.Service
+	defaultAPIKey string
+	client        *http.Client
+	extractor     extractor.Service
 }
 
 func NewWhisperStrategy(extractorService extractor.Service) *WhisperStrategy {
-	whisperAPIKey := os.Getenv("OPENAI_API_KEY")
-	if whisperAPIKey == "" {
-		panic("OPENAI_API_KEY environment variable is required")
-	}
+	defaultAPIKey := os.Getenv("OPENAI_API_KEY")
 
 	return &WhisperStrategy{
-		apiKey: whisperAPIKey,
+		defaultAPIKey: defaultAPIKey,
 		client: &http.Client{
 			Timeout: 15 * time.Minute,
 		},
@@ -42,13 +39,35 @@ func (w *WhisperStrategy) Name() string {
 	return "whisper"
 }
 
+// getAPIKey returns the user-provided key if available, otherwise falls back to default
+func (w *WhisperStrategy) getAPIKey(userKey string) (string, error) {
+	if userKey != "" {
+		return userKey, nil
+	}
+	if w.defaultAPIKey != "" {
+		return w.defaultAPIKey, nil
+	}
+	return "", fmt.Errorf("no OpenAI API key available: provide OPENAI_API_KEY env var or user-specific key")
+}
+
 func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformName, videoID, lang string) (*Result, error) {
+	return w.GetTranscriptWithAPIKey(ctx, videoURL, platformName, videoID, lang, "")
+}
+
+// GetTranscriptWithAPIKey performs transcription using a user-provided API key or the default
+func (w *WhisperStrategy) GetTranscriptWithAPIKey(ctx context.Context, videoURL, platformName, videoID, lang, userAPIKey string) (*Result, error) {
 	totalStart := time.Now()
+
+	apiKey, err := w.getAPIKey(userAPIKey)
+	if err != nil {
+		return nil, err
+	}
 
 	slog.Info("Transcript job started",
 		slog.String("strategy", w.Name()),
 		slog.String("platform", platformName),
-		slog.String("video_id", videoID))
+		slog.String("video_id", videoID),
+		slog.Bool("using_user_api_key", userAPIKey != ""))
 
 	extractStart := time.Now()
 	audioResult, err := w.extractor.ExtractAudio(ctx, videoURL)
@@ -69,7 +88,7 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 		slog.String("video_id", videoID))
 
 	transcribeStart := time.Now()
-	transcript, err := w.transcribeWithWhisper(ctx, audioPath)
+	transcript, err := w.transcribeWithWhisper(ctx, audioPath, apiKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transcribe audio: %w", err)
 	}
@@ -96,7 +115,7 @@ func (w *WhisperStrategy) GetTranscript(ctx context.Context, videoURL, platformN
 
 // transcribeWithWhisper sends the audio file to OpenAI's Whisper API for transcription.
 // This method is platform-agnostic and only cares about the audio file path.
-func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath string) (*Result, error) {
+func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath, apiKey string) (*Result, error) {
 	fileInfo, err := os.Stat(audioPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to stat audio file: %w", err)
@@ -136,7 +155,7 @@ func (w *WhisperStrategy) transcribeWithWhisper(ctx context.Context, audioPath s
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", w.apiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	apiCallStart := time.Now()

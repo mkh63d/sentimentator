@@ -274,7 +274,8 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 
 	slog.Info("Processing transcript request",
 		slog.String("analysis_id", event.AnalysisID),
-		slog.String("url", event.URL))
+		slog.String("url", event.URL),
+		slog.Bool("has_user_api_key", event.OpenAIUserKey != ""))
 
 	metadata, err := c.extractorService.GetMetadata(ctx, event.URL)
 	if err != nil {
@@ -352,7 +353,7 @@ func (c *Consumer) HandleTranscriptRequestEvent(ctx context.Context, body []byte
 	}
 
 	transcriptStartTime := time.Now()
-	result, err := c.transcriptService.GetTranscript(ctx, event.URL, "en")
+	result, err := c.transcriptService.GetTranscriptWithAPIKey(ctx, event.URL, "en", event.OpenAIUserKey)
 	if err != nil {
 		slog.Error("Failed to get transcript",
 			slog.String("video_id", videoRecord.VideoID),

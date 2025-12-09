@@ -30,9 +30,10 @@ const (
 
 // VideoTranscriptRequestedEvent represents a new video URL that needs processing to get a transcript
 type VideoTranscriptRequestedEvent struct {
-	AnalysisID string    `json:"analysis_id"`
-	URL        string    `json:"url"`
-	Timestamp  time.Time `json:"timestamp"`
+	AnalysisID    string    `json:"analysis_id"`
+	URL           string    `json:"url"`
+	Timestamp     time.Time `json:"timestamp"`
+	OpenAIUserKey string    `json:"open_ai_user_key,omitempty"`
 }
 
 // VideoTranscriptStartedEvent represents that processing for the transcript has begun

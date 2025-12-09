@@ -124,7 +124,7 @@
                 ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-primary'
                 : 'bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 cursor-default opacity-90',
             ]"
-            @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
+            @click.stop="analysis.summary && analysis.id && openAnalysis(analysis.id)"
           >
             <div class="flex flex-col gap-4 sm:flex-row">
               <!-- Thumbnail Section with Platform Border -->
@@ -132,18 +132,14 @@
                 <div
                   class="w-full sm:w-48 h-full min-h-[120px] bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center group border-4 transition-all"
                   :class="[
-                    analysis.summary !== null ? 'cursor-pointer' : 'opacity-60',
+                    analysis.summary ? 'cursor-pointer' : 'opacity-60',
                     getPlatformBorderClass(analysis.platform),
                   ]"
-                  @click.stop="
-                    analysis.summary !== null && analysis.id && openAnalysis(analysis.id)
-                  "
+                  @click.stop="analysis.summary && analysis.id && openAnalysis(analysis.id)"
                   role="button"
                   :aria-disabled="analysis.summary === null"
                   :title="
-                    analysis.summary !== null
-                      ? t('analysis.openAnalysis')
-                      : t('analysis.summaryNotReady')
+                    analysis.summary ? t('analysis.openAnalysis') : t('analysis.summaryNotReady')
                   "
                 >
                   <!-- Thumbnail image -->
@@ -206,16 +202,12 @@
                     <span
                       class="px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap shrink-0"
                       :class="
-                        analysis.summary !== null
+                        analysis.summary
                           ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                           : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
                       "
                     >
-                      {{
-                        analysis.summary === null
-                          ? t('analysis.processing')
-                          : t('analysis.completed')
-                      }}
+                      {{ analysis.summary ? t('analysis.completed') : t('analysis.processing') }}
                     </span>
                   </div>
 
@@ -236,10 +228,10 @@
                 <div class="flex items-center justify-between gap-2 mt-3">
                   <button
                     @click.stop="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                    :disabled="analysis.summary === null"
+                    :disabled="!analysis.summary"
                     :class="[
                       'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm',
-                      analysis.summary === null
+                      !analysis.summary
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
                         : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 hover:shadow-md cursor-pointer',
                     ]"

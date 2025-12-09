@@ -20,7 +20,7 @@ RUN go build -o main cmd/api/main.go
 
 FROM alpine:latest AS prod
 
-RUN apk add --no-cache python3 py3-pip ffmpeg curl gcompat&& \
+RUN apk add --no-cache python3 py3-pip ffmpeg curl gcompat unzip && \
     pip3 install --break-system-packages yt-dlp
 
 # 2. Install Deno manually

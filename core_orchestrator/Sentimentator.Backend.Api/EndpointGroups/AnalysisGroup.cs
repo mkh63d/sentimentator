@@ -185,7 +185,7 @@ public static class AnalysisGroup
                         var result = false;
                         var analysis = await service.Get(id);
                         if (analysis is null) return Results.NotFound();
-                        if (user!.Analyses.Contains(analysis)) result = await service.Remove(id);
+                        if (user!.Analyses.Contains(analysis)) result = await service.Remove(principal, id);
                         return result ? Results.Ok() : Results.NotFound();
                     })
                 .Produces(StatusCodes.Status200OK)

@@ -11,6 +11,7 @@ from consume import RabbitConsumer
 from publish import RabbitPublisher
 from feature_detection import FeatureDetector
 from sentiment_analyzer import SentimentAnalyzer
+from language_preprocessor import detect_lang, normalize_to_english
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
@@ -92,6 +93,10 @@ class SentimentAnalysisService:
                 continue
 
             print(f"[*] Analyzing text for video: {analysis_id}")
+            detected_lang = detect_lang(transcript)
+            print(f"[*] Detected Language: {detected_lang}")
+            transcript = normalize_to_english(transcript)
+
             try:
                 # Feature detection: returns dict[feature] -> list[str]
                 feature_results = self.features.detect_features(transcript)
@@ -184,3 +189,84 @@ class SentimentAnalysisService:
                 print("[-] Service thread did not finish gracefully")
         
         print("[*] Service shutdown complete")
+
+if __name__ == "__main__":
+    print("[*] Running full NLP pipeline demo...\n")
+
+    # Load mock transcript
+    base_dir = os.path.dirname(__file__)
+    project_root = os.path.abspath(os.path.join(base_dir, ".."))
+    transcript_path = os.path.join(project_root, "resources", "mock_transcript.txt")
+
+    if not os.path.exists(transcript_path):
+        print(f"[!] Missing transcript file: {transcript_path}")
+        sys.exit(1)
+
+    with open(transcript_path, "r", encoding="utf-8") as f:
+        transcript = f.read()
+
+    print("----- ORIGINAL TRANSCRIPT -----")
+    print(transcript)
+    print("--------------------------------\n")
+
+    # Fake message metadata
+    analysis_id = "demo_001"
+    video_id = "mock_video"
+    original_url = "http://example.com/mock"
+
+    # 1. Detect language
+    detected = detect_lang(transcript)
+    print(f"[*] Detected Language: {detected}")
+
+    # 2. Translate to English if needed
+    processed_transcript = normalize_to_english(transcript)
+    print("\n----- NORMALIZED TO ENGLISH -----")
+    print(processed_transcript)
+    print("---------------------------------\n")
+
+    # 3. Run feature detection
+    features = FeatureDetector()
+    feature_results = features.detect_features(processed_transcript)
+    print(f"[*] Detected features: {list(feature_results.keys())}")
+
+    # 4. Run sentiment analysis
+    sentiments = SentimentAnalyzer()
+    per_feature = sentiments.analyze_feature_sentiments(feature_results)
+
+    # Normalize output shape
+    if isinstance(per_feature, dict) and {"overall", "features", "confidence"} <= set(per_feature.keys()):
+        sentiment_payload = per_feature
+    else:
+        numeric_features = {}
+        confidences = []
+
+        for feat, metrics in per_feature.items():
+            pos = float(metrics.get("positive_score", 0.0))
+            neg = float(metrics.get("negative_score", 0.0))
+            neu = float(metrics.get("neutral_score", 0.0))
+            denom = pos + neg + neu
+
+            if denom <= 0:
+                feat_score = 0.0
+                feat_conf = 0.0
+            else:
+                feat_score = (pos - neg) / denom
+                feat_conf = min(1.0, denom / (denom + 5.0))
+
+            numeric_features[feat] = feat_score
+            confidences.append(feat_conf)
+
+        overall = sum(numeric_features.values()) / len(numeric_features) if numeric_features else 0.0
+        confidence = sum(confidences) / len(confidences) if confidences else 0.0
+
+        sentiment_payload = {
+            "overall": overall,
+            "features": numeric_features,
+            "confidence": confidence,
+        }
+
+    print("\n----- FINAL SENTIMENT RESULTS -----")
+    print(json.dumps(sentiment_payload, indent=2))
+    print("-----------------------------------\n")
+
+    print("[*] Demo pipeline completed successfully.")

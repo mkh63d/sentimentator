@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-secondary overflow-hidden">
+  <div class="min-h-screen overflow-hidden bg-secondary">
     <NavbarComponent
       :isSidebarOpen="isSidebarOpen"
       @update:isSidebarOpen="isSidebarOpen = $event"
@@ -35,14 +35,14 @@
       </Sidebar>
 
       <div class="px-4 sm:px-8 py-8 max-w-[1400px] mx-auto flex-1">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
-          <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">
+        <div class="flex flex-col justify-between gap-3 mb-6 sm:flex-row sm:items-center sm:gap-0">
+          <h1 class="min-w-0 m-0 text-2xl font-extrabold truncate sm:text-3xl text-tertiary">
             {{ t('analysis.library') }}
           </h1>
-          <div class="flex gap-2 sm:gap-3 items-center">
+          <div class="flex items-center gap-2 sm:gap-3">
             <button
               @click="fetchAnalyses"
-              class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
               :title="t('analysis.refresh')"
             >
               <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
@@ -50,7 +50,7 @@
             </button>
             <button
               @click="createNew"
-              class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
               :title="t('analysis.newAnalysis')"
             >
               <Plus class="w-4 h-4 sm:w-5 sm:h-5" />
@@ -58,7 +58,7 @@
             </button>
             <button
               @click="mobileFilterWindow = true"
-              class="flex sm:hidden items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:hidden sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
               :title="t('analysis.filterAnalyses')"
             >
               <Filter class="w-4 h-4 sm:w-5 sm:h-5" />
@@ -66,12 +66,12 @@
           </div>
         </div>
 
-        <div class="gap-3 mb-6 hidden sm:flex">
+        <div class="hidden gap-3 mb-6 sm:flex">
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="t('analysis.searchAnalyses')"
-            class="flex-1 px-3 py-2 text-sm sm:text-base border rounded-lg border-background"
+            class="flex-1 px-3 py-2 text-sm border rounded-lg sm:text-base border-background"
           />
           <select
             v-model="filterStatus"
@@ -107,7 +107,7 @@
           <p>{{ t('analysis.noAnalyses') }}</p>
           <button
             @click="createNew"
-            class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
+            class="px-4 py-2 transition bg-gray-100 rounded cursor-pointer hover:bg-gray-200"
           >
             {{ t('analysis.createFirst') }}
           </button>
@@ -118,7 +118,7 @@
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-200"
+            class="flex flex-col gap-4 p-4 transition-all duration-200 border shadow-sm rounded-xl sm:p-5 hover:shadow-md"
             :class="[
               analysis.summary
                 ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-primary'
@@ -126,7 +126,7 @@
             ]"
             @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
           >
-            <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex flex-col gap-4 sm:flex-row">
               <!-- Thumbnail Section with Platform Border -->
               <div class="relative shrink-0">
                 <div
@@ -148,17 +148,18 @@
                 >
                   <!-- Thumbnail image -->
                   <img
-                    v-if="analysis.thumbnail_url"
+                    v-if="analysis.thumbnail_url && !imageErrors[analysis.id]"
                     :src="analysis.thumbnail_url"
-                    alt="analysis thumbnail"
-                    class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                    alt="Analysis Thumbnail"
+                    class="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
                     loading="lazy"
+                    @error="imageErrors[analysis.id] = true"
                   />
 
                   <!-- Fallback placeholder -->
                   <template v-else>
                     <div
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 px-2 text-center"
+                      class="flex flex-col items-center justify-center px-2 text-center text-gray-400 dark:text-gray-500"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -178,11 +179,11 @@
                     </div>
                   </template>
                 </div>
-                
+
                 <!-- Platform indicator pill -->
                 <div
                   v-if="analysis.platform"
-                  class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                  class="absolute px-3 py-1 text-xs font-bold -translate-x-1/2 rounded-full shadow-lg -bottom-2 left-1/2"
                   :class="getPlatformPillClass(analysis.platform)"
                   :title="analysis.platform"
                 >
@@ -191,19 +192,19 @@
               </div>
 
               <!-- Content Section -->
-              <div class="flex-1 min-w-0 flex flex-col justify-between">
+              <div class="flex flex-col justify-between flex-1 min-w-0">
                 <div>
                   <div class="flex items-start justify-between gap-3 mb-2">
                     <h3
-                      class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 line-clamp-2"
+                      class="text-base font-semibold text-gray-900 sm:text-lg dark:text-gray-100 line-clamp-2"
                       :title="analysis.title ?? analysis.url"
                     >
                       {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
                     </h3>
-                    
+
                     <!-- Status badge -->
                     <span
-                      class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shrink-0"
+                      class="px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap shrink-0"
                       :class="
                         analysis.summary !== null
                           ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
@@ -217,9 +218,9 @@
                       }}
                     </span>
                   </div>
-                  
+
                   <!-- Metadata -->
-                  <div class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
                     <div class="flex items-center gap-2">
                       <span class="font-medium">{{ t('analysis.created') }}</span>
                       <span>{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</span>
@@ -251,7 +252,7 @@
 
                   <button
                     @click.stop="analysis.id && eraseAnalysis(analysis.id)"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 cursor-pointer"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-all bg-gray-100 rounded-lg shadow-sm cursor-pointer hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     :title="t('analysis.delete')"
                     :aria-label="t('analysis.delete')"
                   >
@@ -313,6 +314,7 @@ const error = ref<string | null>(null);
 const searchQuery = ref('');
 const filterStatus = ref('');
 const mobileFilterWindow = ref(false);
+const imageErrors = ref<Record<string, boolean>>({});
 
 const filteredAnalyses = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -414,37 +416,37 @@ const formatDate = (dateString: string): string => {
 
 const getPlatformBorderClass = (platform?: string): string => {
   if (!platform) return 'border-gray-300 dark:border-gray-600';
-  
+
   const platformMap: Record<string, string> = {
     youtube_platform: 'border-red-500 dark:border-red-400',
     tiktok_platform: 'border-black dark:border-white',
     instagram_platform: 'border-pink-500 dark:border-pink-400',
   };
-  
+
   return platformMap[platform] || 'border-gray-300 dark:border-gray-600';
 };
 
 const getPlatformPillClass = (platform?: string): string => {
   if (!platform) return 'bg-gray-500 text-white';
-  
+
   const platformMap: Record<string, string> = {
     youtube_platform: 'bg-red-600 text-white',
     tiktok_platform: 'bg-black text-white dark:bg-white dark:text-black',
     instagram_platform: 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white',
   };
-  
+
   return platformMap[platform] || 'bg-gray-500 text-white';
 };
 
 const getPlatformName = (platform?: string): string => {
   if (!platform) return '';
-  
+
   const platformMap: Record<string, string> = {
     youtube_platform: 'YOUTUBE',
     tiktok_platform: 'TIKTOK',
     instagram_platform: 'INSTAGRAM',
   };
-  
+
   return platformMap[platform] || platform;
 };
 

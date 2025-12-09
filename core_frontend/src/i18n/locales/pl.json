@@ -127,7 +127,8 @@
     "status": "Status",
     "createdPartial": "Utworzono z pewnymi błędami",
     "createdFailed": "Utworzenie nie powiodło się",
-    "unknownError": "Wystąpił nieznany błąd"
+    "unknownError": "Wystąpił nieznany błąd",
+    "createdSuccess": "Analizy zostały pomyślnie utworzone"
   },
   "auth": {
     "login": "Zaloguj się",

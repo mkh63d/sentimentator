@@ -127,7 +127,8 @@
     "status": "Status",
     "createdPartial": "Created with some errors",
     "createdFailed": "Creation Failed",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "createdSuccess": "Analyses created successfully"
   },
   "auth": {
     "login": "Login",

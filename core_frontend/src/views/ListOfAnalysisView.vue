@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-secondary">
+  <div class="min-h-screen overflow-hidden bg-secondary">
     <NavbarComponent
       :isSidebarOpen="isSidebarOpen"
       @update:isSidebarOpen="isSidebarOpen = $event"
@@ -12,7 +12,7 @@
               @click="router.push({ name: 'home' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Home
+              {{ t('home.title') }}
             </button>
           </li>
           <li>
@@ -20,7 +20,7 @@
               @click="router.push({ name: 'list' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Analysis Library
+              {{ t('analysis.library') }}
             </button>
           </li>
           <li class="self-bottom">
@@ -28,52 +28,59 @@
               @click="router.push({ name: 'settings' })"
               class="font-medium text-left transition cursor-pointer text-background hover:text-indigo-100"
             >
-              Settings
+              {{ t('settings.title') }}
             </button>
           </li>
         </ul>
       </Sidebar>
 
       <div class="px-4 sm:px-8 py-8 max-w-[1400px] mx-auto flex-1">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
-          <h1 class="m-0 text-2xl sm:text-3xl font-extrabold text-tertiary min-w-0 truncate">
-            Analysis Library
+        <div class="flex flex-col justify-between gap-3 mb-6 sm:flex-row sm:items-center sm:gap-0">
+          <h1 class="min-w-0 m-0 text-2xl font-extrabold truncate sm:text-3xl text-tertiary">
+            {{ t('analysis.library') }}
           </h1>
-          <div class="flex gap-2 sm:gap-3 items-center">
+          <div class="flex items-center gap-2 sm:gap-3">
             <button
               @click="fetchAnalyses"
-              class="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="Refresh analyses"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
+              :title="t('analysis.refresh')"
             >
               <RotateCcw class="w-4 h-4 sm:w-5 sm:h-5" />
-              <span class="hidden sm:inline">Refresh</span>
+              <span class="hidden sm:inline">{{ t('analysis.refresh') }}</span>
             </button>
             <button
               @click="createNew"
-              class="flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold transition rounded-lg cursor-pointer bg-primary text-background hover:opacity-80"
-              title="New Analysis"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
+              :title="t('analysis.newAnalysis')"
             >
-              <Plus class="pr-1 w-4 h-4 sm:w-5 sm:h-5" />
-              <span class="hidden sm:inline">New Analysis</span>
+              <Plus class="w-4 h-4 sm:w-5 sm:h-5" />
+              <span class="hidden sm:inline">{{ t('analysis.newAnalysis') }}</span>
+            </button>
+            <button
+              @click="mobileFilterWindow = true"
+              class="flex items-center gap-2 px-2 py-2 text-sm font-semibold transition rounded-lg cursor-pointer sm:hidden sm:px-4 sm:py-3 sm:text-base bg-primary text-background hover:opacity-80"
+              :title="t('analysis.filterAnalyses')"
+            >
+              <Filter class="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        <div class="flex gap-3 mb-6">
+        <div class="hidden gap-3 mb-6 sm:flex">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search analyses..."
-            class="flex-1 px-3 py-2 text-sm sm:text-base border rounded-lg border-background"
+            :placeholder="t('analysis.searchAnalyses')"
+            class="flex-1 px-3 py-2 text-sm border rounded-lg sm:text-base border-background"
           />
           <select
             v-model="filterStatus"
             class="px-3 py-3 text-base border rounded-lg cursor-pointer border-background"
           >
-            <option value="">All Statuses</option>
-            <option value="completed">Completed</option>
-            <option value="processing">Processing</option>
-            <option value="failed">Failed</option>
+            <option value="">{{ t('analysis.allStatuses') }}</option>
+            <option value="completed">{{ t('analysis.completed') }}</option>
+            <option value="processing">{{ t('analysis.processing') }}</option>
+            <option value="failed">{{ t('analysis.failed') }}</option>
           </select>
         </div>
 
@@ -81,77 +88,78 @@
           <span
             class="inline-block w-5 h-5 border-4 border-gray-200 rounded-full border-t-blue-500 animate-spin"
           ></span>
-          Loading library...
+          {{ t('analysis.loadingLibrary') }}
         </div>
 
         <div v-else-if="error" class="py-12 text-center">
           <p>
-            Error fetching library: <br /><code>{{ error }}</code>
+            {{ t('analysis.errorFetching') }} <br /><code>{{ error }}</code>
           </p>
           <button
             @click="fetchAnalyses"
             class="px-4 py-2 transition bg-gray-200 rounded hover:bg-gray-300"
           >
-            Retry
+            {{ t('analysis.retry') }}
           </button>
         </div>
 
         <div v-else-if="filteredAnalyses.length === 0" class="py-12 text-center">
-          <p>No analyses found in your library.</p>
+          <p>{{ t('analysis.noAnalyses') }}</p>
           <button
             @click="createNew"
-            class="px-4 py-2 transition bg-gray-100 rounded hover:bg-gray-200"
+            class="px-4 py-2 transition bg-gray-100 rounded cursor-pointer hover:bg-gray-200"
           >
-            Create your first analysis
+            {{ t('analysis.createFirst') }}
           </button>
         </div>
 
-        <!-- Use the mobile stacked cards layout on all screen sizes -->
-        <div class="space-y-3">
+        <!-- Redesigned analysis cards -->
+        <div class="space-y-4">
           <div
             v-for="analysis in filteredAnalyses"
             :key="analysis.id"
-            class="border rounded-lg p-3 flex flex-col gap-2"
+            class="flex flex-col gap-4 p-4 transition-all duration-200 border shadow-sm rounded-xl sm:p-5 hover:shadow-md"
             :class="[
               analysis.summary
-                ? 'bg-green-50 border-green-200 cursor-pointer'
-                : 'bg-yellow-50 border-yellow-200 cursor-default',
-              analysis && analysis.transcription && analysis.id ? 'hover:bg-background/50' : '',
+                ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-primary'
+                : 'bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 cursor-default opacity-90',
             ]"
-            @click.stop="analysis.summary !== null && analysis.id && openAnalysis(analysis.id)"
+            @click.stop="analysis.summary && analysis.id && openAnalysis(analysis.id)"
           >
-            <div class="flex justify-between items-start gap-3">
-              <div class="flex items-center gap-3">
-                <!-- Thumbnail / video preview area -->
+            <div class="flex flex-col gap-4 sm:flex-row">
+              <!-- Thumbnail Section with Platform Border -->
+              <div class="relative shrink-0">
                 <div
-                  class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
-                  :class="
-                    analysis.summary !== null ? 'cursor-pointer hover:opacity-90' : 'opacity-60'
-                  "
-                  @click.stop="
-                    analysis.summary !== null && analysis.id && openAnalysis(analysis.id)
-                  "
+                  class="w-full sm:w-48 h-full min-h-[120px] bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center group border-4 transition-all"
+                  :class="[
+                    analysis.summary ? 'cursor-pointer' : 'opacity-60',
+                    getPlatformBorderClass(analysis.platform),
+                  ]"
+                  @click.stop="analysis.summary && analysis.id && openAnalysis(analysis.id)"
                   role="button"
                   :aria-disabled="analysis.summary === null"
-                  :title="analysis.summary !== null ? 'Open analysis' : 'Summary not ready'"
+                  :title="
+                    analysis.summary ? t('analysis.openAnalysis') : t('analysis.summaryNotReady')
+                  "
                 >
-                  <!-- image if provided by API -->
+                  <!-- Thumbnail image -->
                   <img
-                    v-if="analysis.thumbnail_url"
+                    v-if="analysis.thumbnail_url && !imageErrors[analysis.id]"
                     :src="analysis.thumbnail_url"
-                    alt="analysis thumbnail"
-                    class="w-full h-full object-cover"
+                    alt="Analysis Thumbnail"
+                    class="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
                     loading="lazy"
+                    @error="imageErrors[analysis.id] = true"
                   />
 
-                  <!-- fallback placeholder -->
+                  <!-- Fallback placeholder -->
                   <template v-else>
                     <div
-                      class="flex flex-col items-center justify-center text-xs text-tertiary/60 px-2 text-center"
+                      class="flex flex-col items-center justify-center px-2 text-center text-gray-400 dark:text-gray-500"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="w-6 h-6 mb-1"
+                        class="w-8 h-8 mb-1"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -163,78 +171,85 @@
                           d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
                         />
                       </svg>
-                      <div class="text-xs">No thumbnail</div>
+                      <div class="text-xs">{{ t('analysis.noThumbnail') }}</div>
                     </div>
                   </template>
                 </div>
-              </div>
 
-              <div class="flex items-center gap-3">
-                <!--Display the logo from which the analysis originated-->
+                <!-- Platform indicator pill -->
                 <div
-                  class="w-28 h-20 bg-gray-100 rounded overflow-hidden shrink-0 flex items-center justify-center"
+                  v-if="analysis.platform"
+                  class="absolute px-3 py-1 text-xs font-bold -translate-x-1/2 rounded-full shadow-lg -bottom-2 left-1/2"
+                  :class="getPlatformPillClass(analysis.platform)"
+                  :title="analysis.platform"
                 >
-                  <img
-                    v-if="analysis.platform"
-                    :src="LogoSource[analysis.platform]"
-                    :alt="analysis.platform"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+                  {{ getPlatformName(analysis.platform) }}
                 </div>
               </div>
 
-              <div class="min-w-0 flex-1">
-                <div
-                  class="text-sm font-semibold text-tertiary truncate max-w-full sm:max-w-full"
-                  :title="analysis.title ?? analysis.url"
-                >
-                  {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
-                </div>
-                <div class="text-xs text-tertiary/70 mt-1">
-                  <div>
-                    Created: {{ analysis.created_at ? formatDate(analysis.created_at) : '' }}
-                  </div>
-                  <div>
-                    Updated: {{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}
-                  </div>
-                </div>
-              </div>
+              <!-- Content Section -->
+              <div class="flex flex-col justify-between flex-1 min-w-0">
+                <div>
+                  <div class="flex items-start justify-between gap-3 mb-2">
+                    <h3
+                      class="text-base font-semibold text-gray-900 sm:text-lg dark:text-gray-100 line-clamp-2"
+                      :title="analysis.title ?? analysis.url"
+                    >
+                      {{ analysis.title && analysis.title.trim() ? analysis.title : analysis.url }}
+                    </h3>
 
-              <div class="flex flex-col items-end gap-2">
-                <!-- hide the compact badge on very small screens to save space; color indicates status -->
-                <span
-                  class="hidden sm:inline-block px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                  :class="
-                    analysis.summary !== null
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  "
-                >
-                  {{ analysis.summary === null ? 'Processing' : 'Completed' }}
-                </span>
+                    <!-- Status badge -->
+                    <span
+                      class="px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap shrink-0"
+                      :class="
+                        analysis.summary
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                      "
+                    >
+                      {{ analysis.summary ? t('analysis.completed') : t('analysis.processing') }}
+                    </span>
+                  </div>
 
-                <div class="flex items-center gap-2">
+                  <!-- Metadata -->
+                  <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium">{{ t('analysis.created') }}</span>
+                      <span>{{ analysis.created_at ? formatDate(analysis.created_at) : '' }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium">{{ t('analysis.updated') }}</span>
+                      <span>{{ analysis.updated_at ? formatDate(analysis.updated_at) : '' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex items-center justify-between gap-2 mt-3">
                   <button
                     @click.stop="analysis.transcription && analysis.id && openAnalysis(analysis.id)"
-                    :disabled="analysis.summary === null"
+                    :disabled="!analysis.summary"
                     :class="[
-                      'p-1 rounded shrink-0 inline-flex items-center justify-center',
-                      analysis.summary === null ? 'opacity-50 cursor-not-allowed' : '',
+                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm',
+                      !analysis.summary
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
+                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 hover:shadow-md cursor-pointer',
                     ]"
-                    title="View"
-                    aria-label="View analysis"
+                    :title="t('analysis.view')"
+                    :aria-label="t('analysis.view')"
                   >
-                    <Eye class="w-5 h-5 cursor-pointer" color="var(--color-tertiary)" />
+                    <Eye class="w-4 h-4" />
+                    <span class="hidden sm:inline">{{ t('analysis.view') }}</span>
                   </button>
 
                   <button
                     @click.stop="analysis.id && eraseAnalysis(analysis.id)"
-                    class="p-1 rounded hover:opacity-75 shrink-0 inline-flex items-center justify-center"
-                    title="Delete"
-                    aria-label="Delete analysis"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-all bg-gray-100 rounded-lg shadow-sm cursor-pointer hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    :title="t('analysis.delete')"
+                    :aria-label="t('analysis.delete')"
                   >
-                    <Trash2 class="w-5 h-5" color="var(--color-tertiary)" />
+                    <Trash2 class="w-4 h-4" />
+                    <span class="hidden sm:inline">{{ t('analysis.delete') }}</span>
                   </button>
                 </div>
               </div>
@@ -244,30 +259,27 @@
       </div>
     </div>
     <SearchModal v-model="searchStore.visible" @analyze="fetchAnalyses" />
+    <MobileFilterModal
+      v-model="mobileFilterWindow"
+      v-model:searchQuery="searchQuery"
+      v-model:filterStatus="filterStatus"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, Eye, Trash2, RotateCcw } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import { Plus, Eye, Trash2, RotateCcw, Filter } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import Sidebar from '@/components/SideBar.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SearchModal from '@/components/SearchModal.vue';
+import MobileFilterModal from '@/components/MobileFilterModal.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import { getAnalyses, deleteAnalysis } from '@/api/analyses';
 import { components } from '@/generated/schema';
-
-import youtubeLogo from '@/assets/logos/youtube-logo.jpg';
-import tiktokLogo from '@/assets/logos/tiktok-logo.png';
-import instagramLogo from '@/assets/logos/instagram-logo.png';
-
-const LogoSource: Record<string, string> = {
-  youtube_platform: youtubeLogo,
-  tiktok_platform: tiktokLogo,
-  instagram_platform: instagramLogo,
-};
 
 interface Sentiment {
   positive: number;
@@ -286,24 +298,38 @@ interface Analysis {
 }
 
 const router = useRouter();
+const { t } = useI18n();
 const analyses = ref<Analysis[]>([]);
 const realAnalyses = ref<components['schemas']['Analysis'][]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const searchQuery = ref('');
 const filterStatus = ref('');
+const mobileFilterWindow = ref(false);
+const imageErrors = ref<Record<string, boolean>>({});
 
 const filteredAnalyses = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+
+  function inferStatus(
+    analysis: components['schemas']['Analysis'],
+  ): 'completed' | 'processing' | 'failed' {
+    const s = analysis?.summary;
+    if (s === null || typeof s === 'undefined') return 'processing';
+    // treat an explicit empty string or empty object as failed
+    if (s === '' || (typeof s === 'object' && Object.keys(s).length === 0)) return 'failed';
+    return 'completed';
+  }
+
   return realAnalyses.value.filter((analysis) => {
-    const matchesSearch = analysis.url.toLowerCase().includes(searchQuery.value.toLowerCase());
-    // const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-    return matchesSearch;
+    const title = String(analysis.title ?? '').toLowerCase();
+    const matchesSearch = !query || title.includes(query);
+
+    const status = inferStatus(analysis);
+    const matchesStatus = !filterStatus.value || filterStatus.value === status;
+
+    return matchesSearch && matchesStatus;
   });
-  // return analyses.value.filter((analysis) => {
-  //   const matchesSearch = analysis.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-  //   const matchesStatus = !filterStatus.value || analysis.status === filterStatus.value;
-  //   return matchesSearch && matchesStatus;
-  // });
 });
 
 const fetchAnalyses = async () => {
@@ -336,30 +362,30 @@ const eraseAnalysis = async (id: string) => {
   // Use SweetAlert2 for confirmation
   // Make sure to install sweetalert2 and import it
   await Swal.fire({
-    title: 'Are you sure?',
-    text: 'Do you really want to delete this analysis?',
+    title: t('analysis.deleteConfirmTitle'),
+    text: t('analysis.deleteConfirmText'),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel',
+    confirmButtonText: t('analysis.deleteConfirmButton'),
+    cancelButtonText: t('common.cancel'),
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
         await deleteAnalysis(id);
         analyses.value = analyses.value.filter((a) => a.id !== id);
         Swal.fire({
-          title: 'Deleted!',
-          text: 'This analysis has been deleted.',
+          title: t('analysis.deletedTitle'),
+          text: t('analysis.deletedText'),
           icon: 'success',
           timer: 2000,
           showConfirmButton: false,
         });
       } catch (e) {
         Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete analysis:' + (e instanceof Error ? e.message : ''),
+          title: t('analysis.deleteErrorTitle'),
+          text: t('analysis.deleteErrorText') + ' ' + (e instanceof Error ? e.message : ''),
           icon: 'error',
           timer: 2000,
           showConfirmButton: false,
@@ -378,6 +404,42 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+const getPlatformBorderClass = (platform?: string): string => {
+  if (!platform) return 'border-gray-300 dark:border-gray-600';
+
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'border-red-500 dark:border-red-400',
+    tiktok_platform: 'border-black dark:border-white',
+    instagram_platform: 'border-pink-500 dark:border-pink-400',
+  };
+
+  return platformMap[platform] || 'border-gray-300 dark:border-gray-600';
+};
+
+const getPlatformPillClass = (platform?: string): string => {
+  if (!platform) return 'bg-gray-500 text-white';
+
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'bg-red-600 text-white',
+    tiktok_platform: 'bg-black text-white dark:bg-white dark:text-black',
+    instagram_platform: 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white',
+  };
+
+  return platformMap[platform] || 'bg-gray-500 text-white';
+};
+
+const getPlatformName = (platform?: string): string => {
+  if (!platform) return '';
+
+  const platformMap: Record<string, string> = {
+    youtube_platform: 'YOUTUBE',
+    tiktok_platform: 'TIKTOK',
+    instagram_platform: 'INSTAGRAM',
+  };
+
+  return platformMap[platform] || platform;
 };
 
 onMounted(() => {

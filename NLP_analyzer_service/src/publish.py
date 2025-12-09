@@ -4,7 +4,7 @@ import os
 import pika
 
 DEFAULT_LOCAL = "amqp://guest:guest@localhost:5672/"
-RABBITMQ_URL = os.getenv("AMQP_URL") or os.getenv("RABBITMQ_URL") or DEFAULT_LOCAL
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
 
 class RabbitPublisher:
     def __init__(self, rabbit_url=None):
@@ -65,7 +65,7 @@ class RabbitPublisher:
             # publish to exchange or direct queue depending on topology
             # here: publish to EXCHANGE with routing key for subscribers
             self.channel.basic_publish(
-                exchange="events",                  # or "" if you want default direct queue
+                exchange="sentimentator.topic",
                 routing_key="video.analysis.completed",
                 body=body,
                 properties=pika.BasicProperties(

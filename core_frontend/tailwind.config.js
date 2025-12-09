@@ -5,6 +5,7 @@ export const theme = {
     colors: {
       primary: 'var(--color-primary)',
       secondary: 'var(--color-secondary)',
+      tertiary: 'var(--color-tertiary)',
       accent: 'var(--color-accent)',
       background: 'var(--color-background)',
       textBase: 'var(--color-text-base)',

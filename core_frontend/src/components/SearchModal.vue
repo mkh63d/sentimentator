@@ -11,12 +11,12 @@
       <button
         class="cursor-pointer absolute right-3 top-3 p-1.5 text-tertiary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
         @click="closeWindow()"
-        aria-label="Close"
+        :aria-label="t('common.close')"
       >
         <X size="20" />
       </button>
 
-      <h2 class="mb-4 text-xl font-bold text-tertiary">Add Links for Analysis</h2>
+      <h2 class="mb-4 text-xl font-bold text-tertiary">{{ t('modal.searchTitle') }}</h2>
 
       <!-- Single link input -->
       <div class="flex gap-2 mb-4">
@@ -25,24 +25,24 @@
           v-model="current"
           @keyup.enter="addLink"
           :class="{ 'border-red-600': !isValidUrl(current) && current }"
-          placeholder="Enter a URL (press Enter or Add)"
-          aria-label="Add link"
+          :placeholder="t('modal.enterUrl')"
+          :aria-label="t('common.add')"
         />
         <button
           class="px-4 py-2 transition-colors border-0 rounded-lg cursor-pointer bg-primary text-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
           @click="addLink"
           :disabled="!current"
         >
-          Add
+          {{ t('common.add') }}
         </button>
       </div>
       <p class="mb-3 text-sm text-red-600" v-if="!isValidUrl(current) && current">
-        Please enter a valid URL.
+        {{ t('modal.validUrl') }}
       </p>
 
       <!-- Validation / hint -->
       <p class="mb-3 text-sm text-red-600" v-if="invalidCount > 0">
-        {{ invalidCount }} invalid link(s) ignored.
+        {{ invalidCount }} {{ t('modal.invalidLinks') }}
       </p>
 
       <!-- Links list -->
@@ -62,7 +62,7 @@
           <button
             class="cursor-pointer ml-auto text-tertiary hover:text-primary p-1.5 rounded-full hover:bg-primary/10 transition-colors"
             @click="removeLink(i)"
-            aria-label="Remove link"
+            :aria-label="t('common.delete')"
           >
             <X size="16" />
           </button>
@@ -74,16 +74,16 @@
         <button
           class="px-5 py-2 transition-colors rounded-lg cursor-pointer bg-primary text-background disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
           @click="submit"
-          :disabled="!links.length"
+          :disabled="!links.length || isLoading"
         >
-          Analyse
+          {{ t('common.analyse') }}
         </button>
         <button
           class="px-5 py-2 transition-colors rounded-lg cursor-pointer bg-tertiary/10 text-tertiary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-tertiary/20"
           @click="clearAll"
           :disabled="!links.length"
         >
-          Clear
+          {{ t('common.clear') }}
         </button>
       </div>
 
@@ -99,10 +99,12 @@ import { X } from 'lucide-vue-next';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import { createAnalysis } from '@/api/analyses';
 import { fireTimedAlert } from '@/lib/sweetAlerts';
+import { useI18n } from 'vue-i18n';
 
 const isLoading = ref(false);
 const loadingMessage = ref('');
 const searchStore = useSearchStore();
+const { t } = useI18n();
 
 const emit = defineEmits(['analyze']);
 
@@ -139,7 +141,7 @@ const isValidUrl = (value) => {
 const addLink = () => {
   const val = current.value.trim();
   if (links.value.length >= 1) {
-    fireTimedAlert('Link limit reached', 'Adding more is a premium feature', 2000, false);
+    fireTimedAlert(t('modal.linkLimitReached'), t('modal.premiumFeature'), 2000, false);
     return;
   }
 
@@ -171,23 +173,45 @@ const invalidCount = computed(() => {
 });
 
 const submit = async () => {
-  if (!links.value.length) return;
+  if (!links.value.length || isLoading.value) return;
 
-  // Mock Loading
-  loadingMessage.value = 'Creating analyses...';
   isLoading.value = true;
+  loadingMessage.value = t('modal.creatingAnalyses');
+
+  const failures = [];
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
-    for (const link of links.value) {
-      await createAnalysis(link);
+    for (let i = 0; i < links.value.length; i++) {
+      const link = links.value[i];
+      loadingMessage.value = t('modal.creatingAnalyses') + ` (${i + 1}/${links.value.length})`;
+      try {
+        await createAnalysis(link);
+      } catch (err) {
+        failures.push({ link, error: err });
+        console.error('createAnalysis failed for', link, err);
+      }
     }
-  } catch (error) {
-    console.error('Error during analysis creation:', error);
+
+    if (failures.length === 0) {
+      // all succeeded
+      fireTimedAlert(t('modal.createdSuccess'), '', 1800, false);
+      searchStore.hide();
+      clearAll();
+      emit('analyze');
+    } else {
+      // show error summary and keep failed links in the list for retry
+      const first = failures[0];
+      const msg =
+        (first.error && first.error.message) || String(first.error ?? t('modal.unknownError'));
+      fireTimedAlert(t('modal.createdFailed'), msg, 4000, true);
+      // keep only failed links so user can retry them
+      links.value = failures.map((f) => f.link);
+    }
+  } catch (err) {
+    console.error('Unexpected error in submit:', err);
+    fireTimedAlert(t('modal.createdFailed'), String(err ?? t('modal.unknownError')), 4000, true);
+  } finally {
+    isLoading.value = false;
+    loadingMessage.value = '';
   }
-  isLoading.value = false;
-  loadingMessage.value = '';
-  searchStore.hide();
-  clearAll();
-  emit('analyze');
 };
 </script>

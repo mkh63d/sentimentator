@@ -1,50 +1,60 @@
 <template>
   <div class="min-h-screen bg-background">
-    <nav class="fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-transparent backdrop-blur-xs">
-      <div class="flex items-center justify-between mx-auto max-w-7xl">
+    <nav
+      :class="[
+        'fixed top-0 left-0 right-0 z-50 px-4 py-5 bg-white/ backdrop-blur-md transition-transform duration-300',
+        showNavbar ? 'translate-y-0' : '-translate-y-full',
+      ]"
+    >
+      <div class="flex flex-wrap lg:flex-no-wrap items-center justify-between mx-auto max-w-7xl">
         <div
           class="text-2xl font-bold cursor-pointer text-background"
-          @click="() => router.push({ name: 'home' })"
+          @click="
+            () => {
+              router.push({ name: 'home' });
+              showPhoneMenu = false;
+            }
+          "
         >
           Sentimentator
         </div>
-        <ul class="hidden gap-8 md:flex">
-          <li class="order-2 md:order-1">
+        <ul class="hidden gap-8 lg:flex">
+          <li class="order-2 lg:order-1">
             <router-link
               :to="{ hash: '#features' }"
               class="font-medium transition text-background hover:text-indigo-100"
-              >Features</router-link
+              >{{ t('nav.features') }}</router-link
             >
           </li>
-          <li class="order-2 md:order-2">
+          <li class="order-2 lg:order-2">
             <router-link
               :to="{ hash: '#methods' }"
               class="font-medium transition text-background hover:text-indigo-100"
-              >Methods</router-link
+              >{{ t('nav.methods') }}</router-link
             >
           </li>
-          <li class="order-2 md:order-3">
+          <li class="order-2 lg:order-3">
             <router-link
               :to="{ hash: '#about' }"
               class="font-medium transition text-background hover:text-indigo-100"
-              >About</router-link
+              >{{ t('nav.about') }}</router-link
             >
           </li>
-          <li class="order-2 md:order-4">
+          <li class="order-2 lg:order-4">
             <router-link
               :to="{ hash: '#team' }"
               class="font-medium transition text-background hover:text-indigo-100"
-              >Team</router-link
+              >{{ t('nav.team') }}</router-link
             >
           </li>
         </ul>
-        <ul class="hidden gap-8 md:flex">
+        <ul class="hidden gap-8 lg:flex">
           <li>
             <button
               class="px-6 py-3 font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
               @click="hasTokens ? goToDashboard() : goToLogin()"
             >
-              Try for Free
+              {{ t('nav.tryForFree') }}
             </button>
           </li>
           <li>
@@ -52,56 +62,155 @@
               class="px-6 py-2 mr-3 font-semibold transition bg-transparent rounded-lg cursor-pointer text-background border-3 border-background"
               @click="goToLogin"
             >
-              Login
+              {{ t('nav.login') }}
             </button>
           </li>
           <li>
-            <ThemeSwitcher class="mx-5 ml-0" />
+            <LanguageSwitcher class="ml-0 my-1" />
+          </li>
+          <li>
+            <ThemeSwitcher class="mx-5 ml-0" :changeOnTheme="true" />
           </li>
         </ul>
+        <button class="lg:hidden mr-2" @click="togglePhoneMenu">
+          <svg
+            class="w-6 h-6 scale-[130%]"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            v-if="!showPhoneMenu"
+          >
+            <path
+              d="M4 6H20M4 12H20M4 18H20"
+              stroke="var(--color-tertiary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+          <svg
+            class="w-6 h-6 scale-[130%]"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            v-else
+          >
+            <path
+              d="M6 18L18 6M6 6L18 18"
+              stroke="var(--color-tertiary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div v-show="showPhoneMenu" class="lg:hidden relative w-full h-full">
+          <div class="flex flex-col justify-between items-center text-center h-[90vh] pt-5 z-10">
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-fourth"
+            >
+              <router-link :to="{ hash: '#features' }" class="z-10 px-4">{{
+                t('nav.features')
+              }}</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-fourth"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#methods' }" class="z-10 px-4">{{
+                t('nav.methods')
+              }}</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-fourth"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#about' }" class="z-10 px-4">{{
+                t('nav.about')
+              }}</router-link>
+            </div>
+
+            <div
+              class="p-2 flex-1 font-medium text-3xl w-full transition text-background items-center justify-center flex hover:text-indigo-100 border-b border-fourth"
+              v-on:click="showPhoneMenu = false"
+            >
+              <router-link :to="{ hash: '#team' }" class="z-10 px-4">{{
+                t('nav.team')
+              }}</router-link>
+            </div>
+            <div class="flex space-x-5 m-5 justify-center">
+              <button
+                class="px-4 py-3 font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
+                @click="hasTokens ? goToDashboard() : goToLogin()"
+              >
+                {{ t('nav.tryForFree') }}
+              </button>
+
+              <button
+                class="px-6 py-2 font-semibold transition bg-transparent rounded-lg cursor-pointer text-background border-3 border-background"
+                @click="goToLogin"
+              >
+                {{ t('nav.login') }}
+              </button>
+            </div>
+
+            <div class="flex flex-row mb-10 gap-5 items-center">
+              <ThemeSwitcher class="mx-5" :changeOnTheme="true" />
+              <LanguageSwitcher class="" />
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
     <!-- Hero Section -->
-    <section class="relative z-0 bg-linear-to-br from-primary via-secondary to-fourth -mt-14 pt-14">
-      <div class="px-4 py-20 mx-auto text-center max-w-7xl md:py-32 text-background">
-        <h1 class="mb-5 text-5xl font-extrabold md:text-6xl">Analyze Video Reviews in Seconds</h1>
-        <p class="mb-10 text-xl opacity-90">
-          Transform your favourite video reviews into actionable sentiment insights with ease.
+    <section
+      id="hero"
+      class="relative z-0 bg-linear-to-br from-primary via-fourth to-secondary dark:via-secondary dark:to-fourth lg:pt-32 lg:pb-40"
+    >
+      <div class="px-4 py-20 max-h-full mx-auto text-center max-w-7xl lg:py-32 text-background">
+        <div class="absolute lg:top-10 lg:right-10 hidden lg:block">
+          <ThemeSwitcher :changeOnTheme="true" />
+        </div>
+        <h1 class="mb-5 text-5xl font-extrabold lg:text-6xl">{{ t('home.heroTitle') }}</h1>
+        <p class="mb-20 text-xl opacity-90">
+          {{ t('home.heroSubtitle') }}
         </p>
         <div class="flex flex-col justify-center gap-5 sm:flex-row">
           <button
             class="px-8 py-4 text-lg font-semibold transition rounded-lg cursor-pointer bg-background text-primary hover:bg-secondary"
             @click="hasTokens ? goToDashboard() : goToLogin()"
           >
-            Start Now!
+            {{ t('home.startNow') }}
           </button>
           <button
             class="px-8 py-4 text-lg font-semibold transition bg-transparent border-2 rounded-lg cursor-pointer text-background border-background hover:bg-background hover:text-primary"
             @click="goToLogin"
           >
-            Sign In
+            {{ t('home.signIn') }}
           </button>
         </div>
       </div>
     </section>
 
     <section id="compatible">
-      <div class="px-1 py-1 mx-auto bg-white max-w-12xl">
-        <ul class="flex flex-wrap items-center justify-center gap-15">
+      <div class="px-1 py-1 mx-auto bg-background max-w-12xl">
+        <ul class="flex items-center justify-center gap-5 lg:gap-15">
           <li>
-            <h3 class="text-md md:text-md font-bold px-20 text-[#3d4d5c] border-r-2">
-              Compatible with <br />
-              Popular Platforms
+            <h3 class="text-lg lg:text-md font-bold p-5 lg:px-20 text-tertiary border-r-2">
+              {{ t('home.compatible') }} <br />
+              {{ t('home.popularPlatforms') }}
             </h3>
           </li>
           <li>
-            <svg viewBox="0 0 100 70" role="img" aria-label="YouTube" class="w-30 md:w-40">
+            <svg viewBox="0 0 100 70" role="img" aria-label="YouTube" class="w-20 lg:w-40">
               <rect width="100" height="70" rx="12" fill="#ff0000" />
               <polygon points="40,20 70,35 40,50" fill="#fff" />
             </svg>
           </li>
           <li>
-            <svg viewBox="0 0 100 100" role="img" aria-label="Instagram" class="w-30 md:w-40">
+            <svg viewBox="0 0 100 100" role="img" aria-label="Instagram" class="w-20 lg:w-40">
               <defs>
                 <linearGradient id="instaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#f58529" />
@@ -119,41 +228,49 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-2 bg-tertiary">
+    <section id="features" class="py-2 bg-secondary border-b border-primary">
       <div
         class="flex flex-wrap justify-center px-0 mx-0 divide-x divide-y max-w-8xl divide-primary"
       >
         <div class="w-[50%] text-center p-12 col-1">
-          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">Available non-stop</h3>
+          <h3 class="mb-1 text-xl font-bold text-tertiary text-align-left">
+            {{ t('home.features.available247') }}
+          </h3>
           <h2 class="mb-1 text-2xl font-extrabold text-primary text-align-left">
-            24/7 - on demand,
+            {{ t('home.features.onDemand') }}
           </h2>
-          <h3 class="mb-1 text-xl font-bold text-secondary text-align-left">
-            whenever you need it
+          <h3 class="mb-1 text-xl font-bold text-tertiary text-align-left">
+            {{ t('home.features.wheneverNeeded') }}
           </h3>
         </div>
         <div class="text-center w-[30%] p-12 col-1 border-r-0">
-          <h2 class="mb-4 text-2xl font-bold text-primary">Accurate Results</h2>
-          <p class="text-textBase">
-            Our advanced algorithms ensure you get the most accurate sentiment insights.
+          <h2 class="mb-4 text-2xl font-bold text-primary">
+            {{ t('home.features.accurateResults') }}
+          </h2>
+          <p class="text-tertiary">
+            {{ t('home.features.accurateDescription') }}
           </p>
         </div>
         <div class="text-center w-[40%] p-6 col-2">
-          <h2 class="mb-4 text-2xl font-bold text-primary">User-Friendly</h2>
-          <p class="text-textBase">
-            An intuitive interface makes it easy for anyone to analyze video reviews.
+          <h2 class="mb-4 text-2xl font-bold text-primary">
+            {{ t('home.features.userFriendly') }}
+          </h2>
+          <p class="text-tertiary">
+            {{ t('home.features.userFriendlyDescription') }}
           </p>
         </div>
         <div class="text-center p-6 col-2 w-[60%] border-r-0">
-          <h2 class="mb-4 text-2xl font-bold text-primary">In One Place</h2>
-          <p class="text-textBase">
-            All your data for your next better consumer choice in one place.
+          <h2 class="mb-4 text-2xl font-bold text-primary">{{ t('home.features.inOnePlace') }}</h2>
+          <p class="text-tertiary">
+            {{ t('home.features.inOnePlaceDescription') }}
           </p>
         </div>
         <div class="w-full p-6 text-center col-1">
-          <h2 class="mb-4 text-2xl font-bold text-primary">Be a Conscious Customer</h2>
-          <p class="text-textBase">
-            Make informed decisions based on a comprehensive sentiment analysis.
+          <h2 class="mb-4 text-2xl font-bold text-primary">
+            {{ t('home.features.consciousCustomer') }}
+          </h2>
+          <p class="text-tertiary">
+            {{ t('home.features.consciousCustomerDescription') }}
           </p>
         </div>
       </div>
@@ -161,38 +278,35 @@
 
     <section id="methods" class="bg-secondary">
       <div class="px-4 mx-auto text-center max-w-7xl py-18">
-        <h2 class="mb-5 text-4xl font-extrabold text-primary">Our Analysis Methods</h2>
+        <h2 class="mb-5 text-4xl font-extrabold text-primary">{{ t('home.methods.title') }}</h2>
         <p class="mb-10 text-xl text-tertiary">
-          Try out our cutting-edge techniques to deliver precise sentiment analysis.
+          {{ t('home.methods.subtitle') }}
         </p>
-        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
+        <div class="grid grid-cols-1 gap-10 lg:grid-cols-3">
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 lg:opacity-40 lg:hover:opacity-100 border-primary"
           >
-            <h3 class="mb-4 text-2xl font-bold text-primary">Natural Language Processing (NLP)</h3>
+            <h3 class="mb-4 text-2xl font-bold text-primary">{{ t('home.methods.nlp') }}</h3>
             <p class="text-tertiary">
-              Leveraging advanced NLP algorithms to understand and interpret human language in video
-              reviews.
+              {{ t('home.methods.nlpDescription') }}
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 lg:opacity-40 lg:hover:opacity-100 border-primary"
           >
             <h3 class="mb-4 text-2xl font-bold text-primary">
-              Transcript and highlight extraction
+              {{ t('home.methods.transcript') }}
             </h3>
             <p class="text-tertiary">
-              Extracting key transcripts and highlights from video content for focused sentiment
-              analysis from multiple angles with just the link you provide.
+              {{ t('home.methods.transcriptDescription') }}
             </p>
           </div>
           <div
-            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 hover:opacity-100 border-accent"
+            class="p-6 transition duration-700 border-2 rounded-lg shadow-md bg-secondary hover:shadow-lg opacity-40 lg:opacity-40 lg:hover:opacity-100 border-primary"
           >
-            <h3 class="mb-4 text-2xl font-bold text-primary">Sentiment Scoring</h3>
+            <h3 class="mb-4 text-2xl font-bold text-primary">{{ t('home.methods.scoring') }}</h3>
             <p class="text-tertiary">
-              Assigning sentiment scores to reviews to quantify positive, negative, and neutral
-              feedback.
+              {{ t('home.methods.scoringDescription') }}
             </p>
           </div>
         </div>
@@ -201,11 +315,10 @@
 
     <section id="about">
       <div class="px-4 pb-12 mx-auto text-center max-w-7xl pt-18">
-        <h2 class="mb-5 text-4xl font-extrabold text-primary">About Us</h2>
+        <h2 class="mb-5 text-4xl font-extrabold text-primary">{{ t('home.about.title') }}</h2>
         <p class="mb-10 text-xl text-tertiary">
-          Sentimentator is dedicated to empowering consumers with insights derived from video
-          reviews. <br />
-          Our mission is to make sentiment analysis accessible and actionable for everyone.
+          {{ t('home.about.description') }} <br />
+          {{ t('home.about.mission') }}
         </p>
       </div>
     </section>
@@ -230,28 +343,36 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-10 text-center bg-background text-primary">
+    <footer
+      class="py-10 mt-15 text-center text-primary bg-secondary blurry-border-top border-primary"
+    >
       <div class="px-4 mx-auto max-w-7xl">
-        <p>&copy; 2025 Sentimentator. All rights reserved.</p>
+        <p>{{ t('home.footer.copyright') }}</p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent, onUnmounted } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
+import { useI18n } from 'vue-i18n';
 
 const TeamCarousel = defineAsyncComponent(() => import('@/components/TeamCarousel.vue'));
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const teamSectionRef = ref<HTMLElement | null>(null);
 const shouldRenderTeamCarousel = ref(false);
 let teamObserver: IntersectionObserver | null = null;
+const showNavbar = ref(false);
+const lastScroll = ref(0);
+const showPhoneMenu = ref(false);
 
 onMounted(() => {
   if (!('IntersectionObserver' in window)) {
@@ -276,6 +397,48 @@ onMounted(() => {
   if (teamSectionRef.value) {
     teamObserver.observe(teamSectionRef.value);
   }
+
+  const hero = document.getElementById('hero');
+
+  if (!hero) return;
+
+  const heroBottom = hero.offsetTop + hero.offsetHeight;
+  const methodsElements = document.querySelectorAll('#methods .opacity-40');
+
+  // Show navbar only if below the hero section
+  //
+  const onScroll = () => {
+    const current = window.scrollY;
+
+    if (current > heroBottom) {
+      showNavbar.value = true;
+    } else {
+      showNavbar.value = false;
+      showPhoneMenu.value = false;
+    }
+
+    for (let i = 0; i < methodsElements.length; i++) {
+      let method = methodsElements[i] as HTMLElement;
+      if (
+        current >
+        method.getBoundingClientRect().top + window.scrollY - window.innerHeight + 100
+      ) {
+        method.classList.remove('opacity-40');
+        method.classList.add('opacity-100');
+      } else {
+        method.classList.remove('opacity-100');
+        method.classList.add('opacity-40');
+      }
+    }
+
+    lastScroll.value = current;
+  };
+
+  window.addEventListener('scroll', onScroll);
+
+  onUnmounted(() => {
+    window.removeEventListener('scroll', onScroll);
+  });
 });
 
 onBeforeUnmount(() => {
@@ -291,5 +454,9 @@ const goToLogin = () => {
 
 const goToDashboard = () => {
   router.push({ name: 'list' });
+};
+
+const togglePhoneMenu = () => {
+  showPhoneMenu.value = !showPhoneMenu.value;
 };
 </script>

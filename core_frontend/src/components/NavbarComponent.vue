@@ -20,13 +20,17 @@
           Sentimentator
         </router-link>
       </div>
-      <ThemeSwitcher class="mx-5" :changeOnTheme="true" />
+      <div class="flex items-center gap-3">
+        <LanguageSwitcher class="hidden sm:block mx-0" />
+        <ThemeSwitcher class="mx-5 sm:mx-3" :changeOnTheme="true" />
+      </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useSidebarStore } from '@/stores/sidebarStore';
 
 const sidebarStore = useSidebarStore();

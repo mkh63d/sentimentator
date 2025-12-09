@@ -10,7 +10,7 @@ RABBITMQ_URL = os.getenv("RABBITMQ_URL", DEFAULT_LOCAL)
 EXCHANGE = "events"
 ROUTING_KEY = "video.transcript.completed"
 
-# --- Helper: safe RabbitMQ connection ---
+# Helper for safe RabbitMQ connection
 def create_rabbit_connection(url, retries=5, delay=3):
     for attempt in range(1, retries + 1):
         try:
@@ -24,10 +24,9 @@ def create_rabbit_connection(url, retries=5, delay=3):
             time.sleep(delay)
     raise RuntimeError("Failed to connect to RabbitMQ after multiple attempts")
 
-# --- Instantiate service ---
 service = SentimentAnalysisService(rabbit_url=RABBITMQ_URL)
 
-# --- Signal handling ---
+# Signal handling
 def shutdown_handler(signum, frame):
     print(f"[*] Received signal {signum}, shutting down service...")
     service.close()
@@ -36,10 +35,8 @@ def shutdown_handler(signum, frame):
 signal.signal(signal.SIGTERM, shutdown_handler)
 signal.signal(signal.SIGINT, shutdown_handler)
 
-# --- Start service ---
 service.start()  # Assuming this launches the consumer in a background thread
 print("[*] NLP Analyzer service is running and listening to RabbitMQ...")
 
-# --- Keep container alive ---
 while True:
     time.sleep(10)

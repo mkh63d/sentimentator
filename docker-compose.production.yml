@@ -63,8 +63,9 @@ services:
             - "traefik.http.routers.sentimentator-vps.tls.certresolver=letsencrypt"
             - "traefik.http.services.sentimentator-vps.loadbalancer.server.port=8080"
 
-    sentiment-analyzer-placeholder-service:
-        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer_placeholder_service:dev
+    sentiment-analyzer:
+        image: ghcr.io/oskarowski/sentimentator/sentiment_analyzer:dev
+        pull_policy: always
         container_name: sentimentator-analyzer
         restart: unless-stopped
         depends_on:
@@ -72,11 +73,6 @@ services:
                 condition: service_started
         environment:
             - RABBITMQ_URL=${AMQP_URL}
-            - TRANSCRIPT_QUEUE=video.transcript
-            - ANALYSIS_EXCHANGE=sentimentator.topic
-            - ANALYSIS_QUEUE=video.analysis
-            - ANALYSIS_ROUTING_KEY=video.analysis.completed
-            - LOG_LEVEL=info
         networks:
             - internal-net
 
